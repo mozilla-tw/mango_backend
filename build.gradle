@@ -1,0 +1,50 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.21"
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:2.1.6.RELEASE"
+        classpath "com.google.cloud.tools:appengine-gradle-plugin:1.3.4"
+
+    }
+}
+
+apply plugin: 'kotlin'
+apply plugin: 'war'
+apply plugin: 'idea'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'com.google.cloud.tools.appengine'
+apply plugin: 'io.spring.dependency-management'
+
+
+repositories {
+    mavenCentral()
+}
+
+group = 'org.mozilla.msrp'
+version = '0.0.1'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+ext {
+    set('springCloudVersion', "Greenwich.SR2")
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.3.21"
+    implementation "org.springframework.boot:spring-boot-starter-web"
+    implementation "org.springframework.cloud:spring-cloud-gcp-starter"
+    implementation "org.json:json:20090211"
+    implementation "org.springframework.boot:spring-boot-devtools"
+    testImplementation "org.springframework.boot:spring-boot-starter-test"
+}
+
+
+// required for com.google.cloud.tools.appengine to work. Where is the class path for this?
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
