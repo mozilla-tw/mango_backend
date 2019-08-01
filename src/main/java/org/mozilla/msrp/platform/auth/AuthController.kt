@@ -1,4 +1,4 @@
-package org.mozilla.msrp.platform
+package org.mozilla.msrp.platform.auth
 
 import com.google.cloud.firestore.CollectionReference
 import com.google.cloud.firestore.SetOptions
@@ -6,6 +6,8 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.cloud.FirestoreClient
 import org.json.JSONException
 import org.json.JSONObject
+import org.mozilla.msrp.platform.util.HttpUtil
+import org.mozilla.msrp.platform.PlatformApplication
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
