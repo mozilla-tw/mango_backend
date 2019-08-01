@@ -22,7 +22,9 @@ class AuthController {
 
     @RequestMapping("/login", method = [GET])
     @Throws(IOException::class, JSONException::class)
-    fun login(@RequestParam(value = "code") code: String, httpResponse: HttpServletResponse): String {
+    fun login(@RequestParam(value = "code") code: String,
+              @RequestParam(value = "state") oldFbUid: String,
+              httpResponse: HttpServletResponse): String {
 
         val fxAclientId = PlatformApplication.FXA_CLIENT_ID
         val fxAtokenEp = PlatformApplication.FXA_EP_TOKEN
@@ -54,6 +56,7 @@ class AuthController {
             val additionalClaims = HashMap<String, Any>()
             val fxUid = JSONObject(fxVerifyRes).getString("user")
             additionalClaims["fxuid"] = fxUid
+            additionalClaims["oldFbUid"] = oldFbUid
 
             val auth = FirebaseAuth.getInstance()
             val customToken = auth.createCustomToken(fxUid, additionalClaims)
