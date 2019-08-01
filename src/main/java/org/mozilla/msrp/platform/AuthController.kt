@@ -26,38 +26,39 @@ class AuthController {
               @RequestParam(value = "state") oldFbUid: String,
               httpResponse: HttpServletResponse): String {
 
+        // read system settings
         val fxAclientId = PlatformApplication.FXA_CLIENT_ID
         val fxAtokenEp = PlatformApplication.FXA_EP_TOKEN
         val fxAverifyEp = PlatformApplication.FXA_EP_VERIFY
         val fxAsecret = PlatformApplication.FXA_CLIENT_SECRET
 
-        val fxaTokenJson = JSONObject()
-                .put("client_id", fxAclientId)
-                .put("grant_type", "authorization_code")
-                .put("ttl", 3600)
-                .put("client_secret", fxAsecret)
-                .put("code", code)
 
-        println("jsonObj===$fxaTokenJson")
         try {
+            // token: code -> token
+            val fxaTokenJson = JSONObject()
+                    .put("client_id", fxAclientId)
+                    .put("grant_type", "authorization_code")
+                    .put("ttl", 3600)
+                    .put("client_secret", fxAsecret)
+                    .put("code", code)
+            println("fxaTokenJson===$fxaTokenJson")
             val fxAtokenRes = HttpUtil.post(fxAtokenEp, fxaTokenJson)
-            println("fxAtokenRes:$fxAtokenRes")
-
+            println("fxAtokenRes===$fxAtokenRes")
             val fxJsonObject = JSONObject(fxAtokenRes)
             val fxAtoken = fxJsonObject.getString("access_token")
 
-
+            // verify: token -> uid
             val verifyJson = JSONObject().run {
                 put("token", fxAtoken)
             }
             val fxVerifyRes = HttpUtil.post(fxAverifyEp, verifyJson)
-            println("fxVerifyRes:$fxVerifyRes")
+            println("fxVerifyRes===$fxVerifyRes")
 
+            // create custom token (jwt) for Firebase client SDK
             val additionalClaims = HashMap<String, Any>()
             val fxUid = JSONObject(fxVerifyRes).getString("user")
             additionalClaims["fxuid"] = fxUid
             additionalClaims["oldFbUid"] = oldFbUid
-
             val auth = FirebaseAuth.getInstance()
             val customToken = auth.createCustomToken(fxUid, additionalClaims)
             httpResponse.sendRedirect("/done?jwt=$customToken&at=$fxAtoken&email=nechen@mozilla.com")
@@ -66,10 +67,8 @@ class AuthController {
 
         } catch (e: Exception) {
             println("Exception===$e")
-
-            return "exception:" + e.localizedMessage
+            return "exception===" + e.localizedMessage
         }
-
     }
 
 
