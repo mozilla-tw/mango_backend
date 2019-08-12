@@ -11,7 +11,7 @@ import java.util.*
 @Repository
 class AuthRepository {
 
-    fun createCustomToken(fxUid: String?, additionalClaims: HashMap<String, Any>) =
+    fun createCustomToken(fxUid: String?, additionalClaims: HashMap<String, String>) =
             FirebaseAuth.getInstance().createCustomToken(fxUid, additionalClaims)
 
     fun promoteUserDocument(oldFbUid: String, fxUid: String) {
