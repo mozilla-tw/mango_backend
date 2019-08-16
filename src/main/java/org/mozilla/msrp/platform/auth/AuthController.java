@@ -1,5 +1,6 @@
 package org.mozilla.msrp.platform.auth;
 
+import com.google.firebase.internal.FirebaseScheduledExecutor;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mozilla.msrp.platform.PlatformApplication;
@@ -16,10 +17,12 @@ import java.util.HashMap;
 @RestController
 public class AuthController {
     private AuthRepository authRepository;
+    private FirefoxAccountService firefoxAccountService;
 
     @Autowired
-    public AuthController(AuthRepository repo) {
+    public AuthController(AuthRepository repo, FirefoxAccountService service) {
         authRepository = repo;
+        firefoxAccountService = service;
     }
 
     @RequestMapping("/done")
@@ -33,35 +36,11 @@ public class AuthController {
                  @RequestParam(value = "state") String oldFbUid,
                  HttpServletResponse httpResponse) throws IOException, JSONException {
 
-        // read system settings
-        String fxAclientId = PlatformApplication.FXA_CLIENT_ID;
-        String fxTokenEp = PlatformApplication.FXA_EP_TOKEN;
-        String fxVerifyEp = PlatformApplication.FXA_EP_VERIFY;
-        String fxAsecret = PlatformApplication.FXA_CLIENT_SECRET;
-
 
         try {
-            // token: fxCode -> fxToken
-            JSONObject fxTokenJson = new JSONObject()
-                    .put("client_id", fxAclientId)
-                    .put("grant_type", "authorization_code")
-                    .put("ttl", 3600)
-                    .put("client_secret", fxAsecret)
-                    .put("code", code);
-            // println("fxTokenJson===$fxTokenJson")
-            String fxTokenRes = HttpUtil.post(fxTokenEp, fxTokenJson);
-            // println("fxTokenRes===$fxTokenRes")
+            String fxToken = firefoxAccountService.authorization(code);
 
-            JSONObject fxJsonObject = new JSONObject(fxTokenRes);
-            String fxToken = fxJsonObject.getString("access_token");
-            //println("fxToken===$fxToken")
-
-            // verify: token -> fxuid
-            JSONObject verifyJson = new JSONObject();
-            verifyJson.put("token", fxToken);
-            String fxVerifyRes = HttpUtil.post(fxVerifyEp, verifyJson);
-            String fxUid = new JSONObject(fxVerifyRes).getString("user");
-//            println("fxUid===$fxUid")
+            String fxUid = firefoxAccountService.verify(fxToken);
 
             authRepository.promoteUserDocument(oldFbUid, fxUid);
 
@@ -70,12 +49,11 @@ public class AuthController {
             additionalClaims.put("fxuid", fxUid);
             additionalClaims.put("oldFbUid", oldFbUid);
             String customToken = authRepository.createCustomToken(fxUid, additionalClaims);
-            httpResponse.sendRedirect("/done?jwt=$customToken&at=$fxToken&email=nechen@mozilla.com");
+            httpResponse.sendRedirect("/done?jwt="+customToken+"&at=$fxToken&email=nechen@mozilla.com");
 
             return "done";
 
         } catch (Exception e) {
-//            println("Exceptiontion===$e")
             return "exception===" + e.getLocalizedMessage();
         }
     }
