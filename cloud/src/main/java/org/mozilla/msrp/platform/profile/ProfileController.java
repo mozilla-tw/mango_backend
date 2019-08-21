@@ -1,11 +1,13 @@
 package org.mozilla.msrp.platform.profile;
 
 import org.json.JSONException;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.HashMap;
@@ -15,42 +17,46 @@ public class ProfileController {
     private ProfileRepository profileRepository;
     private FirefoxAccountService firefoxAccountService;
 
-    @Autowired
+    @Inject
     public ProfileController(ProfileRepository repo, FirefoxAccountService service) {
         profileRepository = repo;
         firefoxAccountService = service;
     }
 
     @RequestMapping("/done")
-    String done(@RequestParam(value = "jwt") String jwt) {
-        return this.toString() + "jwt is here [" + jwt + "], closing the webview";
+    String done(@RequestParam(value = "jwt") String jwt, @RequestParam(value = "fxaAccessToken") String fxaAccessToken) {
+        if (jwt == null || jwt.length() == 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "GWT generation failed");
+        }
+        return "Debug:jwt[" + jwt + "]  [" + fxaAccessToken +"], closing the webview";
     }
-
 
     @RequestMapping("/login")
     String login(@RequestParam(value = "code") String code,
                  @RequestParam(value = "state") String oldFbUid,
-                 HttpServletResponse httpResponse) throws IOException, JSONException {
-
+                 HttpServletResponse httpResponse) {
 
         try {
-            String fxToken = firefoxAccountService.authorization(code);
+            String fxaAccessToken = firefoxAccountService.authorization(code);
 
-            String fxUid = firefoxAccountService.verify(fxToken);
+            FxAProfileResponse profileResponse = firefoxAccountService.profile(fxaAccessToken);
 
-            profileRepository.promoteUserDocument(oldFbUid, fxUid);
+            String fxUid = profileResponse.getUid();
+            String fxEmail = profileResponse.getEmail();
+
+            profileRepository.promoteUserDocument(oldFbUid, fxUid, fxEmail);
 
             // create custom token (jwt) for Firebase client SDK
-            HashMap<String, String> additionalClaims = new HashMap<String, String>();
+            HashMap<String, String> additionalClaims = new HashMap<>();
             additionalClaims.put("fxuid", fxUid);
             additionalClaims.put("oldFbUid", oldFbUid);
             String customToken = profileRepository.createCustomToken(fxUid, additionalClaims);
-            httpResponse.sendRedirect("/done?jwt="+customToken+"&at=$fxToken&email=nechen@mozilla.com");
+            httpResponse.sendRedirect("/done?jwt=" + customToken + "&fxaAccessToken=" + fxaAccessToken);
 
             return "done";
 
-        } catch (Exception e) {
-            return "exception===" + e.getLocalizedMessage();
+        } catch (IOException | JSONException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getLocalizedMessage());
         }
     }
 }

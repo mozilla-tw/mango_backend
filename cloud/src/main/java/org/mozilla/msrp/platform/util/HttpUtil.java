@@ -14,19 +14,27 @@ public class HttpUtil {
 
 
     @NotNull
-    public static String post(String endpoint, JSONObject jsonObj) throws IOException {
+    public static String post(String endpoint, JSONObject jsonObj, String bearer) throws IOException {
         URL url = new URL(endpoint);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestProperty("Content-Type", "application/json");
         connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
         connection.setRequestProperty("Accept", "application/json");
-        connection.setDoOutput(true);
-        connection.setRequestMethod("POST");
 
-        byte[] outputBytes = jsonObj.toString().getBytes("UTF-8");
-        OutputStream os = connection.getOutputStream();
-        os.write(outputBytes);
-        os.close();
+        if (jsonObj != null) {
+            connection.setDoOutput(true);
+            connection.setRequestMethod("POST");
+            byte[] outputBytes = jsonObj.toString().getBytes("UTF-8");
+            OutputStream os = connection.getOutputStream();
+            os.write(outputBytes);
+            os.close();
+        }
+        if (bearer != null) {
+            connection.setRequestProperty("Authorization", "Bearer " + bearer);
+            System.out.println("bearer===" + bearer);
+
+        }
+
         System.out.println("connection.getResponseCode()===" + connection.getResponseCode());
         if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
             // OK

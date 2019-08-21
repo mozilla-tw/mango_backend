@@ -5,55 +5,61 @@ import com.google.cloud.firestore.SetOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.cloud.FirestoreClient
 import org.springframework.stereotype.Repository
-import java.text.SimpleDateFormat
-import java.util.*
 
 @Repository
 class ProfileRepository {
+    private var users: CollectionReference
 
-    fun createCustomToken(fxUid: String?, additionalClaims: Map<String, String>) =
-            FirebaseAuth.getInstance().createCustomToken(fxUid, additionalClaims)
-
-    fun promoteUserDocument(oldFbUid: String, fxUid: String) {
+    constructor() {
         val db = FirestoreClient.getFirestore()
-        val users = db.collection("users")
-
-        // if there's an user document with uid == fxuid , remove current one
-        val fxUserDocumentId = findUserDocumentIdByUid(users, fxUid)
-        println("fxUserDocumentId======$fxUserDocumentId")
-
-        if (fxUserDocumentId != null) {
-            val dying = findUserDocumentIdByUid(users, oldFbUid)
-            println("dying======$dying")
-
-            if (dying != null) {
-                users.document(dying).delete()
-                return
-            }
-        }
-
-        val documentId = findUserDocumentIdByUid(users, oldFbUid) ?: return
-
-        println("oldFbUid======$oldFbUid")
-        println("oldFbUid======$fxUid")
-        println("documentId======$documentId")
-
-        val sdf = SimpleDateFormat("dd/M/yyyy hh:mm:ss")
-        val currentDate = sdf.format(Date())
-        val docData = HashMap<String, Any>()
-        docData["isfxa"] = true
-        docData["uid"] = fxUid
-        docData["update_date"] = currentDate
-        docData["update_reason"] = "sign_in_fxa"
-        users.document(documentId).set(docData, SetOptions.merge())
+        users = db.collection("users")
     }
 
-    private fun findUserDocumentIdByUid(users: CollectionReference, fxUid: String): String? {
-        val documents = users.whereEqualTo("uid", fxUid).get().get().documents
-        if (documents.size >= 1) {
-            return documents[0].id
+    fun createCustomToken(fxUid: String?, additionalClaims: Map<String, String>): String? {
+        return FirebaseAuth.getInstance().createCustomToken(fxUid, additionalClaims)
+    }
+
+    fun promoteUserDocument(oldFbUid: String, fxUid: String, email: String) {
+
+
+        // if there's an user document with firefox_uid == fxuid , mark current anonymous one deprecated
+        val currentUserDocId = findUserDocumentIdByFbUid(oldFbUid) ?: return
+        val existingUserDocId = findUserDocumentIdByFxUid(fxUid)
+        if (existingUserDocId != null) {
+            // TODO: prevent the user login twice, or we'll invalid the correct user document
+            // TODO: add account activity
+            users.document(currentUserDocId).set(mapOf("status" to "deprecated"), SetOptions.merge())
+            return
+        }
+
+        println("oldFbUid======$oldFbUid")
+        println("fxUid======$fxUid")
+        println("documentId======$currentUserDocId")
+
+        // TODO: add account activity
+        val updateData = mapOf(
+                "firefox_uid" to fxUid,
+                "email" to email,
+                "updated_timestamp" to System.currentTimeMillis(),
+                "status" to "sign-in"
+        )
+        users.document(currentUserDocId).set(updateData, SetOptions.merge())
+    }
+
+    private fun findUserDocumentIdByFbUid(fbUid: String): String? {
+        return findUserDocId("firebase_uid", fbUid)
+    }
+
+    private fun findUserDocumentIdByFxUid(fxUid: String): String? {
+        return findUserDocId("firefox_uid", fxUid)
+    }
+
+    private fun findUserDocId(field: String, fxUid: String): String? {
+        val documents = users.whereEqualTo(field, fxUid).get().get().documents
+        return if (documents.size >= 1) {
+            documents[0].id
         } else {
-            return null
+            null
         }
     }
 }
