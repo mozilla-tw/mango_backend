@@ -23,7 +23,7 @@ public class MissionController {
      * @return Client-facing mission list
      */
     @RequestMapping(value = "/group/{groupId}/missions", method = GET)
-    public ResponseEntity<Object> getGroupMissions(@PathVariable("groupId") String groupId) {
+    public ResponseEntity<List<Mission>> getGroupMissions(@PathVariable("groupId") String groupId) {
         List<Mission> missions = missionService.getMissionsByGroupId(groupId);
 
         return new ResponseEntity<>(missions, HttpStatus.OK);
