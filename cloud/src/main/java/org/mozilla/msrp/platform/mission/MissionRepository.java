@@ -8,5 +8,5 @@ public interface MissionRepository {
      * @param groupId id of the audience group
      * @return a list of mission for the corresponding group
      */
-    List<RawMission> getMissionsByGroupId(String groupId);
+    List<MissionDoc> getMissionsByGroupId(String groupId);
 }

@@ -33,19 +33,19 @@ class MissionService {
         return false;
     }
 
-    private boolean isMissionAvailable(RawMission mission) {
+    private boolean isMissionAvailable(MissionDoc mission) {
         // TODO: Expired, Reach join quota, etc
         return true;
     }
 
-    private Mission convertToMission(RawMission rawMission) {
+    private Mission convertToMission(MissionDoc missionDoc) {
         // TODO: String & L10N
-        String name = getStringById(rawMission.getNameId());
-        String description = getStringById(rawMission.getDescriptionId());
+        String name = getStringById(missionDoc.getNameId());
+        String description = getStringById(missionDoc.getDescriptionId());
 
         // TODO: Aggregate mission progress
 
-        return new Mission(rawMission.getMid(),
+        return new Mission(missionDoc.getMid(),
                 name,
                 description);
     }

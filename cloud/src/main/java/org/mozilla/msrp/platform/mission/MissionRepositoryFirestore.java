@@ -24,7 +24,7 @@ public class MissionRepositoryFirestore implements MissionRepository {
     }
 
     @Override
-    public List<RawMission> getMissionsByGroupId(String groupId) {
+    public List<MissionDoc> getMissionsByGroupId(String groupId) {
         return getMissionRefsByGroupId(groupId).stream()
                 .map(this::getMissionsByRef)
                 .flatMap(Collection::stream)
@@ -48,16 +48,16 @@ public class MissionRepositoryFirestore implements MissionRepository {
         return getQueryResult(firestore.collection(type).whereEqualTo("mid", mid));
     }
 
-    private Optional<RawMission> convertToRawMission(QueryDocumentSnapshot missionDoc) {
-        String mid = missionDoc.getString(RawMission.KEY_MID);
-        String nameId = missionDoc.getString(RawMission.KEY_NAME_ID);
-        String descriptionId = missionDoc.getString(RawMission.KEY_DESCRIPTION_ID);
+    private Optional<MissionDoc> convertToRawMission(QueryDocumentSnapshot missionDoc) {
+        String mid = missionDoc.getString(MissionDoc.KEY_MID);
+        String nameId = missionDoc.getString(MissionDoc.KEY_NAME_ID);
+        String descriptionId = missionDoc.getString(MissionDoc.KEY_DESCRIPTION_ID);
 
         if (mid == null || nameId == null || descriptionId == null) {
             return Optional.empty();
         }
 
-        return Optional.of(new RawMission(mid, nameId, descriptionId));
+        return Optional.of(new MissionDoc(mid, nameId, descriptionId));
     }
 
     private List<QueryDocumentSnapshot> getQueryResult(Query query) {
