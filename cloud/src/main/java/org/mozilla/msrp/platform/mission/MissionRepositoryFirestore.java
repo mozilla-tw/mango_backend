@@ -28,36 +28,23 @@ public class MissionRepositoryFirestore implements MissionRepository {
         return getMissionRefsByGroupId(groupId).stream()
                 .map(this::getMissionsByRef)
                 .flatMap(Collection::stream)
-                .map(this::convertToRawMission)
-                .filter(Optional::isPresent).map(Optional::get)
                 .collect(Collectors.toList());
     }
 
-    private List<QueryDocumentSnapshot> getMissionRefsByGroupId(String groupId) {
-        return getQueryResult(firestore.collection(groupId));
+    private List<MissionReferenceDoc> getMissionRefsByGroupId(String groupId) {
+        return getQueryResult(firestore.collection(groupId)).stream()
+                .map(MissionReferenceDoc::fromDocument)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toList());
     }
 
-    private List<QueryDocumentSnapshot> getMissionsByRef(QueryDocumentSnapshot referenceDoc) {
-        String type = referenceDoc.getString("type");
-        String mid = referenceDoc.getString("mid");
-
-        if (type == null || mid == null) {
-            return new ArrayList<>();
-        }
-
-        return getQueryResult(firestore.collection(type).whereEqualTo("mid", mid));
-    }
-
-    private Optional<MissionDoc> convertToRawMission(QueryDocumentSnapshot missionDoc) {
-        String mid = missionDoc.getString(MissionDoc.KEY_MID);
-        String nameId = missionDoc.getString(MissionDoc.KEY_NAME_ID);
-        String descriptionId = missionDoc.getString(MissionDoc.KEY_DESCRIPTION_ID);
-
-        if (mid == null || nameId == null || descriptionId == null) {
-            return Optional.empty();
-        }
-
-        return Optional.of(new MissionDoc(mid, nameId, descriptionId));
+    private List<MissionDoc> getMissionsByRef(MissionReferenceDoc ref) {
+        return getQueryResult(MissionReferenceDoc.getTargetMissions(ref, firestore)).stream()
+                .map(MissionDoc::fromDocument)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toList());
     }
 
     private List<QueryDocumentSnapshot> getQueryResult(Query query) {
