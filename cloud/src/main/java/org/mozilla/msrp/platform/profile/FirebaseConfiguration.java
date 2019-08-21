@@ -22,7 +22,7 @@ public class FirebaseConfiguration {
      * TODO: Remove this after we have a appropriate place to globally initialize Firebase
      */
     @Bean
-    public FirefoxAccountServiceInfo FirefoxAccountManagerFactory() {
+    public FirefoxAccountServiceInfo FirefoxAccountServiceInfoFactory() {
         System.out.println("FirebaseConfiguration  -- started --- ");
         try {
             GoogleCredentials credentials = GoogleCredentials.getApplicationDefault();
