@@ -9,17 +9,19 @@ import org.springframework.stereotype.Repository
 @Repository
 class ProfileRepository {
     private var users: CollectionReference
+    private var accountActivity: CollectionReference
 
     constructor() {
         val db = FirestoreClient.getFirestore()
         users = db.collection("users")
+        accountActivity = db.collection("account_activity")
     }
 
     fun createCustomToken(fxUid: String?, additionalClaims: Map<String, String>): String? {
         return FirebaseAuth.getInstance().createCustomToken(fxUid, additionalClaims)
     }
 
-    fun promoteUserDocument(oldFbUid: String, fxUid: String, email: String) {
+    fun signInAndUpdateUserDocument(oldFbUid: String, fxUid: String, email: String) {
 
 
         // if there's an user document with firefox_uid == fxuid , mark current anonymous one deprecated
@@ -29,6 +31,7 @@ class ProfileRepository {
             // TODO: prevent the user login twice, or we'll invalid the correct user document
             // TODO: add account activity
             users.document(currentUserDocId).set(mapOf("status" to "deprecated"), SetOptions.merge())
+            logAccountActivity(currentUserDocId, "deprecated")
             return
         }
 
@@ -44,6 +47,7 @@ class ProfileRepository {
                 "status" to "sign-in"
         )
         users.document(currentUserDocId).set(updateData, SetOptions.merge())
+        logAccountActivity(currentUserDocId, "sign-in")
     }
 
     private fun findUserDocumentIdByFbUid(fbUid: String): String? {
@@ -60,6 +64,12 @@ class ProfileRepository {
             documents[0].id
         } else {
             null
+        }
+    }
+
+    private fun logAccountActivity(userDocumentId: String, action: String) {
+        AccountActivityDoc(userDocumentId, System.currentTimeMillis(), action, 1).let {
+            accountActivity.document().set(it)
         }
     }
 }
