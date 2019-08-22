@@ -1,6 +1,7 @@
 package org.mozilla.msrp.platform.mission
 
 import com.google.cloud.firestore.DocumentSnapshot
+import org.mozilla.msrp.platform.firestore.areFieldsPresent
 import java.util.Optional
 
 /**

@@ -1,4 +1,4 @@
-package org.mozilla.msrp.platform.mission
+package org.mozilla.msrp.platform.firestore
 
 import com.google.cloud.firestore.DocumentSnapshot
 

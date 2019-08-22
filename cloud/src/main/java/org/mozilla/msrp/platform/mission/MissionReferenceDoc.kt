@@ -4,6 +4,7 @@ import com.google.cloud.firestore.DocumentSnapshot
 import com.google.cloud.firestore.Firestore
 import com.google.cloud.firestore.Query
 import com.google.cloud.firestore.annotation.IgnoreExtraProperties
+import org.mozilla.msrp.platform.firestore.areFieldsPresent
 import java.util.Optional
 
 
