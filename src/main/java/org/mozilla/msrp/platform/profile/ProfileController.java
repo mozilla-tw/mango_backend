@@ -44,7 +44,7 @@ public class ProfileController {
             String fxUid = profileResponse.getUid();
             String fxEmail = profileResponse.getEmail();
 
-            profileRepository.promoteUserDocument(oldFbUid, fxUid, fxEmail);
+            profileRepository.signInAndUpdateUserDocument(oldFbUid, fxUid, fxEmail);
 
             // create custom token (jwt) for Firebase client SDK
             HashMap<String, String> additionalClaims = new HashMap<>();
