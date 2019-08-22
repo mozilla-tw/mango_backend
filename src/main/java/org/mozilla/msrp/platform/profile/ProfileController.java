@@ -51,6 +51,8 @@ public class ProfileController {
             additionalClaims.put("fxuid", fxUid);
             additionalClaims.put("oldFbUid", oldFbUid);
             String customToken = profileRepository.createCustomToken(fxUid, additionalClaims);
+            // We don't really need this info. Just to let client intercept the url and close the webview.
+            // TODO: remove below debugging information
             httpResponse.sendRedirect("/done?jwt=" + customToken + "&fxaAccessToken=" + fxaAccessToken);
 
             return "done";
