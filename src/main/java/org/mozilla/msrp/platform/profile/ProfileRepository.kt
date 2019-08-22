@@ -11,10 +11,25 @@ class ProfileRepository {
     private var users: CollectionReference
     private var accountActivity: CollectionReference
 
+    companion object {
+        private const val COLLECTION_USER = "users"
+        private const val COLLECTION_ACCOUNT_ACTIVITY = "account_activity"
+
+        private const val DOC_FIELD_USER_FIREBASE_UID = "firebase_uid"
+        private const val DOC_FIELD_USER_FIREFOX_UID = "firefox_uid"
+        private const val DOC_FIELD_USER_EMAIL = "email"
+        private const val DOC_FIELD_USER_UPDATED_TIMESTAMP = "updated_timestamp"
+        private const val DOC_FIELD_USER_STATUS = "status"
+
+        private const val ACCOUNT_ACTIVITY_ACTION_SIGN_IN = "sign-in"
+        private const val ACCOUNT_ACTIVITY_ACTION_DEPRECATED = "deprecated"
+
+    }
+
     constructor() {
         val db = FirestoreClient.getFirestore()
-        users = db.collection("users")
-        accountActivity = db.collection("account_activity")
+        users = db.collection(COLLECTION_USER)
+        accountActivity = db.collection(COLLECTION_ACCOUNT_ACTIVITY)
     }
 
     fun createCustomToken(fxUid: String?, additionalClaims: Map<String, String>): String? {
@@ -30,8 +45,8 @@ class ProfileRepository {
         if (existingUserDocId != null) {
             // TODO: prevent the user login twice, or we'll invalid the correct user document
             // TODO: add account activity
-            users.document(currentUserDocId).set(mapOf("status" to "deprecated"), SetOptions.merge())
-            logAccountActivity(currentUserDocId, "deprecated")
+            users.document(currentUserDocId).set(mapOf(DOC_FIELD_USER_STATUS to ACCOUNT_ACTIVITY_ACTION_DEPRECATED), SetOptions.merge())
+            logAccountActivity(currentUserDocId, ACCOUNT_ACTIVITY_ACTION_DEPRECATED)
             return
         }
 
@@ -41,21 +56,21 @@ class ProfileRepository {
 
         // TODO: add account activity
         val updateData = mapOf(
-                "firefox_uid" to fxUid,
-                "email" to email,
-                "updated_timestamp" to System.currentTimeMillis(),
-                "status" to "sign-in"
+                DOC_FIELD_USER_FIREFOX_UID to fxUid,
+                DOC_FIELD_USER_EMAIL to email,
+                DOC_FIELD_USER_UPDATED_TIMESTAMP to System.currentTimeMillis(),
+                DOC_FIELD_USER_STATUS to ACCOUNT_ACTIVITY_ACTION_SIGN_IN
         )
         users.document(currentUserDocId).set(updateData, SetOptions.merge())
-        logAccountActivity(currentUserDocId, "sign-in")
+        logAccountActivity(currentUserDocId, ACCOUNT_ACTIVITY_ACTION_SIGN_IN)
     }
 
     private fun findUserDocumentIdByFbUid(fbUid: String): String? {
-        return findUserDocId("firebase_uid", fbUid)
+        return findUserDocId(DOC_FIELD_USER_FIREBASE_UID, fbUid)
     }
 
     private fun findUserDocumentIdByFxUid(fxUid: String): String? {
-        return findUserDocId("firefox_uid", fxUid)
+        return findUserDocId(DOC_FIELD_USER_FIREFOX_UID, fxUid)
     }
 
     private fun findUserDocId(field: String, fxUid: String): String? {
