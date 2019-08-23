@@ -14,21 +14,35 @@ import java.util.Optional
  */
 data class MissionDoc(
         var mid: String = "",
-        var nameId: String = "",
-        var descriptionId: String = ""
+        var missionName: String = "",
+        var titleId: String = "",
+        var descriptionId: String = "",
+        var missionType: String = ""
 ) {
+    val endpoint = "/$missionType/$mid"
+
     companion object {
         private const val KEY_MID = "mid"
-        private const val KEY_NAME_ID = "nameId"
+        private const val KEY_NAME_ID = "titleId"
         private const val KEY_DESCRIPTION_ID = "descriptionId"
+        private const val KEY_MISSION_TYPE = "missionType"
 
         @JvmStatic
         fun fromDocument(snapshot: DocumentSnapshot): Optional<MissionDoc> {
-            return if (snapshot.areFieldsPresent(listOf(KEY_MID, KEY_NAME_ID, KEY_DESCRIPTION_ID))) {
+            return if (isValidSnapshot(snapshot)) {
                 Optional.ofNullable(snapshot.toObject(MissionDoc::class.java))
             } else {
                 Optional.empty()
             }
+        }
+
+        private fun isValidSnapshot(snapshot: DocumentSnapshot): Boolean {
+            return snapshot.areFieldsPresent(listOf(
+                    KEY_MID,
+                    KEY_NAME_ID,
+                    KEY_DESCRIPTION_ID,
+                    KEY_MISSION_TYPE
+            ))
         }
     }
 }

@@ -10,6 +10,7 @@ package org.mozilla.msrp.platform.mission
  */
 data class Mission(
         val mid: String,
-        val name: String,
-        val description: String
+        val title: String,
+        val description: String,
+        val endpoint: String
 )

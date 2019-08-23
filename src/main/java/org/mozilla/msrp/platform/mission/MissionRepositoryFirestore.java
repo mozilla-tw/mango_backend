@@ -1,5 +1,6 @@
 package org.mozilla.msrp.platform.mission;
 
+import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.Query;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
@@ -7,7 +8,6 @@ import com.google.cloud.firestore.QueryDocumentSnapshot;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -27,7 +27,8 @@ public class MissionRepositoryFirestore implements MissionRepository {
     public List<MissionDoc> getMissionsByGroupId(String groupId) {
         return getMissionRefsByGroupId(groupId).stream()
                 .map(this::getMissionsByRef)
-                .flatMap(Collection::stream)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .collect(Collectors.toList());
     }
 
@@ -39,12 +40,14 @@ public class MissionRepositoryFirestore implements MissionRepository {
                 .collect(Collectors.toList());
     }
 
-    private List<MissionDoc> getMissionsByRef(MissionReferenceDoc ref) {
-        return getQueryResult(MissionReferenceDoc.getTargetMissions(ref, firestore)).stream()
-                .map(MissionDoc::fromDocument)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toList());
+    private Optional<MissionDoc> getMissionsByRef(MissionReferenceDoc ref) {
+        try {
+            DocumentSnapshot snapshot = firestore.collection(ref.getType()).document(ref.getMid()).get().get();
+            return MissionDoc.fromDocument(snapshot);
+
+        } catch (InterruptedException | ExecutionException e) {
+            return Optional.empty();
+        }
     }
 
     private List<QueryDocumentSnapshot> getQueryResult(Query query) {

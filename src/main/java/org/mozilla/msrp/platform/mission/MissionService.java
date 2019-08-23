@@ -40,14 +40,15 @@ class MissionService {
 
     private Mission convertToMission(MissionDoc missionDoc) {
         // TODO: String & L10N
-        String name = getStringById(missionDoc.getNameId());
+        String name = getStringById(missionDoc.getTitleId());
         String description = getStringById(missionDoc.getDescriptionId());
 
         // TODO: Aggregate mission progress
 
         return new Mission(missionDoc.getMid(),
                 name,
-                description);
+                description,
+                missionDoc.getEndpoint());
     }
 
     /**
