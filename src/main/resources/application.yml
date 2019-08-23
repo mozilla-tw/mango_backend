@@ -1,0 +1,23 @@
+spring:
+  profiles.active: dev # Default profile
+  output.ansi.enabled: always # Coloring application output
+
+---
+# Configuration to be enabled when the "dev" profile is active
+spring:
+  profiles: dev
+logging:level:
+  root: INFO
+  org.mozilla.msrp: DEBUG
+platform:
+  firebaseProjectId: rocket-dev01
+---
+# Configuration to be enabled when the "prod" profile is active
+# Example: ./gradlew bootRun --args='--spring.profiles.active=prod'
+spring:
+  profiles: prod
+logging:level:
+  root: WARN
+  org.mozilla.msrp: INFO
+platform:
+  firebaseProjectId: rocket
