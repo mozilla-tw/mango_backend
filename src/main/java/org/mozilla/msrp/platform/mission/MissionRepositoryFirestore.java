@@ -4,6 +4,7 @@ import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.Query;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
+import com.google.cloud.firestore.DocumentReference;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -58,5 +59,23 @@ public class MissionRepositoryFirestore implements MissionRepository {
             e.printStackTrace();
         }
         return new ArrayList<>();
+    }
+
+    @Override
+    public Optional<MissionDoc> createMission(MissionCreateData createData) {
+        DocumentReference docRef = firestore.collection(createData.getMissionType()).document();
+        MissionDoc doc = new MissionDoc(docRef.getId(),
+                createData.getMissionName(),
+                createData.getTitleId(),
+                createData.getDescriptionId(),
+                createData.getMissionType());
+
+        try {
+            docRef.set(doc).get();
+            return Optional.of(doc);
+
+        } catch (InterruptedException | ExecutionException e) {
+            return Optional.empty();
+        }
     }
 }

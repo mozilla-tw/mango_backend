@@ -3,6 +3,7 @@ package org.mozilla.msrp.platform.mission;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -10,6 +11,7 @@ import javax.inject.Inject;
 import java.util.List;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @RestController
 public class MissionController {
@@ -46,6 +48,50 @@ public class MissionController {
     public ResponseEntity<List<Mission>> getGroupMissions(@PathVariable("groupId") String groupId) {
         List<Mission> missions = missionService.getMissionsByGroupId(groupId);
 
+        return new ResponseEntity<>(missions, HttpStatus.OK);
+    }
+
+    /**
+     * Create missions
+     *
+     * Request body
+     * {
+     *  "missions": [
+     *      {
+     *          "mid": "wsF1OHt3CrtrGbAyT8xo",
+     *          "title": "...",
+     *          "description": "...",
+     *          "endpoint": "/mission_daily/wsF1OHt3CrtrGbAyT8xo"
+     *      },
+     *      {
+     *          "mid": "5quMPsVLh0wims22pstL",
+     *          "title": "...",
+     *          "description": "...",
+     *          "endpoint": "/mission_one_shot/wsF1OHt3CrtrGbAyT8xo"
+     *      }
+     *  ]
+     * }
+     *
+     * Response
+     * [
+     *  {
+     *      "mid": "wsF1OHt3CrtrGbAyT8xo",
+     *      "name": "...",
+     *      "description": "..."
+     *  },
+     *  {
+     *      "mid": "5quMPsVLh0wims22pstL",
+     *      "name": "...",
+     *      "description": "..."
+     *  }
+     * ]
+     *
+     * @param request data needed to create mission
+     * @return response with created mission in body
+     */
+    @RequestMapping(value = "/missions", method = POST)
+    public ResponseEntity<List<Mission>> createMission(@RequestBody MissionCreateRequest request) {
+        List<Mission> missions = missionService.createMissions(request.getMissions());
         return new ResponseEntity<>(missions, HttpStatus.OK);
     }
 }

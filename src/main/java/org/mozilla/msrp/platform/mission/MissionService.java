@@ -4,6 +4,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Named
@@ -61,5 +62,14 @@ class MissionService {
         // TODO: A way to support multiple languages
         // TODO: Possible solution is a custom MessageSource
         return "string of id " + id;
+    }
+
+    List<Mission> createMissions(List<MissionCreateData> missionList) {
+        return missionList.stream()
+                .map(missionRepository::createMission)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(this::convertToMission)
+                .collect(Collectors.toList());
     }
 }
