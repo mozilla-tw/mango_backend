@@ -19,6 +19,26 @@ public class MissionController {
 
     /**
      * Fetch user requested missions, and aggregate data that is needed by client
+     *
+     * Request
+     * GET /group/{groupId}/missions
+     *
+     * Response
+     * [
+     *  {
+     *      "mid": "wsF1OHt3CrtrGbAyT8xo",
+     *      "title": "...",
+     *      "description": "...",
+     *      "endpoint": "/mission_daily/wsF1OHt3CrtrGbAyT8xo"
+     *  },
+     *  {
+     *      "mid": "5quMPsVLh0wims22pstL",
+     *      "title": "...",
+     *      "description": "...",
+     *      "endpoint": "/mission_one_shot/wsF1OHt3CrtrGbAyT8xo"
+     *  },
+     * ]
+     *
      * @param groupId id for audience group
      * @return Client-facing mission list
      */
