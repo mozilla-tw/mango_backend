@@ -43,8 +43,14 @@ public class MissionRepositoryFirestore implements MissionRepository {
 
     private Optional<MissionDoc> getMissionsByRef(MissionReferenceDoc ref) {
         try {
-            DocumentSnapshot snapshot = firestore.collection(ref.getType()).document(ref.getMid()).get().get();
-            return MissionDoc.fromDocument(snapshot);
+            String endpoint = ref.getEndpoint();
+            if (endpoint.startsWith("/")) {
+                String docPath = endpoint.substring(1);
+                DocumentSnapshot snapshot = firestore.document(docPath).get().get();
+                return MissionDoc.fromDocument(snapshot);
+            } else {
+                return Optional.empty();
+            }
 
         } catch (InterruptedException | ExecutionException e) {
             return Optional.empty();
@@ -72,6 +78,26 @@ public class MissionRepositoryFirestore implements MissionRepository {
 
         try {
             docRef.set(doc).get();
+            return Optional.of(doc);
+
+        } catch (InterruptedException | ExecutionException e) {
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    public List<MissionReferenceDoc> groupMissions(String groupId, List<MissionGroupItemData> groupItems) {
+        return groupItems.stream()
+                .map(groupForm -> convertToReferenceDoc(groupId, groupForm))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toList());
+    }
+
+    private Optional<MissionReferenceDoc> convertToReferenceDoc(String groupId, MissionGroupItemData groupItem) {
+        MissionReferenceDoc doc = new MissionReferenceDoc(groupItem.getEndpoint());
+        try {
+            firestore.collection(groupId).document().set(doc).get();
             return Optional.of(doc);
 
         } catch (InterruptedException | ExecutionException e) {

@@ -94,4 +94,40 @@ public class MissionController {
         List<Mission> missions = missionService.createMissions(request.getMissions());
         return new ResponseEntity<>(missions, HttpStatus.OK);
     }
+
+    /**
+     * Create missions
+     *
+     * Request body
+     * {
+     *  "missions": [
+     *     {
+     *         "endpoint": "/mission_daily/ooKv67x8MFzsIr44PfBz"
+     *     },
+     *     {
+     *         "endpoint": "/mission_one_shot/VjTcDnJBHEqlzVjkj8zb"
+     *     }
+     *  ]
+     * }
+     *
+     * Response
+     * [
+     *  {
+     *      "endpoint": "/mission_daily/ooKv67x8MFzsIr44PfBz"
+     *  },
+     *  {
+     *      "endpoint": "/mission_one_shot/VjTcDnJBHEqlzVjkj8zb"
+     *  }
+     * ]
+     *
+     * @param groupId group id
+     * @param request contains missions to be grouped
+     * @return response with created mission in body
+     */
+    @RequestMapping(value = "/group/{groupId}/missions")
+    public ResponseEntity<List<MissionReferenceDoc>> groupMissions(@PathVariable("groupId") String groupId,
+                                                                   @RequestBody MissionGroupRequest request) {
+        List<MissionReferenceDoc> body = missionService.groupMissions(groupId, request.getMissions());
+        return new ResponseEntity<>(body, HttpStatus.OK);
+    }
 }

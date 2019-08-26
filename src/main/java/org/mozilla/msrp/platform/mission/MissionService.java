@@ -72,4 +72,8 @@ class MissionService {
                 .map(this::convertToMission)
                 .collect(Collectors.toList());
     }
+
+    List<MissionReferenceDoc> groupMissions(String groupId, List<MissionGroupItemData> groupItems) {
+        return missionRepository.groupMissions(groupId, groupItems);
+    }
 }

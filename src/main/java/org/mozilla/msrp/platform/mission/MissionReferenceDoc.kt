@@ -18,15 +18,14 @@ import java.util.Optional
  */
 @IgnoreExtraProperties
 data class MissionReferenceDoc(
-        val mid: String = "",
-        val type: String = ""
+        val endpoint: String = ""
 ) {
 
     companion object {
 
         @JvmStatic
         fun fromDocument(snapshot: DocumentSnapshot): Optional<MissionReferenceDoc> {
-            return if (snapshot.areFieldsPresent(listOf("mid", "type"))) {
+            return if (snapshot.areFieldsPresent(listOf("endpoint"))) {
                 Optional.ofNullable(snapshot.toObject(MissionReferenceDoc::class.java))
             } else {
                 Optional.empty()
