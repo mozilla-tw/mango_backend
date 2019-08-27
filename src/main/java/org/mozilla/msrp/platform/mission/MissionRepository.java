@@ -14,4 +14,6 @@ public interface MissionRepository {
     Optional<MissionDoc> createMission(MissionCreateData createData);
 
     List<MissionReferenceDoc> groupMissions(String groupId, List<MissionGroupItemData> groupItems);
+
+    MissionJoinDoc joinMission(String uid, String missionType, String mid);
 }

@@ -104,4 +104,23 @@ public class MissionRepositoryFirestore implements MissionRepository {
             return Optional.empty();
         }
     }
+
+    /**
+     * This will insert a document to /missionType/mid/users/
+     */
+    public MissionJoinDoc joinMission(String uid, String missionType, String mid) {
+        try {
+            MissionJoinDoc joinDoc = new MissionJoinDoc(uid, "join");
+            firestore.collection(missionType)
+                    .document(mid)
+                    .collection("users")
+                    .document()
+                    .set(joinDoc).get();
+
+            return joinDoc;
+
+        } catch (InterruptedException | ExecutionException e) {
+            throw new MissionNotFoundException(missionType, mid, e);
+        }
+    }
 }

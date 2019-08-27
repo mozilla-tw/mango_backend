@@ -1,11 +1,13 @@
 package org.mozilla.msrp.platform.mission;
 
+import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -13,6 +15,7 @@ import java.util.List;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
+@Log4j2
 @RestController
 public class MissionController {
 
@@ -129,5 +132,38 @@ public class MissionController {
                                                                    @RequestBody MissionGroupRequest request) {
         List<MissionReferenceDoc> body = missionService.groupMissions(groupId, request.getMissions());
         return new ResponseEntity<>(body, HttpStatus.OK);
+    }
+
+    /**
+     * Join mission
+     *
+     * Response
+     * {
+     *      "mid": "",
+     *      "status": "join"
+     * }
+     *
+     * @param missionType mission type, which is also the name of the mission collection
+     * @param mid mission id
+     * @return response indicating mission id and it's new join status
+     */
+    @RequestMapping(value = "/{missionType}/{mid}", method = POST)
+    public ResponseEntity<MissionJoinResponse> joinMission(@PathVariable("missionType") String missionType,
+                                                           @PathVariable("mid") String mid) {
+        String uid = getUid();
+
+        try {
+            MissionJoinResponse result = missionService.joinMission(uid, missionType, mid);
+            return new ResponseEntity<>(result, HttpStatus.CREATED);
+
+        } catch (MissionNotFoundException e) {
+            log.info("join exception: " + e.getMessage());
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    // TODO: Get user id from bearer token
+    private String getUid() {
+        return "roger_random_uid";
     }
 }
