@@ -6,8 +6,9 @@ import javax.inject.Inject
 import javax.inject.Named
 
 @Named
-class MissionRepositoryFirestore @Inject
-internal constructor(private val firestore: Firestore) : MissionRepository {
+class MissionRepositoryFirestore @Inject internal constructor(
+        private val firestore: Firestore
+) : MissionRepository {
 
     override fun getMissionsByGroupId(groupId: String): List<MissionDoc> {
         return getMissionRefsByGroupId(groupId).mapNotNull { getMissionsByRef(it) }
@@ -40,25 +41,33 @@ internal constructor(private val firestore: Firestore) : MissionRepository {
      */
     override fun createMission(createData: MissionCreateData): MissionDoc {
         val docRef = firestore.collection(createData.missionType).document()
-        val doc = MissionDoc(mid = docRef.id,
+        val doc = MissionDoc(
+                mid = docRef.id,
                 missionName = createData.missionName,
                 titleId = createData.titleId,
                 descriptionId = createData.descriptionId,
-                missionType = createData.missionType)
+                missionType = createData.missionType
+        )
 
         docRef.set(doc).getOrThrow()
 
         return doc
     }
 
-    override fun groupMissions(groupId: String, groupItems: List<MissionGroupItemData>): List<MissionReferenceDoc> {
+    override fun groupMissions(
+            groupId: String,
+            groupItems: List<MissionGroupItemData>
+    ): List<MissionReferenceDoc> {
         return groupItems.map { convertToReferenceDoc(groupId, it) }
     }
 
     /**
      * @throws MissionDatabaseException
      */
-    private fun convertToReferenceDoc(groupId: String, groupItem: MissionGroupItemData): MissionReferenceDoc {
+    private fun convertToReferenceDoc(
+            groupId: String,
+            groupItem: MissionGroupItemData
+    ): MissionReferenceDoc {
         val doc = MissionReferenceDoc(groupItem.endpoint)
         firestore.collection(groupId).document().set(doc).getOrThrow()
         return doc
@@ -69,14 +78,19 @@ internal constructor(private val firestore: Firestore) : MissionRepository {
      *
      * @throws MissionDatabaseException
      */
-    override fun joinMission(uid: String, missionType: String, mid: String): MissionJoinDoc {
+    override fun joinMission(
+            uid: String,
+            missionType: String,
+            mid: String
+    ): MissionJoinDoc {
         val joinDoc = MissionJoinDoc(uid = uid, status = "join")
 
         firestore.collection(missionType)
                 .document(mid)
                 .collection("users")
                 .document()
-                .set(joinDoc).getOrThrow()
+                .set(joinDoc)
+                .getOrThrow()
 
         return joinDoc
     }
