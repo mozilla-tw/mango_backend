@@ -4,7 +4,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Named
@@ -67,8 +66,6 @@ class MissionService {
     List<Mission> createMissions(List<MissionCreateData> missionList) {
         return missionList.stream()
                 .map(missionRepository::createMission)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
                 .map(this::convertToMission)
                 .collect(Collectors.toList());
     }

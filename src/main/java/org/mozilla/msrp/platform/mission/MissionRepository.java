@@ -1,7 +1,6 @@
 package org.mozilla.msrp.platform.mission;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface MissionRepository {
     /**
@@ -11,7 +10,7 @@ public interface MissionRepository {
      */
     List<MissionDoc> getMissionsByGroupId(String groupId);
 
-    Optional<MissionDoc> createMission(MissionCreateData createData);
+    MissionDoc createMission(MissionCreateData createData);
 
     List<MissionReferenceDoc> groupMissions(String groupId, List<MissionGroupItemData> groupItems);
 

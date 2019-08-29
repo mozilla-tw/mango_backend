@@ -1,8 +1,21 @@
 package org.mozilla.msrp.platform.mission
 
 import java.lang.RuntimeException
+import java.util.concurrent.ExecutionException
 
-open class MissionException(message: String, cause: Throwable) : RuntimeException(message, cause)
+class MissionDatabaseException(cause: Throwable) : RuntimeException(cause)
 
-class MissionNotFoundException(missionType: String, mid: String, cause: Throwable)
-    : MissionException("Fail to find mission /$missionType/$mid", cause)
+/**
+ * Catch Firestore exceptions and abstract as Mission exception
+ */
+fun <T> catchFirestoreException(block: () -> T) :T {
+    try {
+        return block()
+
+    } catch (e: InterruptedException) {
+        throw MissionDatabaseException(e)
+
+    } catch (e: ExecutionException) {
+        throw MissionDatabaseException(e)
+    }
+}

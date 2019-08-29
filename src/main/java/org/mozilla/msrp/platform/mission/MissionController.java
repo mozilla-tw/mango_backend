@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -151,15 +150,8 @@ public class MissionController {
     public ResponseEntity<MissionJoinResponse> joinMission(@PathVariable("missionType") String missionType,
                                                            @PathVariable("mid") String mid) {
         String uid = getUid();
-
-        try {
-            MissionJoinResponse result = missionService.joinMission(uid, missionType, mid);
-            return new ResponseEntity<>(result, HttpStatus.CREATED);
-
-        } catch (MissionNotFoundException e) {
-            log.info("join exception: " + e.getMessage());
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
+        MissionJoinResponse result = missionService.joinMission(uid, missionType, mid);
+        return new ResponseEntity<>(result, HttpStatus.CREATED);
     }
 
     // TODO: Get user id from bearer token

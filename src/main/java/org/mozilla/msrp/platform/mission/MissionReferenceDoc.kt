@@ -3,8 +3,6 @@ package org.mozilla.msrp.platform.mission
 import com.google.cloud.firestore.DocumentSnapshot
 import com.google.cloud.firestore.annotation.IgnoreExtraProperties
 import org.mozilla.msrp.platform.firestore.areFieldsPresent
-import java.util.Optional
-
 
 /**
  * Document in group collection, containing information that can be used
@@ -24,11 +22,11 @@ data class MissionReferenceDoc(
     companion object {
 
         @JvmStatic
-        fun fromDocument(snapshot: DocumentSnapshot): Optional<MissionReferenceDoc> {
+        fun fromDocument(snapshot: DocumentSnapshot): MissionReferenceDoc? {
             return if (snapshot.areFieldsPresent(listOf("endpoint"))) {
-                Optional.ofNullable(snapshot.toObject(MissionReferenceDoc::class.java))
+                snapshot.toObject(MissionReferenceDoc::class.java)
             } else {
-                Optional.empty()
+                null
             }
         }
     }
