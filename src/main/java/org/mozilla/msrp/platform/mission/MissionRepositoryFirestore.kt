@@ -1,6 +1,5 @@
 package org.mozilla.msrp.platform.mission
 
-import com.google.api.core.ApiFuture
 import com.google.cloud.firestore.*
 import javax.inject.Inject
 import javax.inject.Named
@@ -29,7 +28,7 @@ class MissionRepositoryFirestore @Inject internal constructor(
         val endpoint = ref.endpoint
         return if (endpoint.startsWith("/")) {
             val docPath = endpoint.substring(1)
-            val snapshot = firestore.document(docPath).getOrThrow()
+            val snapshot = firestore.document(docPath).getUnchecked()
             MissionDoc.fromDocument(snapshot)
         } else {
             null
@@ -49,7 +48,7 @@ class MissionRepositoryFirestore @Inject internal constructor(
                 missionType = createData.missionType
         )
 
-        docRef.set(doc).getOrThrow()
+        docRef.set(doc).getUnchecked()
 
         return doc
     }
@@ -69,7 +68,7 @@ class MissionRepositoryFirestore @Inject internal constructor(
             groupItem: MissionGroupItemData
     ): MissionReferenceDoc {
         val doc = MissionReferenceDoc(groupItem.endpoint)
-        firestore.collection(groupId).document().set(doc).getOrThrow()
+        firestore.collection(groupId).document().set(doc).getUnchecked()
         return doc
     }
 
@@ -90,7 +89,7 @@ class MissionRepositoryFirestore @Inject internal constructor(
                 .collection("users")
                 .document()
                 .set(joinDoc)
-                .getOrThrow()
+                .getUnchecked()
 
         return joinDoc
     }
@@ -98,19 +97,9 @@ class MissionRepositoryFirestore @Inject internal constructor(
 
 private val Query.waitResults: List<QueryDocumentSnapshot>
     get() {
-        return catchFirestoreException {
-            get().get().documents
-        }
+        return get().getUnchecked().documents
     }
 
-private fun DocumentReference.getOrThrow(): DocumentSnapshot {
-    return catchFirestoreException {
-        get().get()
-    }
-}
-
-private fun <T> ApiFuture<T>.getOrThrow(): T {
-    return catchFirestoreException {
-        get()
-    }
+private fun DocumentReference.getUnchecked(): DocumentSnapshot {
+    return get().getUnchecked()
 }
