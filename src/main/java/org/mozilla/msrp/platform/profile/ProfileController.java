@@ -23,7 +23,7 @@ public class ProfileController {
         firefoxAccountService = service;
     }
 
-    @RequestMapping("/done")
+    @RequestMapping("/api/v1/done")
     String done(@RequestParam(value = "jwt") String jwt, @RequestParam(value = "fxaAccessToken") String fxaAccessToken) {
         if (jwt == null || jwt.length() == 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "GWT generation failed");
@@ -31,7 +31,7 @@ public class ProfileController {
         return "Debug:jwt[" + jwt + "]  [" + fxaAccessToken +"], closing the webview";
     }
 
-    @RequestMapping("/login")
+    @RequestMapping("/api/v1/login")
     String login(@RequestParam(value = "code") String code,
                  @RequestParam(value = "state") String oldFbUid,
                  HttpServletResponse httpResponse) {
