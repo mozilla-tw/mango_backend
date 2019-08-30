@@ -2,7 +2,6 @@ package org.mozilla.msrp.platform.mission
 
 import com.google.cloud.firestore.DocumentSnapshot
 import org.mozilla.msrp.platform.firestore.areFieldsPresent
-import java.util.Optional
 
 /**
  * (All fields are just draft and are subject to change)
@@ -28,11 +27,11 @@ data class MissionDoc(
         private const val KEY_MISSION_TYPE = "missionType"
 
         @JvmStatic
-        fun fromDocument(snapshot: DocumentSnapshot): Optional<MissionDoc> {
+        fun fromDocument(snapshot: DocumentSnapshot): MissionDoc? {
             return if (isValidSnapshot(snapshot)) {
-                Optional.ofNullable(snapshot.toObject(MissionDoc::class.java))
+                snapshot.toObject(MissionDoc::class.java)
             } else {
-                Optional.empty()
+                null
             }
         }
 

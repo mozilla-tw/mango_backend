@@ -62,4 +62,26 @@ class MissionService {
         // TODO: Possible solution is a custom MessageSource
         return "string of id " + id;
     }
+
+    List<Mission> createMissions(List<MissionCreateData> missionList) {
+        return missionList.stream()
+                .map(missionRepository::createMission)
+                .map(this::convertToMission)
+                .collect(Collectors.toList());
+    }
+
+    List<MissionReferenceDoc> groupMissions(String groupId, List<MissionGroupItemData> groupItems) {
+        return missionRepository.groupMissions(groupId, groupItems);
+    }
+
+    /**
+     * Join user to the mission
+     * @param uid user id
+     * @param mid mission id
+     * @return updated mission json for client
+     */
+    MissionJoinResponse joinMission(String uid, String missionType, String mid) {
+        MissionJoinDoc joinDoc = missionRepository.joinMission(uid, missionType, mid);
+        return new MissionJoinResponse(mid, joinDoc.getStatus());
+    }
 }

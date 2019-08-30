@@ -9,4 +9,10 @@ public interface MissionRepository {
      * @return a list of mission for the corresponding group
      */
     List<MissionDoc> getMissionsByGroupId(String groupId);
+
+    MissionDoc createMission(MissionCreateData createData);
+
+    List<MissionReferenceDoc> groupMissions(String groupId, List<MissionGroupItemData> groupItems);
+
+    MissionJoinDoc joinMission(String uid, String missionType, String mid);
 }
