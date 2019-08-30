@@ -1,25 +1,12 @@
 package org.mozilla.msrp.platform.mission
 
-import com.google.api.core.ApiFuture
-import com.google.common.util.concurrent.Futures
-import com.google.common.util.concurrent.UncheckedExecutionException
-import java.lang.RuntimeException
-import java.util.concurrent.CancellationException
-
-class MissionDatabaseException(cause: Throwable) : RuntimeException(cause)
-
 /**
- * This function first convert checked exception into either CancellationException or UncheckedExecutionException,
- * then abstract them into higher-level MissionDatabaseException
+ * Still looking for a way to wrap all FirestoreException thrown during the execution of MissionController into
+ * MissionDatabaseException, so global exception handler will only know there's something wrong with the
+ * mission database, instead of knowing anything about Firestore
  */
-fun <T> ApiFuture<T>.getUnchecked(): T {
-    return try {
-        Futures.getUnchecked(this)
-
-    } catch (e: CancellationException) {
-        throw MissionDatabaseException(e)
-
-    } catch (e: UncheckedExecutionException) {
-        throw MissionDatabaseException(e)
-    }
+class MissionDatabaseException : RuntimeException {
+    constructor(msg: String) : super(msg)
+    constructor(cause: Throwable?) : super(cause)
+    constructor(msg: String, cause: Throwable?) : super(msg, cause)
 }
