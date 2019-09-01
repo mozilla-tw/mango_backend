@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -22,6 +23,9 @@ import java.util.Date;
 public class FirebaseAuthInterceptor implements HandlerInterceptor {
 
     private static String HEADER_BEAR = "Bear ";
+
+    @Inject
+    ObjectMapper mapper;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -61,7 +65,6 @@ public class FirebaseAuthInterceptor implements HandlerInterceptor {
 
     private void handleThrowable(HttpServletResponse response, HttpStatus httpStatus, String message) throws IOException {
         ErrorMessage errorObj = new ErrorMessage(new Date(), message);
-        ObjectMapper mapper = new ObjectMapper();
         String jsonMessage = mapper.writeValueAsString(errorObj);
         response.addHeader(HttpHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_JSON_VALUE);
         response.setStatus(httpStatus.value());

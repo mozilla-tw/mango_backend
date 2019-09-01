@@ -25,6 +25,9 @@ class FirefoxAccountService {
     @Inject
     FirefoxAccountServiceInfo firefoxAccountServiceInfo;
 
+    @Inject
+    ObjectMapper mapper;
+
     String authorization(String code) throws IOException, JSONException {
         // token: fxCode -> fxToken
         JSONObject fxTokenJson = new JSONObject()
@@ -41,7 +44,6 @@ class FirefoxAccountService {
 
     FxAProfileResponse profile(String fxToken) throws JSONException, IOException {
         String fxaProfileRes = HttpUtil.post(firefoxAccountServiceInfo.getApiProfile(), null, fxToken);
-        ObjectMapper mapper = new ObjectMapper();
         return mapper.readValue(fxaProfileRes, FxAProfileResponse.class);
     }
 
