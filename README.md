@@ -1,3 +1,5 @@
+[![cloud build status](https://storage.googleapis.com/rocket-dev01-ci-build/build/build.svg)](https://github.com/sbsends/cloud-build-badge)
+
 # Getting Started
 
 - Add service account JSON file by putting [this file](https://drive.google.com/drive/u/1/folders/1nUd5jOuo0glhTWgcYE18OuFVeg46WfVT) on your local machine and add below to your environment variable. Note: You need to request permission to access the file.
