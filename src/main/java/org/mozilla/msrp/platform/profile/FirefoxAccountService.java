@@ -21,6 +21,9 @@ class FirefoxAccountService {
     private static String API_AUTH_REQUEST_KEY_CLIENT_SECRET = "client_secret";
     private static String API_AUTH_REQUEST_KEY_CODE = "code";
 
+    static {
+        System.out.println("------FirefoxAccountService------");
+    }
 
     @Inject
     FirefoxAccountServiceInfo firefoxAccountServiceInfo;

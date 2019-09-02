@@ -15,6 +15,10 @@ import java.util.concurrent.ExecutionException;
 @Configuration
 public class FirefoxAccountConfiguration {
 
+    static {
+
+        log.info("-----FirefoxAccountConfiguration-----");
+    }
     @Bean
     public FirefoxAccountServiceInfo firefoxAccountServiceInfo(Firestore firestore) {
         log.info("Get FirefoxAccount settings --- start ---");

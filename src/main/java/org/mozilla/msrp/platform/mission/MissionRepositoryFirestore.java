@@ -4,6 +4,7 @@ import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.Query;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
+import lombok.extern.log4j.Log4j2;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -14,10 +15,16 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 @Named
+@Log4j2
+
 public class MissionRepositoryFirestore implements MissionRepository {
 
     private Firestore firestore;
 
+    static {
+
+        log.info("-----MissionRepositoryFirestore-----");
+    }
     @Inject
     MissionRepositoryFirestore(Firestore firestore) {
         this.firestore = firestore;

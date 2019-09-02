@@ -16,6 +16,10 @@ import java.io.IOException;
 @Configuration
 public class FirebaseConfiguration {
 
+    static {
+
+        log.info("-----FirebaseConfiguration-----");
+    }
     /**
      * The Application Default Credentials are available if running in Google App Engine.
      * Otherwise, the environment variable GOOGLE_APPLICATION_CREDENTIALS must be defined pointing to a file defining the credentials.

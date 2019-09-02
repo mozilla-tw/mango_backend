@@ -1,5 +1,7 @@
 package org.mozilla.msrp.platform.mission;
 
+import lombok.extern.log4j.Log4j2;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.util.ArrayList;
@@ -7,10 +9,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Named
+@Log4j2
 class MissionService {
 
     private MissionRepository missionRepository;
+    static {
 
+        log.info("-----MissionService-----");
+    }
     @Inject
     MissionService(MissionRepository missionRepository) {
         this.missionRepository = missionRepository;

@@ -11,6 +11,10 @@ class ProfileRepository {
     private var users: CollectionReference
     private var accountActivity: CollectionReference
 
+    init {
+        println("------ProfileRepository------")
+    }
+
     companion object {
         private const val COLLECTION_USER = "users"
         private const val COLLECTION_ACCOUNT_ACTIVITY = "account_activity"

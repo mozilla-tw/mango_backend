@@ -17,6 +17,11 @@ import javax.inject.Named;
 public class PlatformProperties {
     private String firebaseProjectId;
 
+    static {
+
+        log.info("-----PlatformProperties-----");
+    }
+
     @PostConstruct
     public void printProperties() {
         log.info("PlatformProperties is initialized: {}", toString());
