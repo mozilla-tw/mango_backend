@@ -1,27 +1,27 @@
 package org.mozilla.msrp.platform.mission
 
+import java.util.*
 import javax.inject.Inject
 import javax.inject.Named
-import java.util.ArrayList
-import java.util.stream.Collectors
 
-@Named
-internal class MissionService @Inject
-constructor(private val missionRepository: MissionRepository) {
+@Named class MissionService @Inject constructor(
+        private val missionRepository: MissionRepository
+) {
 
-    private// TODO: Verify user status
-    val isSuspiciousUser: Boolean
+    // TODO: Verify user status
+    private val isSuspiciousUser: Boolean
         get() = false
 
     fun getMissionsByGroupId(groupId: String): List<Mission> {
         return if (isSuspiciousUser) {
             ArrayList()
-        } else this.missionRepository.getMissionsByGroupId(groupId).stream()
-                .filter(Predicate<MissionDoc> { this.isMissionAvailable(it) })
-                .map<Mission>(Function<MissionDoc, Mission> { this.convertToMission(it) })
-                .collect<List<Mission>, Any>(Collectors.toList())
 
-        // TODO: Aggregate client-facing mission data
+        } else {
+            // TODO: Aggregate client-facing mission data
+            this.missionRepository.getMissionsByGroupId(groupId)
+                    .filter { isMissionAvailable(it) }
+                    .map { convertToMission(it) }
+        }
     }
 
     private fun isMissionAvailable(mission: MissionDoc): Boolean {
@@ -36,11 +36,12 @@ constructor(private val missionRepository: MissionRepository) {
 
         // TODO: Aggregate mission progress
 
-        return Mission(missionDoc.mid,
-                name,
-                description,
-                missionDoc.endpoint,
-                missionDoc.pings)
+        return Mission(
+                mid = missionDoc.mid,
+                title = name,
+                description = description,
+                endpoint = missionDoc.endpoint
+        )
     }
 
     /**
@@ -56,13 +57,15 @@ constructor(private val missionRepository: MissionRepository) {
     }
 
     fun createMissions(missionList: List<MissionCreateData>): List<Mission> {
-        return missionList.stream()
-                .map<MissionDoc>(Function<MissionCreateData, MissionDoc> { missionRepository.createMission(it) })
-                .map<Mission>(Function<MissionDoc, Mission> { this.convertToMission(it) })
-                .collect<List<Mission>, Any>(Collectors.toList())
+        return missionList
+                .map { missionRepository.createMission(it) }
+                .map { convertToMission(it) }
     }
 
-    fun groupMissions(groupId: String, groupItems: List<MissionGroupItemData>): List<MissionReferenceDoc> {
+    fun groupMissions(
+            groupId: String,
+            groupItems: List<MissionGroupItemData>
+    ): List<MissionReferenceDoc> {
         return missionRepository.groupMissions(groupId, groupItems)
     }
 
@@ -72,7 +75,11 @@ constructor(private val missionRepository: MissionRepository) {
      * @param mid mission id
      * @return updated mission json for client
      */
-    fun joinMission(uid: String, missionType: String, mid: String): MissionJoinResponse {
+    fun joinMission(
+            uid: String,
+            missionType: String,
+            mid: String
+    ): MissionJoinResponse {
         val (_, status) = missionRepository.joinMission(uid, missionType, mid)
         return MissionJoinResponse(mid, status)
     }
