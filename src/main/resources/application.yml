@@ -6,7 +6,7 @@ spring:
 # Configuration to be enabled when the "dev" profile is active
 spring:
   profiles: dev
-logging:level:
+logging.level:
   root: INFO
   org.mozilla.msrp: DEBUG
 platform:
@@ -16,7 +16,7 @@ platform:
 # Example: ./gradlew bootRun --args='--spring.profiles.active=prod'
 spring:
   profiles: prod
-logging:level:
+logging.level:
   root: WARN
   org.mozilla.msrp: INFO
 platform:
