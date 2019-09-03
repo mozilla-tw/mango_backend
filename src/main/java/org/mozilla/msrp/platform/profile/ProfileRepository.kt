@@ -4,6 +4,7 @@ import com.google.cloud.firestore.CollectionReference
 import com.google.cloud.firestore.SetOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.cloud.FirestoreClient
+import org.mozilla.msrp.platform.profile.data.AccountActivityDoc
 import org.springframework.stereotype.Repository
 
 @Repository

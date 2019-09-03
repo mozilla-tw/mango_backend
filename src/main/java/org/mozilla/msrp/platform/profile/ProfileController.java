@@ -37,9 +37,9 @@ public class ProfileController {
                  HttpServletResponse httpResponse) {
 
         try {
-            String fxaAccessToken = firefoxAccountService.authorization(code);
+            String fxaAccessToken = firefoxAccountService.token(code);
 
-            FxAProfileResponse profileResponse = firefoxAccountService.profile(fxaAccessToken);
+            FxaProfileResponse profileResponse = firefoxAccountService.profile(fxaAccessToken);
 
             String fxUid = profileResponse.getUid();
             String fxEmail = profileResponse.getEmail();
@@ -53,7 +53,7 @@ public class ProfileController {
             String customToken = profileRepository.createCustomToken(fxUid, additionalClaims);
             // We don't really need this info. Just to let client intercept the url and close the webview.
             // TODO: remove below debugging information
-            httpResponse.sendRedirect("/done?jwt=" + customToken + "&fxaAccessToken=" + fxaAccessToken);
+            httpResponse.sendRedirect("/api/v1/done?jwt=" + customToken + "&fxaAccessToken=" + fxaAccessToken);
 
             return "done";
 
