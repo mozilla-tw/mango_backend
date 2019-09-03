@@ -4,7 +4,7 @@ import com.google.cloud.firestore.CollectionReference
 import com.google.cloud.firestore.SetOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.cloud.FirestoreClient
-import org.mozilla.msrp.platform.profile.data.AccountActivityDoc
+import org.mozilla.msrp.platform.profile.data.ProfileActivityDoc
 import org.springframework.stereotype.Repository
 
 @Repository
@@ -84,7 +84,7 @@ class ProfileRepository {
     }
 
     private fun logAccountActivity(userDocumentId: String, action: String) {
-        AccountActivityDoc(userDocumentId, System.currentTimeMillis(), action, 1).let {
+        ProfileActivityDoc(userDocumentId, System.currentTimeMillis(), action, 1).let {
             accountActivity.document().set(it)
         }
     }
