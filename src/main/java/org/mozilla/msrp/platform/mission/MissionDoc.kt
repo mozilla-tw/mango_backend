@@ -16,7 +16,8 @@ data class MissionDoc(
         var missionName: String = "",
         var titleId: String = "",
         var descriptionId: String = "",
-        var missionType: String = ""
+        var missionType: String = "",
+        var interestPings: List<String> = emptyList()
 ) {
     val endpoint = "/$missionType/$mid"
 
@@ -25,6 +26,7 @@ data class MissionDoc(
         private const val KEY_NAME_ID = "titleId"
         private const val KEY_DESCRIPTION_ID = "descriptionId"
         private const val KEY_MISSION_TYPE = "missionType"
+        private const val KEY_PINGS = "interestPings"
 
         @JvmStatic
         fun fromDocument(snapshot: DocumentSnapshot): MissionDoc? {
@@ -40,7 +42,8 @@ data class MissionDoc(
                     KEY_MID,
                     KEY_NAME_ID,
                     KEY_DESCRIPTION_ID,
-                    KEY_MISSION_TYPE
+                    KEY_MISSION_TYPE,
+                    KEY_PINGS
             ))
         }
     }

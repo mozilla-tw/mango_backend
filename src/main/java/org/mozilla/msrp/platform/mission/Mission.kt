@@ -12,5 +12,6 @@ data class Mission(
         val mid: String,
         val title: String,
         val description: String,
-        val endpoint: String
+        val endpoint: String,
+        val pings: List<String>
 )
