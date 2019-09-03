@@ -1,6 +1,7 @@
 package org.mozilla.msrp.platform.mission
 
 import com.google.cloud.firestore.*
+import org.mozilla.msrp.platform.firestore.*
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -16,7 +17,7 @@ class MissionRepositoryFirestore @Inject internal constructor(
     private fun getMissionRefsByGroupId(groupId: String): List<MissionReferenceDoc> {
         val query = firestore.collection(groupId)
 
-        return query.waitResults.mapNotNull {
+        return query.getResultsUnchecked().mapNotNull {
             MissionReferenceDoc.fromDocument(it)
         }
     }
@@ -48,7 +49,7 @@ class MissionRepositoryFirestore @Inject internal constructor(
                 missionType = createData.missionType
         )
 
-        docRef.set(doc).getUnchecked()
+        docRef.setUnchecked(doc)
 
         return doc
     }
@@ -68,7 +69,7 @@ class MissionRepositoryFirestore @Inject internal constructor(
             groupItem: MissionGroupItemData
     ): MissionReferenceDoc {
         val doc = MissionReferenceDoc(groupItem.endpoint)
-        firestore.collection(groupId).document().set(doc).getUnchecked()
+        firestore.collection(groupId).document().setUnchecked(doc)
         return doc
     }
 
@@ -88,18 +89,8 @@ class MissionRepositoryFirestore @Inject internal constructor(
                 .document(mid)
                 .collection("users")
                 .document()
-                .set(joinDoc)
-                .getUnchecked()
+                .setUnchecked(joinDoc)
 
         return joinDoc
     }
-}
-
-private val Query.waitResults: List<QueryDocumentSnapshot>
-    get() {
-        return get().getUnchecked().documents
-    }
-
-private fun DocumentReference.getUnchecked(): DocumentSnapshot {
-    return get().getUnchecked()
 }
