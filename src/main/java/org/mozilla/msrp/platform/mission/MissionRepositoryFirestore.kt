@@ -2,6 +2,7 @@ package org.mozilla.msrp.platform.mission
 
 import com.google.cloud.firestore.*
 import org.mozilla.msrp.platform.firestore.*
+import org.mozilla.msrp.platform.util.logger
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -9,6 +10,8 @@ import javax.inject.Named
 class MissionRepositoryFirestore @Inject internal constructor(
         private val firestore: Firestore
 ) : MissionRepository {
+
+    private val log = logger()
 
     override fun getMissionsByGroupId(groupId: String): List<MissionDoc> {
         return getMissionRefsByGroupId(groupId).mapNotNull { getMissionsByRef(it) }
@@ -93,5 +96,31 @@ class MissionRepositoryFirestore @Inject internal constructor(
                 .setUnchecked(joinDoc)
 
         return joinDoc
+    }
+
+    override fun findJoinedMissionsByPing(uid: String, ping: String): List<MissionDoc> {
+        return firestore.collectionGroup("users")
+                .findDocumentsByUid(uid)
+                .mapNotNull { getParentMissionDoc(it) }
+                .filter { it.interestPings.contains(ping) }
+    }
+
+    private fun getParentMissionDoc(joinDoc: QueryDocumentSnapshot): MissionDoc? {
+        val missionSnapshot = joinDoc.reference
+                .parentCollection
+                .parentDocument
+                ?.getUnchecked()
+
+        return missionSnapshot?.let {
+            return MissionDoc.fromDocument(it)
+
+        } ?: run {
+            log.warn("failed to resolve parent document for join doc: ${joinDoc.reference.path}")
+            null
+        }
+    }
+
+    private fun Query.findDocumentsByUid(uid: String): List<QueryDocumentSnapshot> {
+        return this.whereEqualTo("uid", uid).getResultsUnchecked()
     }
 }

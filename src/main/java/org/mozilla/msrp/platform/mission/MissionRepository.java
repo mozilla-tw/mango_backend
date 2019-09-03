@@ -15,4 +15,6 @@ public interface MissionRepository {
     List<MissionReferenceDoc> groupMissions(String groupId, List<MissionGroupItemData> groupItems);
 
     MissionJoinDoc joinMission(String uid, String missionType, String mid);
+
+    List<MissionDoc> findJoinedMissionsByPing(String uid, String ping);
 }
