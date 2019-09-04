@@ -2,6 +2,8 @@ package org.mozilla.msrp.platform.mission
 
 import com.google.cloud.firestore.*
 import org.mozilla.msrp.platform.firestore.*
+import org.mozilla.msrp.platform.mission.qualifier.DailyMissionProgressDoc
+import org.mozilla.msrp.platform.mission.qualifier.MissionProgressDoc
 import org.mozilla.msrp.platform.util.logger
 import javax.inject.Inject
 import javax.inject.Named
@@ -123,4 +125,33 @@ class MissionRepositoryFirestore @Inject internal constructor(
     private fun Query.findDocumentsByUid(uid: String): List<QueryDocumentSnapshot> {
         return this.whereEqualTo("uid", uid).getResultsUnchecked()
     }
+
+    override fun getDailyMissionProgress(
+            uid: String,
+            mid: String
+    ): DailyMissionProgressDoc? {
+
+        val collection = getDailyMissionCollection()
+        val result = collection
+                .whereEqualTo("uid", uid)
+                .whereEqualTo("mid", mid)
+                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .limit(1)
+                .getResultsUnchecked()
+                .firstOrNull()
+
+        log.info("progress collection=${collection.path}, docId=${result?.reference?.id}")
+
+        return result?.toObject(DailyMissionProgressDoc::class.java)
+    }
+
+    override fun updateDailyMissionProgress(progressDoc: MissionProgressDoc) {
+        val collection = getDailyMissionCollection()
+        log.info("firestore path: ${collection.path}")
+
+        collection.document().setUnchecked(progressDoc)
+    }
+
+    private fun getDailyMissionCollection() =
+            firestore.collection("${MissionType.DailyMission.identifier}_progress")
 }
