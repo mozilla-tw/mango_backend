@@ -48,3 +48,6 @@ data class MissionDoc(
         }
     }
 }
+
+val MissionDoc.missionTypeEnum: MissionType
+    get() = MissionType.values().find { it.identifier == missionType } ?: MissionType.Unknown
