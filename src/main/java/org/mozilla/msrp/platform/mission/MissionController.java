@@ -6,13 +6,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.inject.Inject;
 import java.util.List;
+import java.time.DateTimeException;
+import java.time.ZoneId;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
+import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 @Log4j2
 @RestController
@@ -146,7 +150,7 @@ public class MissionController {
      * @param mid mission id
      * @return response indicating mission id and it's new join status
      */
-    @RequestMapping(value = "/{missionType}/{mid}", method = POST)
+    @RequestMapping(value = "/missions/{missionType}/{mid}", method = POST)
     public ResponseEntity<MissionJoinResponse> joinMission(@PathVariable("missionType") String missionType,
                                                            @PathVariable("mid") String mid) {
         String uid = getUid();
@@ -157,5 +161,49 @@ public class MissionController {
     // TODO: Get user id from bearer token
     private String getUid() {
         return "roger_random_uid";
+    }
+
+    /**
+     * Check-in missions that are interest in the give ping
+     *
+     * Response (daily mission as example)
+     * {
+     *     "result": [
+     *          "mid": "3zpBONndZxBE76J6ZJl1",
+     *          "joinDate": 1567572602095,
+     *          "missionType": "mission_daily",
+     *          "progress": {
+     *              "currentDayCount": 1
+     *          }
+     *     ]
+     * }
+     *
+     * Invalid timezone
+     * {
+     *     "error": "unsupported timezone"
+     * }
+     *
+     * @param ping ping used in Firebase Analytics
+     * @param timezone user's timezone in
+     */
+    @RequestMapping(value = "/ping/{ping}", method = PUT)
+    public ResponseEntity<MissionCheckInResponse> checkInMissionsByPing(@PathVariable("ping") String ping,
+                                                                     @RequestParam("tz") String timezone) {
+        String uid = getUid();
+
+        ZoneId zone;
+        try {
+            zone = ZoneId.of(timezone);
+
+        } catch (DateTimeException e) {
+            log.info("unsupported timezone=" + timezone);
+            return ResponseEntity.badRequest().body(MissionCheckInResponse.error("unsupported timezone"));
+        }
+
+        log.info("ping=" + ping + ", timezone=" + zone);
+
+        List<MissionCheckInResult> results = missionService.checkInMissions(uid, ping, zone);
+
+        return ResponseEntity.ok(MissionCheckInResponse.body(results));
     }
 }
