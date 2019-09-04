@@ -1,5 +1,9 @@
 package org.mozilla.msrp.platform.mission
 
+import org.mozilla.msrp.platform.mission.qualifier.MissionQualifier
+import org.mozilla.msrp.platform.util.logger
+import org.slf4j.Logger
+import java.time.ZoneId
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Named
@@ -11,6 +15,11 @@ import javax.inject.Named
     // TODO: Verify user status
     private val isSuspiciousUser: Boolean
         get() = false
+
+    @Inject
+    lateinit var missionQualifier: MissionQualifier
+
+    private val log: Logger = logger()
 
     fun getMissionsByGroupId(groupId: String): List<Mission> {
         return if (isSuspiciousUser) {
@@ -40,7 +49,8 @@ import javax.inject.Named
                 mid = missionDoc.mid,
                 title = name,
                 description = description,
-                endpoint = missionDoc.endpoint
+                endpoint = missionDoc.endpoint,
+                pings = missionDoc.interestPings
         )
     }
 
@@ -82,5 +92,29 @@ import javax.inject.Named
     ): MissionJoinResponse {
         val (_, status) = missionRepository.joinMission(uid, missionType, mid)
         return MissionJoinResponse(mid, status)
+    }
+
+    /**
+     * Check missions interest to the given ping
+     */
+    fun checkInMissions(
+            uid: String,
+            ping: String,
+            zone: ZoneId
+    ): List<MissionCheckInResult> {
+
+        val missions = missionRepository.findJoinedMissionsByPing(uid, ping)
+
+        return missions.mapNotNull { missionDoc ->
+            val mid = missionDoc.mid
+            val type = missionDoc.missionTypeEnum
+
+            log.info("update progress, mid=$mid, type=$type")
+
+            missionQualifier.updateProgress(uid, mid, type, zone)
+
+        }.map { progressDoc ->
+            MissionCheckInResult(progressDoc.toResponseFields())
+        }
     }
 }
