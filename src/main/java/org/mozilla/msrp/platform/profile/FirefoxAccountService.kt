@@ -1,9 +1,8 @@
 package org.mozilla.msrp.platform.profile
 
+import com.google.common.annotations.VisibleForTesting
 import org.json.JSONException
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
-import org.springframework.web.server.ResponseStatusException
 
 import javax.inject.Inject
 import java.io.IOException
@@ -16,46 +15,46 @@ import javax.inject.Named
 @Service
 class FirefoxAccountService @Inject constructor(
     @Named("FxaAuth") var authClient: FirefoxAccountClient,
-    @Named("FxaProfile") var profileClient: FirefoxAccountClient) {
-
-
-    @Inject
-    private lateinit var firefoxAccountServiceInfo: FirefoxAccountServiceInfo
+    @Named("FxaProfile") var profileClient: FirefoxAccountClient,
+    private var firefoxAccountServiceInfo: FirefoxAccountServiceInfo) {
 
 
     @Throws(IOException::class, JSONException::class)
-    fun token(authorizationCode: String): String? {
+    fun token(fxaTokenRequest: FxaTokenRequest): String? {
         // token: fxCode -> fxToken
+
+        val response = authClient.token(fxaTokenRequest).execute()
+        val body = response.body()
+        return if (response.isSuccessful && body != null) {
+            body.access_token
+        } else {
+            null
+        }
+    }
+
+    fun genFxaTokenRequest(authorizationCode: String): FxaTokenRequest {
         val clientId = firefoxAccountServiceInfo.clientId
 
         val clientSecret = firefoxAccountServiceInfo.clientSecret
 
-        val fxaTokenRequest = FxaTokenRequest(
+        return FxaTokenRequest(
             clientId,
             clientSecret,
             authorizationCode)
-
-        authClient.token(fxaTokenRequest).execute().let {
-            val body = it.body()
-            if (it.isSuccessful && body != null) {
-                return body.access_token
-
-            } else {
-                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "error in Fxa token api ")
-            }
-        }
     }
 
     @Throws(JSONException::class, IOException::class)
-    fun profile(fxToken: String): FxaProfileResponse {
-        profileClient.profile("Bearer: $fxToken").execute().let {
-            val body = it.body()
-            if (it.isSuccessful && body != null) {
-                return body
+    fun profile(bearerHeader: String): FxaProfileResponse? {
 
-            } else {
-                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "error in Fxa profile api ")
-            }
+        val response = profileClient.profile(bearerHeader).execute()
+
+        val body = response.body()
+
+        return if (response.isSuccessful) {
+            body
+        } else {
+            null
         }
+
     }
 }
