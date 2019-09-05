@@ -5,6 +5,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseToken;
 import lombok.extern.log4j.Log4j2;
 import org.mozilla.msrp.platform.common.ErrorMessage;
+import org.mozilla.msrp.platform.profile.ProfileRepository;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.MimeTypeUtils;
@@ -22,10 +23,13 @@ import java.util.Date;
 @Named
 public class FirebaseAuthInterceptor implements HandlerInterceptor {
 
-    private static String HEADER_BEAR = "Bearer ";
+    private static final String HEADER_BEAR = "Bearer ";
 
     @Inject
     ObjectMapper mapper;
+
+    @Inject
+    ProfileRepository profileRepository;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -45,8 +49,13 @@ public class FirebaseAuthInterceptor implements HandlerInterceptor {
 
                     return false;
                 }
-            } catch (Throwable throwable) {
 
+                String fbuid = decodedToken.getUid();
+                String fxuid = (String) decodedToken.getClaims().getOrDefault("fxuid", "");
+                String uid = profileRepository.findUserId(fbuid, fxuid);
+                request.setAttribute("uid", uid);
+
+            } catch (Throwable throwable) {
                 handleThrowable(response, HttpStatus.INTERNAL_SERVER_ERROR, "Error loading DB");
 
                 return false;
