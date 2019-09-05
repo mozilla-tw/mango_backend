@@ -2,6 +2,7 @@ package org.mozilla.msrp.platform.profile;
 
 import org.json.JSONException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,18 +29,28 @@ public class ProfileController {
         if (jwt == null || jwt.length() == 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "GWT generation failed");
         }
-        return "Debug:jwt[" + jwt + "]  [" + fxaAccessToken +"], closing the webview";
+        return "Debug:jwt[" + jwt + "]  [" + fxaAccessToken + "], closing the webview";
     }
 
     @RequestMapping("/api/v1/login")
-    String login(@RequestParam(value = "code") String code,
-                 @RequestParam(value = "state") String oldFbUid,
-                 HttpServletResponse httpResponse) {
+    ResponseEntity<String> login(@RequestParam(value = "code") String code,
+                                 @RequestParam(value = "state") String oldFbUid,
+                                 HttpServletResponse httpResponse) {    // need HttpServletResponse to redirect
 
         try {
-            String fxaAccessToken = firefoxAccountService.token(code);
+            FxaTokenRequest fxaTokenRequest = firefoxAccountService.genFxaTokenRequest(code);
+            String fxaAccessToken = firefoxAccountService.token(fxaTokenRequest);
+            if (fxaAccessToken == null) {
 
-            FxaProfileResponse profileResponse = firefoxAccountService.profile(fxaAccessToken);
+                return new ResponseEntity<>("error in Fxa token api", HttpStatus.BAD_REQUEST);
+            }
+
+            FxaProfileResponse profileResponse = firefoxAccountService.profile("Bearer " + fxaAccessToken);
+
+            if (profileResponse == null) {
+
+                return new ResponseEntity<>("error in Fxa token api", HttpStatus.BAD_REQUEST);
+            }
 
             String fxUid = profileResponse.getUid();
             String fxEmail = profileResponse.getEmail();
@@ -55,7 +66,7 @@ public class ProfileController {
             // TODO: remove below debugging information
             httpResponse.sendRedirect("/api/v1/done?jwt=" + customToken + "&fxaAccessToken=" + fxaAccessToken);
 
-            return "done";
+            return null;// not gonna reach this
 
         } catch (IOException | JSONException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getLocalizedMessage());

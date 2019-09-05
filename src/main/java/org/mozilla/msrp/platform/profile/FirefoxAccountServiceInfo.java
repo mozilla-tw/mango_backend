@@ -1,7 +1,7 @@
 package org.mozilla.msrp.platform.profile;
 
 
-class FirefoxAccountServiceInfo {
+public class FirefoxAccountServiceInfo {
     private final String clientId;
     private final String clientSecret;
     private final String apiToken;
