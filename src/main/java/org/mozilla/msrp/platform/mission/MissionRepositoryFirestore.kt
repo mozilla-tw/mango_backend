@@ -1,5 +1,6 @@
 package org.mozilla.msrp.platform.mission
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.cloud.firestore.*
 import org.mozilla.msrp.platform.firestore.*
 import org.mozilla.msrp.platform.mission.qualifier.DailyMissionProgressDoc
@@ -14,6 +15,9 @@ class MissionRepositoryFirestore @Inject internal constructor(
 ) : MissionRepository {
 
     private val log = logger()
+
+    @Inject
+    lateinit var mapper: ObjectMapper
 
     override fun getMissionsByGroupId(groupId: String): List<MissionDoc> {
         return getMissionRefsByGroupId(groupId).mapNotNull { getMissionsByRef(it) }
@@ -79,6 +83,8 @@ class MissionRepositoryFirestore @Inject internal constructor(
         return doc
     }
 
+
+
     /**
      * This will insert a document to /missionType/mid/users/
      *
@@ -89,13 +95,13 @@ class MissionRepositoryFirestore @Inject internal constructor(
             missionType: String,
             mid: String
     ): MissionJoinDoc {
-        val joinDoc = MissionJoinDoc(uid = uid, status = "join")
+        val joinDoc = MissionJoinDoc(uid = uid, status = JoinStatus.Joined)
 
         firestore.collection(missionType)
                 .document(mid)
                 .collection("users")
                 .document()
-                .setUnchecked(joinDoc)
+                .setUnchecked(joinDoc, mapper)
 
         return joinDoc
     }
