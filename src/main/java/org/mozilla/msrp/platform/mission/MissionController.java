@@ -51,10 +51,10 @@ public class MissionController {
      * @return Client-facing mission list
      */
     @RequestMapping(value = "/api/v1/group/{groupId}/missions", method = GET)
-    public ResponseEntity<List<Mission>> getGroupMissions(@PathVariable("groupId") String groupId) {
+    public ResponseEntity<MissionListResponse> getMissionByGroupId(@PathVariable("groupId") String groupId) {
         List<Mission> missions = missionService.getMissionsByGroupId(groupId);
 
-        return new ResponseEntity<>(missions, HttpStatus.OK);
+        return ResponseEntity.ok(new MissionListResponse(missions));
     }
 
     /**
