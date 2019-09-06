@@ -40,7 +40,7 @@ class DailyMissionQualifier(val clock: Clock = Clock.systemUTC()) {
         return DailyMissionProgressDoc(
                 uid = uid,
                 mid = mid,
-                joinData = now,
+                joinDate = now,
                 timestamp = now,
                 missionType = MissionType.DailyMission.identifier,
                 currentDayCount = 1
@@ -81,7 +81,7 @@ class DailyMissionQualifier(val clock: Clock = Clock.systemUTC()) {
     private fun restartProgress(progress: DailyMissionProgressDoc): DailyMissionProgressDoc {
         log.info("restart progress")
         val now = Instant.now().toEpochMilli()
-        return progress.copy(joinData = now, timestamp = now, currentDayCount = 1)
+        return progress.copy(joinDate = now, timestamp = now, currentDayCount = 1)
     }
 
     private fun advanceProgress(progress: DailyMissionProgressDoc): DailyMissionProgressDoc {

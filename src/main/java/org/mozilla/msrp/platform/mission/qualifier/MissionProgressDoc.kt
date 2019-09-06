@@ -6,14 +6,14 @@ package org.mozilla.msrp.platform.mission.qualifier
 interface MissionProgressDoc {
     var uid: String
     var mid: String
-    var joinData: Long
+    var joinDate: Long
     var timestamp: Long
     var missionType: String
 
     fun toResponseFields(): Map<String, Any> {
         return mutableMapOf(
                 "mid" to mid,
-                "joinDate" to joinData,
+                "joinDate" to joinDate,
                 "missionType" to missionType,
                 "progress" to getProgressFields()
         )
