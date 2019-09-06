@@ -200,7 +200,7 @@ public class MissionController {
             return ResponseEntity.badRequest().body(MissionCheckInResponse.error("unsupported timezone"));
         }
 
-        log.info("ping=" + ping + ", timezone=" + zone);
+        log.info("ping={}, timezone={}", ping, zone);
 
         List<MissionCheckInResult> results = missionService.checkInMissions(uid, ping, zone);
 
