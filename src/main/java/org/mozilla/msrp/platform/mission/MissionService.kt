@@ -50,7 +50,8 @@ import javax.inject.Named
                 title = name,
                 description = description,
                 endpoint = missionDoc.endpoint,
-                events = missionDoc.interestPings
+                events = missionDoc.interestPings,
+                expiredDate = missionDoc.expiredDate
         )
     }
 

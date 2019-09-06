@@ -9,5 +9,6 @@ data class MissionCreateData(
         val titleId: String,
         val descriptionId: String,
         val missionType: String,
-        val pings: List<String>
+        val pings: List<String>,
+        val expiredDate: Long
 )

@@ -13,5 +13,6 @@ data class Mission(
         val title: String,
         val description: String,
         val endpoint: String,
-        val events: List<String>
+        val events: List<String>,
+        val expiredDate: Long
 )
