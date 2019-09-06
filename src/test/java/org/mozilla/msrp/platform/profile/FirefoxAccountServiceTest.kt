@@ -8,6 +8,7 @@ import org.junit.Before
 import org.mockito.Mock
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
+import org.mockito.MockitoAnnotations
 import org.mockito.stubbing.OngoingStubbing
 import org.mozilla.msrp.platform.common.mock
 import org.mozilla.msrp.platform.common.onRetrofitExecute
@@ -28,8 +29,9 @@ class FirefoxAccountServiceTest {
 
     @Before
     fun setUP() {
-        authClient = mock(FirefoxAccountClient::class.java)
-        profileClient = mock(FirefoxAccountClient::class.java)
+
+        MockitoAnnotations.initMocks(this)
+
         firefoxAccountService = FirefoxAccountService(
             authClient,
             profileClient,
@@ -72,7 +74,7 @@ class FirefoxAccountServiceTest {
     fun getProfileSuccess() {
         val profileResponse = FxaProfileResponse()
 
-        val bearer = "bear i-am-a-fake-bearer"
+        val bearer = "Bearer i-am-a-fake-bearer"
 
         onRetrofitExecute(profileClient.profile(bearer))
             ?.thenReturn(Response.success(profileResponse))
@@ -85,7 +87,7 @@ class FirefoxAccountServiceTest {
     @Test
     fun getProfileFail() {
 
-        val bearer = "bear i-am-a-fake-bearer"
+        val bearer = "Bearer i-am-a-fake-bearer"
 
         onRetrofitExecute(profileClient.profile(bearer))
             ?.thenReturn(Response.error(400, mock(ResponseBody::class.java)))
