@@ -1,14 +1,17 @@
 package org.mozilla.msrp.platform.profile
 
 import com.google.cloud.firestore.CollectionReference
+import com.google.cloud.firestore.Firestore
 import com.google.cloud.firestore.SetOptions
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.cloud.FirestoreClient
 import org.mozilla.msrp.platform.profile.data.ProfileActivityDoc
+import org.mozilla.msrp.platform.firestore.getResultsUnchecked
 import org.springframework.stereotype.Repository
+import javax.inject.Inject
 
 @Repository
-class ProfileRepository {
+class ProfileRepository @Inject constructor(firestore: Firestore) {
+
     private var users: CollectionReference
     private var accountActivity: CollectionReference
 
@@ -27,10 +30,9 @@ class ProfileRepository {
 
     }
 
-    constructor() {
-        val db = FirestoreClient.getFirestore()
-        users = db.collection(COLLECTION_USER)
-        accountActivity = db.collection(COLLECTION_ACCOUNT_ACTIVITY)
+    init {
+        users = firestore.collection(COLLECTION_USER)
+        accountActivity = firestore.collection(COLLECTION_ACCOUNT_ACTIVITY)
     }
 
     fun createCustomToken(fxUid: String?, additionalClaims: Map<String, String>): String? {
@@ -64,6 +66,28 @@ class ProfileRepository {
         )
         users.document(currentUserDocId).set(updateData, SetOptions.merge())
         logAccountActivity(currentUserDocId, ACCOUNT_ACTIVITY_ACTION_SIGN_IN)
+    }
+
+    fun findUserId(fbuid: String, fxuid: String): String? {
+        return if (fxuid.isEmpty()) {
+            findUserIdByFxUid(fxuid)
+        } else {
+            findUserIdByFbUid(fbuid)
+        }
+    }
+
+    private fun findUserIdByFxUid(fxUid: String): String? {
+        return users.whereEqualTo(DOC_FIELD_USER_FIREFOX_UID, fxUid)
+                .getResultsUnchecked()
+                .firstOrNull()
+                ?.getString("uid")
+    }
+
+    private fun findUserIdByFbUid(fbUid: String): String? {
+        return users.whereEqualTo(DOC_FIELD_USER_FIREBASE_UID, fbUid)
+                .getResultsUnchecked()
+                .firstOrNull()
+                ?.getString("uid")
     }
 
     private fun findUserDocumentIdByFbUid(fbUid: String): String? {
