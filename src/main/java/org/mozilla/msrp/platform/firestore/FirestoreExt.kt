@@ -1,7 +1,10 @@
 package org.mozilla.msrp.platform.firestore
 
+import com.google.api.core.ApiFuture
 import com.google.cloud.firestore.*
-import org.mozilla.msrp.platform.mission.getUnchecked
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.UncheckedExecutionException
+import java.util.concurrent.CancellationException
 
 fun DocumentSnapshot.areFieldsPresent(fieldNames: List<String>): Boolean {
     fieldNames.forEach { fieldName ->
@@ -32,3 +35,16 @@ val DocumentReference.parentCollection
 
 val CollectionReference.parentDocument: DocumentReference?
     get() = this.parent
+
+/** Extensions for handling and re-throwing exceptions thrown by Firestore */
+fun <T> ApiFuture<T>.getUnchecked(): T {
+    return try {
+        Futures.getUnchecked(this)
+
+    } catch (e: CancellationException) {
+        throw FirestoreException(cause = e)
+
+    } catch (e: UncheckedExecutionException) {
+        throw FirestoreException(cause = e)
+    }
+}
