@@ -3,13 +3,14 @@ package org.mozilla.msrp.platform.mission.qualifier
 import org.mozilla.msrp.platform.mission.MissionRepository
 import org.mozilla.msrp.platform.mission.MissionType
 import org.mozilla.msrp.platform.util.logger
-import org.springframework.stereotype.Component
 import java.time.*
 import java.time.temporal.ChronoUnit
 import javax.inject.Inject
+import javax.inject.Named
 
-@Component("mission_daily")
-class DailyMissionQualifier {
+
+@Named
+class DailyMissionQualifier(val clock: Clock = Clock.systemUTC()) {
 
     private val log = logger()
 
@@ -35,7 +36,7 @@ class DailyMissionQualifier {
             uid: String,
             mid: String
     ): DailyMissionProgressDoc {
-        val now = Instant.now().toEpochMilli()
+        val now = clock.instant().toEpochMilli()
         return DailyMissionProgressDoc(
                 uid = uid,
                 mid = mid,
@@ -51,14 +52,15 @@ class DailyMissionQualifier {
             zone: ZoneId
     ): MissionProgressDoc {
         val lastCheckInDate = Instant.ofEpochMilli(progress.timestamp).atZone(zone)
-        val now = Instant.now().atZone(zone)
+        val now = clock.instant().atZone(zone)
+
         val diffDays = getDifferenceInDays(lastCheckInDate, now)
 
         log.info("now: $now, last: $lastCheckInDate, diff=$diffDays")
 
         return when {
-            diffDays >= 2L -> restartProgress(progress)
-            diffDays >= 1L -> advanceProgress(progress)
+            diffDays >= 20L -> restartProgress(progress)
+            diffDays >= 10L -> advanceProgress(progress)
             diffDays >= 0L -> noProgress(progress)
             else -> illegalProgress(progress)
         }
