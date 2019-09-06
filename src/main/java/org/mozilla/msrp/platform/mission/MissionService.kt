@@ -50,7 +50,7 @@ import javax.inject.Named
                 title = name,
                 description = description,
                 endpoint = missionDoc.endpoint,
-                pings = missionDoc.interestPings
+                events = missionDoc.interestPings
         )
     }
 
