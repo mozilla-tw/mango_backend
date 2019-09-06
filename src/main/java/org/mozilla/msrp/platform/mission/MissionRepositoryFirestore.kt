@@ -5,7 +5,13 @@ import com.google.cloud.firestore.Firestore
 import com.google.cloud.firestore.Query
 import com.google.cloud.firestore.QueryDocumentSnapshot
 import com.google.cloud.firestore.SetOptions
-import org.mozilla.msrp.platform.firestore.*
+import com.google.cloud.firestore.Transaction
+import org.mozilla.msrp.platform.firestore.getResultsUnchecked
+import org.mozilla.msrp.platform.firestore.getUnchecked
+import org.mozilla.msrp.platform.firestore.parentCollection
+import org.mozilla.msrp.platform.firestore.parentDocument
+import org.mozilla.msrp.platform.firestore.setUnchecked
+import org.mozilla.msrp.platform.firestore.toObject
 import org.mozilla.msrp.platform.mission.qualifier.DailyMissionProgressDoc
 import org.mozilla.msrp.platform.mission.qualifier.ProgressType
 import org.mozilla.msrp.platform.mission.qualifier.MissionProgressDoc
@@ -145,6 +151,55 @@ class MissionRepositoryFirestore @Inject internal constructor(
                 path.document().setUnchecked(this, mapper)
             }
         }
+    }
+
+    // TODO: extract method
+    /**
+     * Get the mission doc. We might want the reward doc link from it
+     * */
+    override fun getMissionJoinDoc(uid: String, missionType: String, mid: String): MissionJoinDoc? {
+        val path = firestore.collection(missionType)
+            .document(mid)
+            .collection("users")
+
+        val oldRecordSnapshot = path
+            .findDocumentsByUid(uid)
+            .firstOrNull()
+
+        return oldRecordSnapshot?.toObject(MissionJoinDoc::class.java, mapper)
+    }
+
+    // return true if there's a mission document found
+    override fun updateMissionJoinDocAfterRedeem(
+        uid: String,
+        missionType: String,
+        mid: String,
+        rewardDocId: String,
+        transaction: Transaction): Boolean {
+
+        val path = firestore.collection(missionType)
+            .document(mid)
+            .collection("users")
+
+
+        val oldRecordSnapshot = path
+            .findDocumentsByUid(uid)
+            .firstOrNull()
+
+        if (oldRecordSnapshot != null) {
+            val document = firestore.collection(missionType)
+                .document(mid)
+                .collection("users")
+                .document(oldRecordSnapshot.id)
+
+            transaction.update(document,
+                mapOf("status" to JoinStatus.Redeemed.status,
+                    "rewardDocId" to rewardDocId,
+                    "updated_timestamp" to clock.instant().toEpochMilli()
+                ))
+            return true
+        }
+        return false
     }
 
     override fun quitMission(uid: String, missionType: String, mid: String): Boolean {

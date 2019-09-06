@@ -1,5 +1,6 @@
 package org.mozilla.msrp.platform.mission
 
+import com.google.cloud.firestore.Transaction
 import org.mozilla.msrp.platform.mission.qualifier.DailyMissionProgressDoc
 import org.mozilla.msrp.platform.mission.qualifier.MissionProgressDoc
 
@@ -21,6 +22,8 @@ interface MissionRepository {
 
     fun joinMission(uid: String, missionType: String, mid: String): MissionJoinDoc
 
+    fun getMissionJoinDoc(uid: String, missionType: String, mid: String): MissionJoinDoc?
+
     fun quitMission(uid: String, missionType: String, mid: String): Boolean
 
     fun findJoinedMissionsByPing(uid: String, ping: String): List<MissionDoc>
@@ -29,6 +32,6 @@ interface MissionRepository {
     fun getDailyMissionProgress(uid: String, mid: String): DailyMissionProgressDoc?
     fun updateDailyMissionProgress(progressDoc: MissionProgressDoc)
     fun clearDailyMissionProgress(uid: String, mid: String)
-
     fun isImportantMission(missionType: String, mid: String): Boolean
+    fun updateMissionJoinDocAfterRedeem(uid: String, missionType: String, mid: String, rewardDocId: String, transaction: Transaction): Boolean
 }

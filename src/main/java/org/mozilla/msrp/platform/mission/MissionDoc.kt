@@ -26,7 +26,8 @@ data class MissionDoc(
         val joinEndDate: String = "",
         var expiredDate: String = "",
         var minVersion: Int = 0,
-        val missionParams: Map<String, Any> = emptyMap()
+        val missionParams: Map<String, Any> = emptyMap(),
+        var rewardType: String = "reward_coupon"          // the Firestore collection for reward inventory
 ) {
     val endpoint = "/$missionType/$mid"
 
@@ -41,6 +42,7 @@ data class MissionDoc(
         private const val KEY_START_DATE = "startDate"
         private const val KEY_JOIN_START_DATE = "joinStartDate"
         private const val KEY_JOIN_END_DATE = "joinEndDate"
+        private const val REWARD_TYPE = "rewardType"
 
         @JvmStatic
         fun fromDocument(snapshot: DocumentSnapshot): MissionDoc? {
@@ -64,7 +66,8 @@ data class MissionDoc(
                     KEY_MISSION_PARAMS,
                     KEY_START_DATE,
                     KEY_JOIN_END_DATE,
-                    KEY_JOIN_START_DATE
+                    KEY_JOIN_START_DATE,
+                    REWARD_TYPE
             )
         }
     }
