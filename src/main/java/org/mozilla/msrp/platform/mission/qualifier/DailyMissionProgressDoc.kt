@@ -6,7 +6,7 @@ package org.mozilla.msrp.platform.mission.qualifier
 data class DailyMissionProgressDoc(
         override var uid: String = "",
         override var mid: String = "",
-        override var joinData: Long = 0L,
+        override var joinDate: Long = 0L,
         override var timestamp: Long = 0L,
         override var missionType: String = "",
         var currentDayCount: Int = 0

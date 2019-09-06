@@ -50,11 +50,11 @@ public class MissionController {
      * @param groupId id for audience group
      * @return Client-facing mission list
      */
-    @RequestMapping(value = "/group/{groupId}/missions", method = GET)
-    public ResponseEntity<List<Mission>> getGroupMissions(@PathVariable("groupId") String groupId) {
+    @RequestMapping(value = "/api/v1/group/{groupId}/missions", method = GET)
+    public ResponseEntity<MissionListResponse> getMissionByGroupId(@PathVariable("groupId") String groupId) {
         List<Mission> missions = missionService.getMissionsByGroupId(groupId);
 
-        return new ResponseEntity<>(missions, HttpStatus.OK);
+        return ResponseEntity.ok(new MissionListResponse(missions));
     }
 
     /**
@@ -95,7 +95,7 @@ public class MissionController {
      * @param request data needed to create mission
      * @return response with created mission in body
      */
-    @RequestMapping(value = "/missions", method = POST)
+    @RequestMapping(value = "/api/v1/missions", method = POST)
     public ResponseEntity<List<Mission>> createMission(@RequestBody MissionCreateRequest request) {
         List<Mission> missions = missionService.createMissions(request.getMissions());
         return new ResponseEntity<>(missions, HttpStatus.OK);
@@ -130,7 +130,7 @@ public class MissionController {
      * @param request contains missions to be grouped
      * @return response with created mission in body
      */
-    @RequestMapping(value = "/group/{groupId}/missions")
+    @RequestMapping(value = "/api/v1/group/{groupId}/missions")
     public ResponseEntity<List<MissionReferenceDoc>> groupMissions(@PathVariable("groupId") String groupId,
                                                                    @RequestBody MissionGroupRequest request) {
         List<MissionReferenceDoc> body = missionService.groupMissions(groupId, request.getMissions());
@@ -150,7 +150,7 @@ public class MissionController {
      * @param mid mission id
      * @return response indicating mission id and it's new join status
      */
-    @RequestMapping(value = "/missions/{missionType}/{mid}", method = POST)
+    @RequestMapping(value = "/api/v1/missions/{missionType}/{mid}", method = POST)
     public ResponseEntity<MissionJoinResponse> joinMission(@PathVariable("missionType") String missionType,
                                                            @PathVariable("mid") String mid) {
         String uid = getUid();
@@ -186,7 +186,7 @@ public class MissionController {
      * @param ping ping used in Firebase Analytics
      * @param timezone user's timezone in
      */
-    @RequestMapping(value = "/ping/{ping}", method = PUT)
+    @RequestMapping(value = "/api/v1/ping/{ping}", method = PUT)
     public ResponseEntity<MissionCheckInResponse> checkInMissionsByPing(@PathVariable("ping") String ping,
                                                                      @RequestParam("tz") String timezone) {
         String uid = getUid();
