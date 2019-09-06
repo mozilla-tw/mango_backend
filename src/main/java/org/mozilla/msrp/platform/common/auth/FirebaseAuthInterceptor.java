@@ -22,7 +22,7 @@ import java.util.Date;
 @Named
 public class FirebaseAuthInterceptor implements HandlerInterceptor {
 
-    private static String HEADER_BEAR = "Bear ";
+    private static String HEADER_BEAR = "Bearer ";
 
     @Inject
     ObjectMapper mapper;
