@@ -51,7 +51,7 @@ public class MissionController {
             @PathVariable("groupId") String groupId) {
         List<MissionListItem> missions = missionService.getMissionsByGroupId(getUid(), groupId);
 
-        return ResponseEntity.ok(new MissionListResponse(missions));
+        return ResponseEntity.ok(new MissionListResponse.Success(missions));
     }
 
     /**
@@ -184,7 +184,7 @@ public class MissionController {
      * @param timezone user's timezone in
      */
     @RequestMapping(value = "/api/v1/ping/{ping}", method = PUT)
-    public ResponseEntity<MissionCheckInResponse2> checkInMissionsByPing(
+    public ResponseEntity<MissionCheckInResponse> checkInMissionsByPing(
             @PathVariable("ping") String ping,
             @RequestParam("tz") String timezone) {
 
@@ -196,13 +196,13 @@ public class MissionController {
 
         } catch (DateTimeException e) {
             log.info("unsupported timezone=" + timezone);
-            return ResponseEntity.badRequest().body(new MissionCheckInResponse2.Error("unsupported timezone"));
+            return ResponseEntity.badRequest().body(new MissionCheckInResponse.Error("unsupported timezone"));
         }
 
         log.info("ping={}, timezone={}", ping, zone);
 
         List<MissionCheckInResult> results = missionService.checkInMissions(uid, ping, zone);
 
-        return ResponseEntity.ok(new MissionCheckInResponse2.Success(results));
+        return ResponseEntity.ok(new MissionCheckInResponse.Success(results));
     }
 }

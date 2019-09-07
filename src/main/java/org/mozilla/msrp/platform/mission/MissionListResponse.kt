@@ -1,5 +1,6 @@
 package org.mozilla.msrp.platform.mission
 
-class MissionListResponse(
-    val missions: List<MissionListItem>
-)
+sealed class MissionListResponse {
+    class Success(val result: List<MissionListItem>) : MissionListResponse()
+    class Error(val msg: String) : MissionListResponse()
+}
