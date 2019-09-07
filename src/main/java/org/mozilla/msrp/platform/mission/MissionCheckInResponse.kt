@@ -1,21 +1,6 @@
 package org.mozilla.msrp.platform.mission
 
-import com.fasterxml.jackson.annotation.JsonInclude
-
-@JsonInclude(JsonInclude.Include.NON_NULL)
-data class MissionCheckInResponse (
-    val result: List<MissionCheckInResult>? = null,
-    val error: String? = null
-) {
-    companion object {
-        @JvmStatic
-        fun error(msg: String): MissionCheckInResponse {
-            return MissionCheckInResponse(error = msg)
-        }
-
-        @JvmStatic
-        fun body(result: List<MissionCheckInResult>): MissionCheckInResponse {
-            return MissionCheckInResponse(result = result)
-        }
-    }
+sealed class MissionCheckInResponse2 {
+    class Success(val result: List<MissionCheckInResult>) : MissionCheckInResponse2()
+    class Error(val msg: String) : MissionCheckInResponse2()
 }

@@ -1,9 +1,11 @@
 package org.mozilla.msrp.platform.firestore
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.core.ApiFuture
 import com.google.cloud.firestore.*
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.UncheckedExecutionException
+import org.mozilla.msrp.platform.util.logger
 import java.util.concurrent.CancellationException
 
 fun DocumentSnapshot.areFieldsPresent(fieldNames: List<String>): Boolean {
@@ -23,8 +25,15 @@ fun DocumentReference.getUnchecked(): DocumentSnapshot {
     return get().getUnchecked()
 }
 
-fun DocumentReference.setUnchecked(obj: Any): WriteResult {
-    return set(obj).getUnchecked()
+fun DocumentReference.setUnchecked(obj: Any, mapper: ObjectMapper? = null): WriteResult {
+    return mapper?.let {
+        val map = it.convertValue(obj, Map::class.java)
+        set(map).getUnchecked()
+    } ?: set(obj).getUnchecked()
+}
+
+fun <T> DocumentSnapshot.toObject(classType: Class<T>, mapper: ObjectMapper? = null): T? {
+    return mapper?.convertValue(data, classType) ?: toObject(classType)
 }
 
 

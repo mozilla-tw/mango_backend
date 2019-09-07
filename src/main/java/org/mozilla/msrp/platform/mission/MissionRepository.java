@@ -23,4 +23,6 @@ public interface MissionRepository {
 
     DailyMissionProgressDoc getDailyMissionProgress(String uid, String mid);
     void updateDailyMissionProgress(MissionProgressDoc progressDoc);
+
+    JoinStatus getMissionJoinStatus(String uid, String missionType, String mid);
 }

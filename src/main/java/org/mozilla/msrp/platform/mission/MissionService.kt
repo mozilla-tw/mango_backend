@@ -21,7 +21,7 @@ import javax.inject.Named
 
     private val log: Logger = logger()
 
-    fun getMissionsByGroupId(groupId: String): List<Mission> {
+    fun getMissionsByGroupId(uid: String, groupId: String): List<MissionListItem> {
         return if (isSuspiciousUser) {
             ArrayList()
 
@@ -29,7 +29,7 @@ import javax.inject.Named
             // TODO: Aggregate client-facing mission data
             this.missionRepository.getMissionsByGroupId(groupId)
                     .filter { isMissionAvailable(it) }
-                    .map { convertToMission(it) }
+                    .map { aggregateMissionListItem(uid, it) }
         }
     }
 
@@ -38,19 +38,27 @@ import javax.inject.Named
         return true
     }
 
-    private fun convertToMission(missionDoc: MissionDoc): Mission {
+    private fun aggregateMissionListItem(uid: String, missionDoc: MissionDoc): MissionListItem {
         // TODO: String & L10N
         val name = getStringById(missionDoc.titleId)
         val description = getStringById(missionDoc.descriptionId)
 
+        val status = missionRepository.getMissionJoinStatus(
+                uid,
+                missionDoc.missionType,
+                missionDoc.mid
+        )
+
         // TODO: Aggregate mission progress
 
-        return Mission(
+        return MissionListItem(
                 mid = missionDoc.mid,
                 title = name,
                 description = description,
                 endpoint = missionDoc.endpoint,
-                pings = missionDoc.interestPings
+                events = missionDoc.interestPings,
+                expiredDate = missionDoc.expiredDate,
+                status = status
         )
     }
 
@@ -66,10 +74,19 @@ import javax.inject.Named
         return "string of id $id"
     }
 
-    fun createMissions(missionList: List<MissionCreateData>): List<Mission> {
+    fun createMissions(missionList: List<MissionCreateData>): List<MissionCreateResult> {
         return missionList
                 .map { missionRepository.createMission(it) }
-                .map { convertToMission(it) }
+                .map {
+                    MissionCreateResult(
+                            mid = it.mid,
+                            title = getStringById(it.titleId),
+                            description = getStringById(it.descriptionId),
+                            expiredDate = it.expiredDate,
+                            events = it.interestPings,
+                            endpoint = it.endpoint
+                    )
+                }
     }
 
     fun groupMissions(
