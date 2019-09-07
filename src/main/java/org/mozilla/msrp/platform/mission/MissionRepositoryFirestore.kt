@@ -160,4 +160,14 @@ class MissionRepositoryFirestore @Inject internal constructor(
 
     private fun getDailyMissionCollection() =
             firestore.collection("${MissionType.DailyMission.identifier}_progress")
+
+    override fun getMissionJoinStatus(uid: String, missionType: String, mid: String): JoinStatus? {
+        return firestore.collection(missionType)
+                .document(mid)
+                .collection("users")
+                .findDocumentsByUid(uid)
+                .firstOrNull()
+                ?.toObject(MissionJoinDoc::class.java, mapper)
+                ?.status
+    }
 }

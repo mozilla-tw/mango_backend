@@ -3,11 +3,7 @@ package org.mozilla.msrp.platform.mission;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -51,8 +47,9 @@ public class MissionController {
      * @return Client-facing mission list
      */
     @RequestMapping(value = "/api/v1/group/{groupId}/missions", method = GET)
-    public ResponseEntity<MissionListResponse> getMissionByGroupId(@PathVariable("groupId") String groupId) {
-        List<Mission> missions = missionService.getMissionsByGroupId(groupId);
+    public ResponseEntity<MissionListResponse> getMissionByGroupId(
+            @PathVariable("groupId") String groupId) {
+        List<MissionListItem> missions = missionService.getMissionsByGroupId(getUid(), groupId);
 
         return ResponseEntity.ok(new MissionListResponse(missions));
     }
@@ -96,9 +93,9 @@ public class MissionController {
      * @return response with created mission in body
      */
     @RequestMapping(value = "/api/v1/missions", method = POST)
-    public ResponseEntity<List<Mission>> createMission(@RequestBody MissionCreateRequest request) {
-        List<Mission> missions = missionService.createMissions(request.getMissions());
-        return new ResponseEntity<>(missions, HttpStatus.OK);
+    public ResponseEntity<MissionCreateResponse> createMission(@RequestBody MissionCreateRequest request) {
+        List<MissionCreateResult> missions = missionService.createMissions(request.getMissions());
+        return ResponseEntity.ok(new MissionCreateResponse.Success(missions));
     }
 
     /**
@@ -187,8 +184,10 @@ public class MissionController {
      * @param timezone user's timezone in
      */
     @RequestMapping(value = "/api/v1/ping/{ping}", method = PUT)
-    public ResponseEntity<MissionCheckInResponse> checkInMissionsByPing(@PathVariable("ping") String ping,
-                                                                     @RequestParam("tz") String timezone) {
+    public ResponseEntity<MissionCheckInResponse2> checkInMissionsByPing(
+            @PathVariable("ping") String ping,
+            @RequestParam("tz") String timezone) {
+
         String uid = getUid();
 
         ZoneId zone;
@@ -197,13 +196,13 @@ public class MissionController {
 
         } catch (DateTimeException e) {
             log.info("unsupported timezone=" + timezone);
-            return ResponseEntity.badRequest().body(MissionCheckInResponse.error("unsupported timezone"));
+            return ResponseEntity.badRequest().body(new MissionCheckInResponse2.Error("unsupported timezone"));
         }
 
         log.info("ping={}, timezone={}", ping, zone);
 
         List<MissionCheckInResult> results = missionService.checkInMissions(uid, ping, zone);
 
-        return ResponseEntity.ok(MissionCheckInResponse.body(results));
+        return ResponseEntity.ok(new MissionCheckInResponse2.Success(results));
     }
 }
