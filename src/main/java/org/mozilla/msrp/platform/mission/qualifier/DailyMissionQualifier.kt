@@ -100,4 +100,8 @@ class DailyMissionQualifier(val clock: Clock = Clock.systemUTC()) {
         log.info("illegal progress")
         return progress
     }
+
+    fun getProgress(uid: String, mid: String): MissionProgressDoc? {
+        return missionRepository.getDailyMissionProgress(uid, mid)
+    }
 }

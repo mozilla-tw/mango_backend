@@ -50,6 +50,12 @@ import javax.inject.Named
                 missionDoc.mid
         )?.let { it } ?: JoinStatus.New
 
+        val progress = missionQualifier.getProgress(
+                uid,
+                missionDoc.mid,
+                missionDoc.missionTypeEnum
+        )
+
         // TODO: Aggregate mission progress
 
         return MissionListItem(
@@ -60,7 +66,8 @@ import javax.inject.Named
                 events = missionDoc.interestPings,
                 expiredDate = missionDoc.expiredDate,
                 status = joinStatus,
-                min_version = missionDoc.min_version
+                min_version = missionDoc.min_version,
+                progress = progress?.toProgressResponse() ?: emptyMap()
         )
     }
 

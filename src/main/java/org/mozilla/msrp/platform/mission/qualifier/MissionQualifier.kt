@@ -42,4 +42,15 @@ class MissionQualifier {
         log.error("no qualifier found for mission mid=$mid, type=$missionType")
         return null
     }
+
+    fun getProgress(uid: String, mid: String, missionType: MissionType): MissionProgressDoc? {
+        return when (missionType) {
+            MissionType.DailyMission -> getDailyMissionProgress(uid, mid)
+            else -> handleUnknownMissionType(mid, missionType)
+        }
+    }
+
+    private fun getDailyMissionProgress(uid: String, mid: String): MissionProgressDoc? {
+        return dailyMissionQualifier.getProgress(uid, mid)
+    }
 }
