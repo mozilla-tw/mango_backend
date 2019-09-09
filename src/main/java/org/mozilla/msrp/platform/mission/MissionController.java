@@ -10,9 +10,7 @@ import java.util.List;
 import java.time.DateTimeException;
 import java.time.ZoneId;
 
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
-import static org.springframework.web.bind.annotation.RequestMethod.PUT;
+import static org.springframework.web.bind.annotation.RequestMethod.*;
 
 @Log4j2
 @RestController
@@ -148,11 +146,22 @@ public class MissionController {
      * @return response indicating mission id and it's new join status
      */
     @RequestMapping(value = "/api/v1/missions/{missionType}/{mid}", method = POST)
-    public ResponseEntity<MissionJoinResponse> joinMission(@PathVariable("missionType") String missionType,
-                                                           @PathVariable("mid") String mid) {
+    public ResponseEntity<MissionJoinResponse> joinMission(
+            @PathVariable("missionType") String missionType,
+            @PathVariable("mid") String mid) {
+
         String uid = getUid();
         MissionJoinResponse result = missionService.joinMission(uid, missionType, mid);
+
         return new ResponseEntity<>(result, HttpStatus.CREATED);
+    }
+
+    @RequestMapping(value = "/api/v1/missions/{missionType}/{mid}", method = DELETE)
+    public ResponseEntity<MissionQuitResponse> quitMission(
+            @PathVariable("missionType") String missionType,
+            @PathVariable("mid") String mid) {
+        String uid = getUid();
+        return missionService.quitMission(uid, missionType, mid).toEntityResponse();
     }
 
     // TODO: Get user id from bearer token

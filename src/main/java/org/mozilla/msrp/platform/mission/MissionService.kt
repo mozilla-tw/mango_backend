@@ -3,6 +3,7 @@ package org.mozilla.msrp.platform.mission
 import org.mozilla.msrp.platform.mission.qualifier.MissionQualifier
 import org.mozilla.msrp.platform.util.logger
 import org.slf4j.Logger
+import org.springframework.http.HttpStatus
 import java.time.ZoneId
 import java.util.*
 import javax.inject.Inject
@@ -43,11 +44,7 @@ import javax.inject.Named
         val name = getStringById(missionDoc.titleId)
         val description = getStringById(missionDoc.descriptionId)
 
-        val status = missionRepository.getMissionJoinStatus(
-                uid,
-                missionDoc.missionType,
-                missionDoc.mid
-        )
+        val joinDoc = missionRepository.getJoinStatus(uid, missionDoc.missionType, missionDoc.mid)
 
         // TODO: Aggregate mission progress
 
@@ -58,7 +55,7 @@ import javax.inject.Named
                 endpoint = missionDoc.endpoint,
                 events = missionDoc.interestPings,
                 expiredDate = missionDoc.expiredDate,
-                status = status
+                status = joinDoc?.status
         )
     }
 
@@ -107,8 +104,56 @@ import javax.inject.Named
             missionType: String,
             mid: String
     ): MissionJoinResponse {
-        val (_, status) = missionRepository.joinMission(uid, missionType, mid)
-        return MissionJoinResponse(mid, status)
+        val existed = missionRepository.getJoinStatus(uid, missionType, mid)
+
+        existed ?: return joinWithNewRecord(uid, missionType, mid)
+
+        return if (existed.status.canTransferToJoin()) {
+            val updated = existed.copy(status = JoinStatus.Joined)
+            missionRepository.joinMission(updated)
+            MissionJoinResponse.Success(updated.uid, updated.status)
+
+        } else {
+            log.info("cannot join mission, uid=$uid, type=$missionType, mid=$mid, record=$existed")
+            MissionJoinResponse.Error("cannot join mission")
+        }
+    }
+
+    private fun joinWithNewRecord(
+            uid: String,
+            missionType: String,
+            mid: String
+    ): MissionJoinResponse {
+
+        val newRecord = MissionJoinDoc(
+                uid = uid,
+                status = JoinStatus.Joined,
+                missionType = missionType,
+                mid = mid
+        )
+        log.info("join mission first time $newRecord")
+        missionRepository.joinMission(newRecord)
+        return MissionJoinResponse.Success(newRecord.uid, newRecord.status)
+    }
+
+    fun quitMission(
+            uid: String,
+            missionType: String,
+            mid: String
+    ) : MissionQuitResponse {
+
+        val existed = missionRepository.getJoinStatus(uid, missionType, mid)
+
+        log.info("quit mission $existed")
+
+        existed ?: return MissionQuitResponse.Error("mission not exist", HttpStatus.NOT_FOUND)
+
+        if (existed.status != JoinStatus.Joined) {
+            return MissionQuitResponse.Error("not joined", HttpStatus.CONFLICT)
+        }
+
+        missionRepository.quitMission(existed)
+        return MissionQuitResponse.Success(mid = existed.mid, status = existed.status)
     }
 
     /**

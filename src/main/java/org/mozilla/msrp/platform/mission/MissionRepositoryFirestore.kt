@@ -84,27 +84,37 @@ class MissionRepositoryFirestore @Inject internal constructor(
         return doc
     }
 
-
-
-    /**
-     * This will insert a document to /missionType/mid/users/
-     *
-     * @throws MissionDatabaseException
-     */
-    override fun joinMission(
-            uid: String,
-            missionType: String,
-            mid: String
-    ): MissionJoinDoc {
-        val joinDoc = MissionJoinDoc(uid = uid, status = JoinStatus.Joined)
-
-        firestore.collection(missionType)
+    override fun getJoinStatus(uid: String, missionType: String, mid: String): MissionJoinDoc? {
+        return firestore.collection(missionType)
                 .document(mid)
                 .collection("users")
-                .document()
-                .setUnchecked(joinDoc, mapper)
+                .findDocumentsByUid(uid)
+                .firstOrNull()
+                ?.toObject(MissionJoinDoc::class.java, mapper)
+    }
 
+    override fun joinMission(joinDoc: MissionJoinDoc): MissionJoinDoc {
+        val path = firestore.collection(joinDoc.missionType)
+                .document(joinDoc.mid)
+                .collection("users")
+
+        val oldRecord = path
+                .findDocumentsByUid(joinDoc.uid)
+                .firstOrNull()
+
+        oldRecord?.reference?.setUnchecked(joinDoc) ?: path.document().setUnchecked(joinDoc, mapper)
         return joinDoc
+    }
+
+    override fun quitMission(joinDoc: MissionJoinDoc): Boolean {
+        val joinRecord = firestore.collection(joinDoc.missionType)
+                .document(joinDoc.mid)
+                .collection("users")
+                .findDocumentsByUid(joinDoc.uid)
+                .firstOrNull()
+
+        val result = joinRecord?.reference?.delete()
+        return result != null
     }
 
     override fun findJoinedMissionsByPing(uid: String, ping: String): List<MissionDoc> {
@@ -161,14 +171,4 @@ class MissionRepositoryFirestore @Inject internal constructor(
 
     private fun getDailyMissionCollection() =
             firestore.collection("${MissionType.DailyMission.identifier}_progress")
-
-    override fun getMissionJoinStatus(uid: String, missionType: String, mid: String): JoinStatus? {
-        return firestore.collection(missionType)
-                .document(mid)
-                .collection("users")
-                .findDocumentsByUid(uid)
-                .firstOrNull()
-                ?.toObject(MissionJoinDoc::class.java, mapper)
-                ?.status
-    }
 }
