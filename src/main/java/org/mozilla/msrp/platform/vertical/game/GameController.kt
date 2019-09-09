@@ -1,10 +1,8 @@
-package org.mozilla.msrp.platform.vertical
+package org.mozilla.msrp.platform.vertical.game
 
-import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.server.ResponseStatusException
 import java.util.UUID
 
 interface UiModel
