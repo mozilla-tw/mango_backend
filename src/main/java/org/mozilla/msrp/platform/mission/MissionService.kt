@@ -44,7 +44,11 @@ import javax.inject.Named
         val name = getStringById(missionDoc.titleId)
         val description = getStringById(missionDoc.descriptionId)
 
-        val joinDoc = missionRepository.getJoinStatus(uid, missionDoc.missionType, missionDoc.mid)
+        val joinStatus = missionRepository.getJoinStatus(
+                uid,
+                missionDoc.missionType,
+                missionDoc.mid
+        )?.let { it } ?: JoinStatus.New
 
         // TODO: Aggregate mission progress
 
@@ -55,7 +59,7 @@ import javax.inject.Named
                 endpoint = missionDoc.endpoint,
                 events = missionDoc.interestPings,
                 expiredDate = missionDoc.expiredDate,
-                status = joinDoc?.status,
+                status = joinStatus,
                 min_version = missionDoc.min_version
         )
     }
@@ -106,17 +110,16 @@ import javax.inject.Named
             missionType: String,
             mid: String
     ): MissionJoinResponse {
-        val existed = missionRepository.getJoinStatus(uid, missionType, mid)
+        val joinStatus = missionRepository.getJoinStatus(uid, missionType, mid)
 
-        existed ?: return joinWithNewRecord(uid, missionType, mid)
+        joinStatus ?: return joinWithNewRecord(uid, missionType, mid)
 
-        return if (existed.status.canTransferToJoin()) {
-            val updated = existed.copy(status = JoinStatus.Joined)
-            missionRepository.joinMission(updated)
-            MissionJoinResponse.Success(updated.uid, updated.status)
+        return if (joinStatus == JoinStatus.New) {
+            val result = missionRepository.joinMission(uid, missionType, mid)
+            MissionJoinResponse.Success(result.uid, result.status)
 
         } else {
-            log.info("cannot join mission, uid=$uid, type=$missionType, mid=$mid, record=$existed")
+            log.info("cannot join mission, uid=$uid, type=$missionType, mid=$mid")
             MissionJoinResponse.Error("cannot join mission")
         }
     }
@@ -134,7 +137,7 @@ import javax.inject.Named
                 mid = mid
         )
         log.info("join mission first time $newRecord")
-        missionRepository.joinMission(newRecord)
+        missionRepository.joinMission(uid, missionType, mid)
         return MissionJoinResponse.Success(newRecord.uid, newRecord.status)
     }
 
@@ -144,18 +147,18 @@ import javax.inject.Named
             mid: String
     ) : MissionQuitResponse {
 
-        val existed = missionRepository.getJoinStatus(uid, missionType, mid)
+        val status = missionRepository.getJoinStatus(uid, missionType, mid)
 
-        log.info("quit mission $existed")
+        log.info("quit mission $status")
 
-        existed ?: return MissionQuitResponse.Error("mission not exist", HttpStatus.NOT_FOUND)
+        status ?: return MissionQuitResponse.Error("mission not exist", HttpStatus.NOT_FOUND)
 
-        if (existed.status != JoinStatus.Joined) {
+        if (status != JoinStatus.Joined) {
             return MissionQuitResponse.Error("not joined", HttpStatus.CONFLICT)
         }
 
-        missionRepository.quitMission(existed)
-        return MissionQuitResponse.Success(mid = existed.mid, status = existed.status)
+        missionRepository.quitMission(uid, missionType, mid)
+        return MissionQuitResponse.Success(mid = mid, status = JoinStatus.New)
     }
 
     /**

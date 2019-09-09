@@ -15,7 +15,3 @@ enum class JoinStatus(@JsonValue val status: Int) {
     Complete(2),
     Redeemed(3)
 }
-
-fun JoinStatus.canTransferToJoin(): Boolean {
-    return status == JoinStatus.New.status
-}
