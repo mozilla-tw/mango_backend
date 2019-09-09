@@ -1,6 +1,6 @@
 package org.mozilla.msrp.platform.mission
 
-data class MissionJoinResponse(
-        var mid: String,
-        val status: JoinStatus
-)
+sealed class MissionJoinResponse {
+    class Success(val mid: String, val status: JoinStatus) : MissionJoinResponse()
+    class Error(val error: String) : MissionJoinResponse()
+}
