@@ -18,7 +18,8 @@ data class MissionDoc(
         var descriptionId: String = "",
         var missionType: String = "",
         var interestPings: List<String> = emptyList(),
-        var expiredDate: Long = 0L
+        var expiredDate: Long = 0L,
+        var min_version: Int = 0
 ) {
     val endpoint = "/$missionType/$mid"
 

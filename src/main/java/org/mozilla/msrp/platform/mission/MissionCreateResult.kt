@@ -6,5 +6,6 @@ data class MissionCreateResult(
         val description: String,
         val expiredDate: Long,
         val events: List<String>,
-        val endpoint: String
+        val endpoint: String,
+        val min_version: Int
 )

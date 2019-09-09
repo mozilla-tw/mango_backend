@@ -55,7 +55,8 @@ import javax.inject.Named
                 endpoint = missionDoc.endpoint,
                 events = missionDoc.interestPings,
                 expiredDate = missionDoc.expiredDate,
-                status = joinDoc?.status
+                status = joinDoc?.status,
+                min_version = missionDoc.min_version
         )
     }
 
@@ -81,7 +82,8 @@ import javax.inject.Named
                             description = getStringById(it.descriptionId),
                             expiredDate = it.expiredDate,
                             events = it.interestPings,
-                            endpoint = it.endpoint
+                            endpoint = it.endpoint,
+                            min_version = it.min_version
                     )
                 }
     }
