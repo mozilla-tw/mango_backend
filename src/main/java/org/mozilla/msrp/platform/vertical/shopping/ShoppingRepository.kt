@@ -21,7 +21,7 @@ class Voucher(
     var source: String
 ) : UiModel
 
-data class Coupon(
+class Coupon(
 
     val id: Int,
     val category: String,
@@ -36,7 +36,7 @@ data class Coupon(
 ) : UiModel
 
 
-data class Deal(
+class Deal(
 
     val id: Int,
     val category: String,

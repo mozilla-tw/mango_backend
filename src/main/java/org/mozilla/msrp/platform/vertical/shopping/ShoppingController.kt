@@ -8,7 +8,7 @@ import javax.inject.Inject
 
 
 @RestController
-class ShoppinController @Inject constructor(private val voucherRepository: VoucherRepository) {
+class ShoppingController @Inject constructor(private val voucherRepository: VoucherRepository) {
 
     @RequestMapping("/api/v1/shopping/coupon")
     internal fun coupon(
