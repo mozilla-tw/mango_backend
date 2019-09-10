@@ -1,5 +1,6 @@
 package org.mozilla.msrp.platform.vertical.game
 
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
@@ -31,7 +32,8 @@ data class GameCategory(
 
 @RestController
 class GameController {
-    @RequestMapping("/api/v1/game")
+
+    @GetMapping("/api/v1/game")
     internal fun games(
         @RequestParam(value = "language") language: String,
         @RequestParam(value = "country") country: String): List<UiModel> {
