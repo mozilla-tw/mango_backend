@@ -1,5 +1,6 @@
 package org.mozilla.msrp.platform.mission.qualifier
 
+import org.mozilla.msrp.platform.mission.JoinStatus
 import org.mozilla.msrp.platform.mission.MissionRepository
 import org.mozilla.msrp.platform.mission.MissionType
 import org.mozilla.msrp.platform.util.logger
@@ -18,6 +19,14 @@ class DailyMissionQualifier(val clock: Clock = Clock.systemUTC()) {
     lateinit var missionRepository: MissionRepository
 
     fun updateProgress(uid: String, mid: String, zone: ZoneId): MissionProgressDoc {
+        val params = missionRepository.getDailyMissionParams(mid)
+
+        // DocumentSnapshot#toObject() will map numbers to Long if the target field is declared as Any
+        // Since we declare params as Map<String, Any>, we need to convert to Long here
+        val totalDays = (params["totalDays"] as Long).toInt()
+
+        log.info("params=$params")
+
         val latestRecord = missionRepository.getDailyMissionProgress(uid, mid)
 
         val newProgress = latestRecord?.let {
@@ -25,8 +34,20 @@ class DailyMissionQualifier(val clock: Clock = Clock.systemUTC()) {
         } ?: createNewRecord(uid, mid)
 
         if (newProgress != latestRecord) {
-            log.info("insert new progress $newProgress")
+            log.info("insert new progress $newProgress, totalDays=$totalDays")
             missionRepository.updateDailyMissionProgress(newProgress)
+        }
+
+        log.info("progress: current=${newProgress.currentDayCount}, total=$totalDays")
+        if (newProgress.currentDayCount == totalDays) {
+
+            missionRepository.setJoinStatus(
+                    JoinStatus.Complete,
+                    uid,
+                    MissionType.DailyMission.identifier,
+                    mid
+            )
+            log.info("mission complete!!")
         }
 
         return newProgress
@@ -50,7 +71,7 @@ class DailyMissionQualifier(val clock: Clock = Clock.systemUTC()) {
     private fun checkIn(
             progress: DailyMissionProgressDoc,
             zone: ZoneId
-    ): MissionProgressDoc {
+    ): DailyMissionProgressDoc {
         val lastCheckInDate = Instant.ofEpochMilli(progress.timestamp).atZone(zone)
         val now = clock.instant().atZone(zone)
 
@@ -99,5 +120,9 @@ class DailyMissionQualifier(val clock: Clock = Clock.systemUTC()) {
     private fun illegalProgress(progress: DailyMissionProgressDoc): DailyMissionProgressDoc {
         log.info("illegal progress")
         return progress
+    }
+
+    fun getProgress(uid: String, mid: String): MissionProgressDoc? {
+        return missionRepository.getDailyMissionProgress(uid, mid)
     }
 }

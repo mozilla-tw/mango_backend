@@ -1,5 +1,7 @@
 package org.mozilla.msrp.platform.mission
 
+import org.mozilla.msrp.platform.mission.qualifier.MissionProgressDoc
+
 /**
  * (All fields are just draft and are subject to change)
  * Client-facing mission class, this class should contains
@@ -15,5 +17,7 @@ data class MissionListItem(
         val endpoint: String,
         val events: List<String>,
         val expiredDate: Long,
-        val status: JoinStatus?
+        val status: JoinStatus,
+        val minVersion: Int,
+        val progress: Map<String, Any>
 )

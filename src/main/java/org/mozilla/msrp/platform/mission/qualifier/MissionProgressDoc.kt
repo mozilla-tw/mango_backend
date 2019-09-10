@@ -19,5 +19,13 @@ interface MissionProgressDoc {
         )
     }
 
+    fun toProgressResponse(): Map<String, Any> {
+        return mutableMapOf<String, Any>(
+                "joinDate" to joinDate
+        ).apply {
+            putAll(getProgressFields())
+        }
+    }
+
     fun getProgressFields(): Map<String, Any>
 }

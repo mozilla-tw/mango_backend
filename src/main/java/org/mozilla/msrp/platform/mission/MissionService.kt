@@ -1,5 +1,6 @@
 package org.mozilla.msrp.platform.mission
 
+import org.mozilla.msrp.platform.mission.qualifier.MissionProgressDoc
 import org.mozilla.msrp.platform.mission.qualifier.MissionQualifier
 import org.mozilla.msrp.platform.util.logger
 import org.slf4j.Logger
@@ -44,7 +45,17 @@ import javax.inject.Named
         val name = getStringById(missionDoc.titleId)
         val description = getStringById(missionDoc.descriptionId)
 
-        val joinDoc = missionRepository.getJoinStatus(uid, missionDoc.missionType, missionDoc.mid)
+        val joinStatus = missionRepository.getJoinStatus(
+                uid,
+                missionDoc.missionType,
+                missionDoc.mid
+        )?.let { it } ?: JoinStatus.New
+
+        val progress = missionQualifier.getProgress(
+                uid,
+                missionDoc.mid,
+                missionDoc.missionTypeEnum
+        )
 
         // TODO: Aggregate mission progress
 
@@ -55,7 +66,9 @@ import javax.inject.Named
                 endpoint = missionDoc.endpoint,
                 events = missionDoc.interestPings,
                 expiredDate = missionDoc.expiredDate,
-                status = joinDoc?.status
+                status = joinStatus,
+                minVersion = missionDoc.minVersion,
+                progress = progress?.toProgressResponse() ?: emptyMap()
         )
     }
 
@@ -72,18 +85,44 @@ import javax.inject.Named
     }
 
     fun createMissions(missionList: List<MissionCreateData>): List<MissionCreateResult> {
-        return missionList
-                .map { missionRepository.createMission(it) }
-                .map {
-                    MissionCreateResult(
-                            mid = it.mid,
-                            title = getStringById(it.titleId),
-                            description = getStringById(it.descriptionId),
-                            expiredDate = it.expiredDate,
-                            events = it.interestPings,
-                            endpoint = it.endpoint
-                    )
-                }
+        return missionList.map { createData ->
+            val validation = validateMissionCreateData(createData)
+            if (validation.isValid()) {
+                val mission = missionRepository.createMission(createData)
+                MissionCreateResult.Success(
+                        mid = mission.mid,
+                        title = getStringById(mission.titleId),
+                        description = getStringById(mission.descriptionId),
+                        expiredDate = mission.expiredDate,
+                        events = mission.interestPings,
+                        endpoint = mission.endpoint,
+                        minVersion = mission.minVersion,
+                        missionParams = mission.missionParams
+                )
+
+            } else {
+                MissionCreateResult.Error(createData.missionName, validation.toString())
+            }
+        }
+    }
+
+    private fun validateMissionCreateData(data: MissionCreateData): ValidationResult {
+        val result = ValidationResult()
+
+        val type = MissionType.from(data.missionType)
+        if (type == MissionType.Unknown) {
+            result.addError("unrecognized mission type ${data.missionType}")
+        }
+
+        if (data.pings.isEmpty()) {
+            result.addError("empty pings")
+        }
+
+        if (data.missionParams.isEmpty()) {
+            result.addError("no mission parameter specified")
+        }
+
+        return result
     }
 
     fun groupMissions(
@@ -104,17 +143,16 @@ import javax.inject.Named
             missionType: String,
             mid: String
     ): MissionJoinResponse {
-        val existed = missionRepository.getJoinStatus(uid, missionType, mid)
+        val joinStatus = missionRepository.getJoinStatus(uid, missionType, mid)
 
-        existed ?: return joinWithNewRecord(uid, missionType, mid)
+        joinStatus ?: return joinWithNewRecord(uid, missionType, mid)
 
-        return if (existed.status.canTransferToJoin()) {
-            val updated = existed.copy(status = JoinStatus.Joined)
-            missionRepository.joinMission(updated)
-            MissionJoinResponse.Success(updated.uid, updated.status)
+        return if (joinStatus == JoinStatus.New) {
+            val result = missionRepository.joinMission(uid, missionType, mid)
+            MissionJoinResponse.Success(result.uid, result.status)
 
         } else {
-            log.info("cannot join mission, uid=$uid, type=$missionType, mid=$mid, record=$existed")
+            log.info("cannot join mission, uid=$uid, type=$missionType, mid=$mid")
             MissionJoinResponse.Error("cannot join mission")
         }
     }
@@ -132,7 +170,7 @@ import javax.inject.Named
                 mid = mid
         )
         log.info("join mission first time $newRecord")
-        missionRepository.joinMission(newRecord)
+        missionRepository.joinMission(uid, missionType, mid)
         return MissionJoinResponse.Success(newRecord.uid, newRecord.status)
     }
 
@@ -142,18 +180,18 @@ import javax.inject.Named
             mid: String
     ) : MissionQuitResponse {
 
-        val existed = missionRepository.getJoinStatus(uid, missionType, mid)
+        val status = missionRepository.getJoinStatus(uid, missionType, mid)
 
-        log.info("quit mission $existed")
+        log.info("quit mission $status")
 
-        existed ?: return MissionQuitResponse.Error("mission not exist", HttpStatus.NOT_FOUND)
+        status ?: return MissionQuitResponse.Error("mission not exist", HttpStatus.NOT_FOUND)
 
-        if (existed.status != JoinStatus.Joined) {
+        if (status != JoinStatus.Joined) {
             return MissionQuitResponse.Error("not joined", HttpStatus.CONFLICT)
         }
 
-        missionRepository.quitMission(existed)
-        return MissionQuitResponse.Success(mid = existed.mid, status = existed.status)
+        missionRepository.quitMission(uid, missionType, mid)
+        return MissionQuitResponse.Success(mid = mid, status = JoinStatus.New)
     }
 
     /**
@@ -166,17 +204,41 @@ import javax.inject.Named
     ): List<MissionCheckInResult> {
 
         val missions = missionRepository.findJoinedMissionsByPing(uid, ping)
+        log.info("ping=$ping, missions=${missions.map { "${it.missionType}/${it.mid}" }}")
 
-        return missions.mapNotNull { missionDoc ->
-            val mid = missionDoc.mid
-            val type = missionDoc.missionTypeEnum
+        return missions
+                .filter { isJoined(uid, it.missionType, it.mid) }
+                .mapNotNull { updateProgress(uid, it.missionType, it.mid, zone) }
+                .map { convertToCheckInResult(uid, it.missionType, it.mid, it) }
+    }
 
-            log.info("update progress, mid=$mid, type=$type")
+    private fun isJoined(uid: String, missionType: String, mid: String): Boolean {
+        return missionRepository.getJoinStatus(uid, missionType, mid) == JoinStatus.Joined
+    }
 
-            missionQualifier.updateProgress(uid, mid, type, zone)
+    private fun updateProgress(
+            uid: String,
+            missionType: String,
+            mid: String,
+            zone: ZoneId
+    ): MissionProgressDoc? {
 
-        }.map { progressDoc ->
-            MissionCheckInResult(progressDoc.toResponseFields())
-        }
+        log.info("update progress, mid=$mid, type=$missionType")
+        return missionQualifier.updateProgress(uid, mid, MissionType.from(missionType), zone)
+    }
+
+    private fun convertToCheckInResult(
+            uid: String,
+            missionType: String,
+            mid: String,
+            progress: MissionProgressDoc
+    ): MissionCheckInResult {
+        val status = missionRepository.getJoinStatus(uid, missionType, mid)?.status ?: 0
+
+        val response = mutableMapOf<String, Any>()
+        response.putAll(progress.toResponseFields())
+        response["status"] = status
+
+        return MissionCheckInResult(response)
     }
 }

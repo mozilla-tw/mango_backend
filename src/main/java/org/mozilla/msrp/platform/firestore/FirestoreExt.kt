@@ -25,11 +25,17 @@ fun DocumentReference.getUnchecked(): DocumentSnapshot {
     return get().getUnchecked()
 }
 
-fun DocumentReference.setUnchecked(obj: Any, mapper: ObjectMapper? = null): WriteResult {
-    return mapper?.let {
-        val map = it.convertValue(obj, Map::class.java)
-        set(map).getUnchecked()
-    } ?: set(obj).getUnchecked()
+fun DocumentReference.setUnchecked(
+        obj: Any,
+        mapper: ObjectMapper? = null,
+        options: SetOptions? = null
+): WriteResult {
+
+    val newObj = mapper?.convertValue(obj, Map::class.java) ?: obj
+
+    return options?.let {
+        set(newObj, options).getUnchecked()
+    } ?: set(newObj).getUnchecked()
 }
 
 fun <T> DocumentSnapshot.toObject(classType: Class<T>, mapper: ObjectMapper? = null): T? {

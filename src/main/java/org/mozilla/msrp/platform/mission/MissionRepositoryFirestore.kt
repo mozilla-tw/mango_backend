@@ -57,7 +57,9 @@ class MissionRepositoryFirestore @Inject internal constructor(
                 descriptionId = createData.descriptionId,
                 missionType = createData.missionType,
                 expiredDate = createData.expiredDate,
-                interestPings = createData.pings
+                interestPings = createData.pings,
+                minVersion = createData.minVersion,
+                missionParams = createData.missionParams
         )
 
         docRef.setUnchecked(doc)
@@ -84,33 +86,54 @@ class MissionRepositoryFirestore @Inject internal constructor(
         return doc
     }
 
-    override fun getJoinStatus(uid: String, missionType: String, mid: String): MissionJoinDoc? {
+    override fun getJoinStatus(uid: String, missionType: String, mid: String): JoinStatus? {
         return firestore.collection(missionType)
                 .document(mid)
                 .collection("users")
                 .findDocumentsByUid(uid)
                 .firstOrNull()
                 ?.toObject(MissionJoinDoc::class.java, mapper)
+                ?.status
     }
 
-    override fun joinMission(joinDoc: MissionJoinDoc): MissionJoinDoc {
-        val path = firestore.collection(joinDoc.missionType)
-                .document(joinDoc.mid)
+    override fun setJoinStatus(status: JoinStatus, uid: String, missionType: String, mid: String) {
+        firestore.collection(missionType)
+                .document(mid)
+                .collection("users")
+                .findDocumentsByUid(uid)
+                .firstOrNull()
+                ?.reference
+                ?.setUnchecked(mapOf("status" to JoinStatus.Complete.status), mapper, SetOptions.merge())
+    }
+
+    override fun joinMission(uid: String, missionType: String, mid: String): MissionJoinDoc {
+        val path = firestore.collection(missionType)
+                .document(mid)
                 .collection("users")
 
-        val oldRecord = path
-                .findDocumentsByUid(joinDoc.uid)
+        val oldRecordSnapshot = path
+                .findDocumentsByUid(uid)
                 .firstOrNull()
 
-        oldRecord?.reference?.setUnchecked(joinDoc) ?: path.document().setUnchecked(joinDoc, mapper)
-        return joinDoc
+        val oldRecord = oldRecordSnapshot?.toObject(MissionJoinDoc::class.java, mapper)
+
+        return oldRecord?.let {
+             oldRecord.copy(status = JoinStatus.Joined).apply {
+                 oldRecordSnapshot.reference.setUnchecked(this, mapper)
+             }
+
+        } ?: run {
+            MissionJoinDoc(uid, missionType, mid, JoinStatus.Joined).apply {
+                path.document().setUnchecked(this, mapper)
+            }
+        }
     }
 
-    override fun quitMission(joinDoc: MissionJoinDoc): Boolean {
-        val joinRecord = firestore.collection(joinDoc.missionType)
-                .document(joinDoc.mid)
+    override fun quitMission(uid: String, missionType: String, mid: String): Boolean {
+        val joinRecord = firestore.collection(missionType)
+                .document(mid)
                 .collection("users")
-                .findDocumentsByUid(joinDoc.uid)
+                .findDocumentsByUid(uid)
                 .firstOrNull()
 
         val result = joinRecord?.reference?.delete()
@@ -141,6 +164,15 @@ class MissionRepositoryFirestore @Inject internal constructor(
 
     private fun Query.findDocumentsByUid(uid: String): List<QueryDocumentSnapshot> {
         return this.whereEqualTo("uid", uid).getResultsUnchecked()
+    }
+
+    override fun getDailyMissionParams(mid: String): Map<String, Any> {
+        val params = firestore.collection(MissionType.DailyMission.identifier)
+                .whereEqualTo("mid", mid)
+                .getResultsUnchecked()
+                .firstOrNull()
+
+        return params?.let { MissionDoc.fromDocument(it)?.missionParams } ?: emptyMap()
     }
 
     override fun getDailyMissionProgress(
