@@ -1,6 +1,7 @@
 package org.mozilla.msrp.platform.mission
 
 import com.google.cloud.firestore.DocumentSnapshot
+import com.google.cloud.firestore.annotation.IgnoreExtraProperties
 import org.mozilla.msrp.platform.firestore.areFieldsPresent
 
 /**
@@ -11,6 +12,7 @@ import org.mozilla.msrp.platform.firestore.areFieldsPresent
  * no-arg constructor. Constructors with all parameters having
  * default value can achieve the same effect.
  */
+@IgnoreExtraProperties
 data class MissionDoc(
         var mid: String = "",
         var missionName: String = "",
@@ -19,7 +21,8 @@ data class MissionDoc(
         var missionType: String = "",
         var interestPings: List<String> = emptyList(),
         var expiredDate: Long = 0L,
-        var min_version: Int = 0
+        var min_version: Int = 0,
+        val missionParams: Map<String, Any> = emptyMap()
 ) {
     val endpoint = "/$missionType/$mid"
 
@@ -30,6 +33,7 @@ data class MissionDoc(
         private const val KEY_MISSION_TYPE = "missionType"
         private const val KEY_PINGS = "interestPings"
         private const val KEY_EXPIRED_DATE = "expiredDate"
+        private const val KEY_MISSION_PARAMS = "missionParams"
 
         @JvmStatic
         fun fromDocument(snapshot: DocumentSnapshot): MissionDoc? {
@@ -47,11 +51,12 @@ data class MissionDoc(
                     KEY_DESCRIPTION_ID,
                     KEY_MISSION_TYPE,
                     KEY_PINGS,
-                    KEY_EXPIRED_DATE
+                    KEY_EXPIRED_DATE,
+                    KEY_MISSION_PARAMS
             ))
         }
     }
 }
 
 val MissionDoc.missionTypeEnum: MissionType
-    get() = MissionType.values().find { it.identifier == missionType } ?: MissionType.Unknown
+    get() = MissionType.from(missionType)

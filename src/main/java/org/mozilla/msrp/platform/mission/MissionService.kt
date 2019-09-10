@@ -94,7 +94,8 @@ import javax.inject.Named
                             expiredDate = it.expiredDate,
                             events = it.interestPings,
                             endpoint = it.endpoint,
-                            min_version = it.min_version
+                            min_version = it.min_version,
+                            missionParams = it.missionParams
                     )
                 }
     }
