@@ -18,6 +18,6 @@ data class MissionListItem(
         val events: List<String>,
         val expiredDate: Long,
         val status: JoinStatus,
-        val min_version: Int,
+        val minVersion: Int,
         val progress: Map<String, Any>
 )

@@ -58,7 +58,7 @@ class MissionRepositoryFirestore @Inject internal constructor(
                 missionType = createData.missionType,
                 expiredDate = createData.expiredDate,
                 interestPings = createData.pings,
-                min_version = createData.min_version,
+                minVersion = createData.minVersion,
                 missionParams = createData.missionParams
         )
 

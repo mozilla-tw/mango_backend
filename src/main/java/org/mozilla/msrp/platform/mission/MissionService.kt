@@ -66,7 +66,7 @@ import javax.inject.Named
                 events = missionDoc.interestPings,
                 expiredDate = missionDoc.expiredDate,
                 status = joinStatus,
-                min_version = missionDoc.min_version,
+                minVersion = missionDoc.minVersion,
                 progress = progress?.toProgressResponse() ?: emptyMap()
         )
     }
@@ -94,7 +94,7 @@ import javax.inject.Named
                             expiredDate = it.expiredDate,
                             events = it.interestPings,
                             endpoint = it.endpoint,
-                            min_version = it.min_version,
+                            minVersion = it.minVersion,
                             missionParams = it.missionParams
                     )
                 }

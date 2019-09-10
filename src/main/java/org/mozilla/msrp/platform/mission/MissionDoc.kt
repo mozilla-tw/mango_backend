@@ -21,7 +21,7 @@ data class MissionDoc(
         var missionType: String = "",
         var interestPings: List<String> = emptyList(),
         var expiredDate: Long = 0L,
-        var min_version: Int = 0,
+        var minVersion: Int = 0,
         val missionParams: Map<String, Any> = emptyMap()
 ) {
     val endpoint = "/$missionType/$mid"

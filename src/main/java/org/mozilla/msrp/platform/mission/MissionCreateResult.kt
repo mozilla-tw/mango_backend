@@ -7,6 +7,6 @@ data class MissionCreateResult(
         val expiredDate: Long,
         val events: List<String>,
         val endpoint: String,
-        val min_version: Int,
+        val minVersion: Int,
         val missionParams: Map<String, Any>
 )
