@@ -71,5 +71,4 @@ class NewsFeedController @Inject constructor(
     @GetMapping("/api/v1/news/indonesia/topics")
     fun idNewsTopic() = liputanTopic.keys
 
-
 }
