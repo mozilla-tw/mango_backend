@@ -85,19 +85,44 @@ import javax.inject.Named
 
     fun createMissions(missionList: List<MissionCreateData>): List<MissionCreateResult> {
         return missionList
-                .map { missionRepository.createMission(it) }
-                .map {
-                    MissionCreateResult(
-                            mid = it.mid,
-                            title = getStringById(it.titleId),
-                            description = getStringById(it.descriptionId),
-                            expiredDate = it.expiredDate,
-                            events = it.interestPings,
-                            endpoint = it.endpoint,
-                            minVersion = it.minVersion,
-                            missionParams = it.missionParams
-                    )
+                .map { createData ->
+                    val validation = validateMissionCreateData(createData)
+                    if (validation.isValid()) {
+                        val mission = missionRepository.createMission(createData)
+                        MissionCreateResult.Success(
+                                mid = mission.mid,
+                                title = getStringById(mission.titleId),
+                                description = getStringById(mission.descriptionId),
+                                expiredDate = mission.expiredDate,
+                                events = mission.interestPings,
+                                endpoint = mission.endpoint,
+                                minVersion = mission.minVersion,
+                                missionParams = mission.missionParams
+                        )
+
+                    } else {
+                        MissionCreateResult.Error(createData.missionName, validation.toString())
+                    }
                 }
+    }
+
+    private fun validateMissionCreateData(data: MissionCreateData): ValidationResult {
+        val result = ValidationResult()
+
+        val type = MissionType.from(data.missionType)
+        if (type == MissionType.Unknown) {
+            result.addError("unrecognized mission type ${data.missionType}")
+        }
+
+        if (data.pings.isEmpty()) {
+            result.addError("empty pings")
+        }
+
+        if (data.missionParams.isEmpty()) {
+            result.addError("no mission parameter specified")
+        }
+
+        return result
     }
 
     fun groupMissions(
