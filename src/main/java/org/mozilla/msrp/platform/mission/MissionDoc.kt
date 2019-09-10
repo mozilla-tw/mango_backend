@@ -3,6 +3,7 @@ package org.mozilla.msrp.platform.mission
 import com.google.cloud.firestore.DocumentSnapshot
 import com.google.cloud.firestore.annotation.IgnoreExtraProperties
 import org.mozilla.msrp.platform.firestore.areFieldsPresent
+import org.mozilla.msrp.platform.util.logger
 
 /**
  * (All fields are just draft and are subject to change)
@@ -40,6 +41,7 @@ data class MissionDoc(
             return if (isValidSnapshot(snapshot)) {
                 snapshot.toObject(MissionDoc::class.java)
             } else {
+                logger().info("convert to mission doc failed")
                 null
             }
         }

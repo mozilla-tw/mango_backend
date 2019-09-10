@@ -1,5 +1,6 @@
 package org.mozilla.msrp.platform.mission
 
+import org.mozilla.msrp.platform.mission.qualifier.MissionProgressDoc
 import org.mozilla.msrp.platform.mission.qualifier.MissionQualifier
 import org.mozilla.msrp.platform.util.logger
 import org.slf4j.Logger
@@ -84,26 +85,25 @@ import javax.inject.Named
     }
 
     fun createMissions(missionList: List<MissionCreateData>): List<MissionCreateResult> {
-        return missionList
-                .map { createData ->
-                    val validation = validateMissionCreateData(createData)
-                    if (validation.isValid()) {
-                        val mission = missionRepository.createMission(createData)
-                        MissionCreateResult.Success(
-                                mid = mission.mid,
-                                title = getStringById(mission.titleId),
-                                description = getStringById(mission.descriptionId),
-                                expiredDate = mission.expiredDate,
-                                events = mission.interestPings,
-                                endpoint = mission.endpoint,
-                                minVersion = mission.minVersion,
-                                missionParams = mission.missionParams
-                        )
+        return missionList.map { createData ->
+            val validation = validateMissionCreateData(createData)
+            if (validation.isValid()) {
+                val mission = missionRepository.createMission(createData)
+                MissionCreateResult.Success(
+                        mid = mission.mid,
+                        title = getStringById(mission.titleId),
+                        description = getStringById(mission.descriptionId),
+                        expiredDate = mission.expiredDate,
+                        events = mission.interestPings,
+                        endpoint = mission.endpoint,
+                        minVersion = mission.minVersion,
+                        missionParams = mission.missionParams
+                )
 
-                    } else {
-                        MissionCreateResult.Error(createData.missionName, validation.toString())
-                    }
-                }
+            } else {
+                MissionCreateResult.Error(createData.missionName, validation.toString())
+            }
+        }
     }
 
     private fun validateMissionCreateData(data: MissionCreateData): ValidationResult {
@@ -204,17 +204,41 @@ import javax.inject.Named
     ): List<MissionCheckInResult> {
 
         val missions = missionRepository.findJoinedMissionsByPing(uid, ping)
+        log.info("ping=$ping, missions=${missions.map { "${it.missionType}/${it.mid}" }}")
 
-        return missions.mapNotNull { missionDoc ->
-            val mid = missionDoc.mid
-            val type = missionDoc.missionTypeEnum
+        return missions
+                .filter { isJoined(uid, it.missionType, it.mid) }
+                .mapNotNull { updateProgress(uid, it.missionType, it.mid, zone) }
+                .map { convertToCheckInResult(uid, it.missionType, it.mid, it) }
+    }
 
-            log.info("update progress, mid=$mid, type=$type")
+    private fun isJoined(uid: String, missionType: String, mid: String): Boolean {
+        return missionRepository.getJoinStatus(uid, missionType, mid) == JoinStatus.Joined
+    }
 
-            missionQualifier.updateProgress(uid, mid, type, zone)
+    private fun updateProgress(
+            uid: String,
+            missionType: String,
+            mid: String,
+            zone: ZoneId
+    ): MissionProgressDoc? {
 
-        }.map { progressDoc ->
-            MissionCheckInResult(progressDoc.toResponseFields())
-        }
+        log.info("update progress, mid=$mid, type=$missionType")
+        return missionQualifier.updateProgress(uid, mid, MissionType.from(missionType), zone)
+    }
+
+    private fun convertToCheckInResult(
+            uid: String,
+            missionType: String,
+            mid: String,
+            progress: MissionProgressDoc
+    ): MissionCheckInResult {
+        val status = missionRepository.getJoinStatus(uid, missionType, mid)?.status ?: 0
+
+        val response = mutableMapOf<String, Any>()
+        response.putAll(progress.toResponseFields())
+        response["status"] = status
+
+        return MissionCheckInResult(response)
     }
 }

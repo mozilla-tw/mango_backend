@@ -96,6 +96,16 @@ class MissionRepositoryFirestore @Inject internal constructor(
                 ?.status
     }
 
+    override fun setJoinStatus(status: JoinStatus, uid: String, missionType: String, mid: String) {
+        firestore.collection(missionType)
+                .document(mid)
+                .collection("users")
+                .findDocumentsByUid(uid)
+                .firstOrNull()
+                ?.reference
+                ?.setUnchecked(mapOf("status" to JoinStatus.Complete.status), mapper, SetOptions.merge())
+    }
+
     override fun joinMission(uid: String, missionType: String, mid: String): MissionJoinDoc {
         val path = firestore.collection(missionType)
                 .document(mid)
@@ -154,6 +164,15 @@ class MissionRepositoryFirestore @Inject internal constructor(
 
     private fun Query.findDocumentsByUid(uid: String): List<QueryDocumentSnapshot> {
         return this.whereEqualTo("uid", uid).getResultsUnchecked()
+    }
+
+    override fun getDailyMissionParams(mid: String): Map<String, Any> {
+        val params = firestore.collection(MissionType.DailyMission.identifier)
+                .whereEqualTo("mid", mid)
+                .getResultsUnchecked()
+                .firstOrNull()
+
+        return params?.let { MissionDoc.fromDocument(it)?.missionParams } ?: emptyMap()
     }
 
     override fun getDailyMissionProgress(

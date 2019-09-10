@@ -16,6 +16,7 @@ interface MissionRepository {
     fun groupMissions(groupId: String, groupItems: List<MissionGroupItemData>): List<MissionReferenceDoc>
 
     fun getJoinStatus(uid: String, missionType: String, mid: String): JoinStatus?
+    fun setJoinStatus(status: JoinStatus, uid: String, missionType: String, mid: String)
 
     fun joinMission(uid: String, missionType: String, mid: String): MissionJoinDoc
 
@@ -23,6 +24,7 @@ interface MissionRepository {
 
     fun findJoinedMissionsByPing(uid: String, ping: String): List<MissionDoc>
 
+    fun getDailyMissionParams(mid: String): Map<String, Any>
     fun getDailyMissionProgress(uid: String, mid: String): DailyMissionProgressDoc?
     fun updateDailyMissionProgress(progressDoc: MissionProgressDoc)
 }
