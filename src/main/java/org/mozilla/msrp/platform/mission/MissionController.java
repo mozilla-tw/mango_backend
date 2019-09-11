@@ -46,8 +46,9 @@ public class MissionController {
      */
     @RequestMapping(value = "/api/v1/group/{groupId}/missions", method = GET)
     public ResponseEntity<MissionListResponse> getMissionByGroupId(
-            @PathVariable("groupId") String groupId) {
-        List<MissionListItem> missions = missionService.getMissionsByGroupId(getUid(), groupId);
+            @PathVariable("groupId") String groupId,
+            @RequestAttribute("uid") String uid) {
+        List<MissionListItem> missions = missionService.getMissionsByGroupId(uid, groupId);
 
         return ResponseEntity.ok(new MissionListResponse.Success(missions));
     }
@@ -148,9 +149,9 @@ public class MissionController {
     @RequestMapping(value = "/api/v1/missions/{missionType}/{mid}", method = POST)
     public ResponseEntity<MissionJoinResponse> joinMission(
             @PathVariable("missionType") String missionType,
-            @PathVariable("mid") String mid) {
+            @PathVariable("mid") String mid,
+            @RequestAttribute("uid") String uid) {
 
-        String uid = getUid();
         MissionJoinResponse result = missionService.joinMission(uid, missionType, mid);
 
         return new ResponseEntity<>(result, HttpStatus.CREATED);
@@ -159,14 +160,9 @@ public class MissionController {
     @RequestMapping(value = "/api/v1/missions/{missionType}/{mid}", method = DELETE)
     public ResponseEntity<MissionQuitResponse> quitMission(
             @PathVariable("missionType") String missionType,
-            @PathVariable("mid") String mid) {
-        String uid = getUid();
+            @PathVariable("mid") String mid,
+            @RequestAttribute("uid") String uid) {
         return missionService.quitMission(uid, missionType, mid).toEntityResponse();
-    }
-
-    // TODO: Get user id from bearer token
-    private String getUid() {
-        return "roger_random_uid";
     }
 
     /**
@@ -195,9 +191,8 @@ public class MissionController {
     @RequestMapping(value = "/api/v1/ping/{ping}", method = PUT)
     public ResponseEntity<MissionCheckInResponse> checkInMissionsByPing(
             @PathVariable("ping") String ping,
-            @RequestParam("tz") String timezone) {
-
-        String uid = getUid();
+            @RequestParam("tz") String timezone,
+            @RequestAttribute("uid") String uid) {
 
         ZoneId zone;
         try {
