@@ -103,7 +103,7 @@ class MissionRepositoryFirestore @Inject internal constructor(
                 .findDocumentsByUid(uid)
                 .firstOrNull()
                 ?.reference
-                ?.setUnchecked(mapOf("status" to JoinStatus.Complete.status), mapper, SetOptions.merge())
+                ?.setUnchecked(mapOf("status" to status), mapper, SetOptions.merge())
     }
 
     override fun joinMission(uid: String, missionType: String, mid: String): MissionJoinDoc {
