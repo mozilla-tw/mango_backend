@@ -12,7 +12,7 @@ data class MissionCreateData(
         val pings: List<String>,
         val expiredDate: Long,
         val minVersion: Int,
-        val missionParams: Map<String, Any>
+        val missionParams: Map<String, Any>?
 )
 
 class ValidationResult {

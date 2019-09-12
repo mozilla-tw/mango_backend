@@ -92,9 +92,20 @@ public class MissionController {
      * @return response with created mission in body
      */
     @RequestMapping(value = "/api/v1/missions", method = POST)
-    public ResponseEntity<MissionCreateResponse> createMission(@RequestBody MissionCreateRequest request) {
-        List<MissionCreateResult> missions = missionService.createMissions(request.getMissions());
-        return ResponseEntity.ok(new MissionCreateResponse.Success(missions));
+    public ResponseEntity<MissionCreateResponse> createMission(
+            @RequestBody MissionCreateRequest request) {
+
+        MissionCreateResult result = missionService.createMissions(request.getMissions());
+
+        if (result instanceof MissionCreateResult.Success) {
+            MissionCreateResult.Success successResult = (MissionCreateResult.Success) result;
+            return ResponseEntity.ok(new MissionCreateResponse.Success(successResult.getResults()));
+
+        } else {
+            MissionCreateResult.Error errorResult = (MissionCreateResult.Error) result;
+            return ResponseEntity.badRequest()
+                    .body(new MissionCreateResponse.Error(errorResult.getResults()));
+        }
     }
 
     /**
