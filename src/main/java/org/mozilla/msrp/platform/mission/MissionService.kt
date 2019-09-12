@@ -177,8 +177,8 @@ import javax.inject.Named
             MissionJoinResponse.Success(result.uid, result.status)
 
         } else {
-            log.info("cannot join mission, uid=$uid, type=$missionType, mid=$mid")
-            MissionJoinResponse.Error("cannot join mission")
+            log.info("mission already joined, uid=$uid, type=$missionType, mid=$mid")
+            MissionJoinResponse.Error("already joined")
         }
     }
 
