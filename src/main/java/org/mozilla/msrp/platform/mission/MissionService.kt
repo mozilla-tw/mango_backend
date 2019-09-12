@@ -4,6 +4,8 @@ import org.mozilla.msrp.platform.mission.qualifier.MissionProgressDoc
 import org.mozilla.msrp.platform.mission.qualifier.MissionQualifier
 import org.mozilla.msrp.platform.util.logger
 import org.slf4j.Logger
+import org.springframework.context.MessageSource
+import org.springframework.context.NoSuchMessageException
 import org.springframework.http.HttpStatus
 import java.time.ZoneId
 import java.util.*
@@ -21,6 +23,12 @@ import javax.inject.Named
     @Inject
     lateinit var missionQualifier: MissionQualifier
 
+    @Inject
+    lateinit var missionMessageSource: MessageSource
+
+    @Inject
+    lateinit var locale: Locale
+
     private val log: Logger = logger()
 
     fun getMissionsByGroupId(uid: String, groupId: String): List<MissionListItem> {
@@ -28,7 +36,6 @@ import javax.inject.Named
             ArrayList()
 
         } else {
-            // TODO: Aggregate client-facing mission data
             this.missionRepository.getMissionsByGroupId(groupId)
                     .filter { isMissionAvailable(it) }
                     .map { aggregateMissionListItem(uid, it) }
@@ -36,14 +43,32 @@ import javax.inject.Named
     }
 
     private fun isMissionAvailable(mission: MissionDoc): Boolean {
-        // TODO: Expired, Reach join quota, etc
+        if (!hasString(mission.titleId)) {
+            log.error("title not defined for mission: ${mission.missionType}/${mission.mid}")
+            return false
+        }
+
+        if (!hasString(mission.descriptionId)) {
+            log.error("description not defined for mission: ${mission.missionType}/${mission.mid}")
+            return false
+        }
+
         return true
     }
 
+    private fun hasString(resId: String): Boolean {
+        return try {
+            getStringById(resId, Locale.getDefault())
+            true
+
+        } catch (e : NoSuchMessageException) {
+            false
+        }
+    }
+
     private fun aggregateMissionListItem(uid: String, missionDoc: MissionDoc): MissionListItem {
-        // TODO: String & L10N
-        val name = getStringById(missionDoc.titleId)
-        val description = getStringById(missionDoc.descriptionId)
+        val name = getStringById(missionDoc.titleId, locale)
+        val description = getStringById(missionDoc.descriptionId, locale)
 
         val joinStatus = missionRepository.getJoinStatus(
                 uid,
@@ -56,8 +81,6 @@ import javax.inject.Named
                 missionDoc.mid,
                 missionDoc.missionTypeEnum
         )
-
-        // TODO: Aggregate mission progress
 
         return MissionListItem(
                 mid = missionDoc.mid,
@@ -77,11 +100,8 @@ import javax.inject.Named
      * @param id string id
      * @return localized string (if any)
      */
-    private fun getStringById(id: String): String {
-        // TODO: A way to store the mapping of id to string
-        // TODO: A way to support multiple languages
-        // TODO: Possible solution is a custom MessageSource
-        return "string of id $id"
+    private fun getStringById(id: String, locale: Locale, vararg args: String = emptyArray()): String {
+        return missionMessageSource.getMessage(id, args, locale)
     }
 
     fun createMissions(missionList: List<MissionCreateData>): List<MissionCreateResult> {
@@ -91,8 +111,8 @@ import javax.inject.Named
                 val mission = missionRepository.createMission(createData)
                 MissionCreateResult.Success(
                         mid = mission.mid,
-                        title = getStringById(mission.titleId),
-                        description = getStringById(mission.descriptionId),
+                        title = mission.titleId,
+                        description = mission.descriptionId,
                         expiredDate = mission.expiredDate,
                         events = mission.interestPings,
                         endpoint = mission.endpoint,
