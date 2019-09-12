@@ -70,9 +70,9 @@ class ProfileRepository @Inject constructor(firestore: Firestore) {
 
     fun findUserId(fbuid: String, fxuid: String): String? {
         return if (fxuid.isEmpty()) {
-            findUserIdByFxUid(fxuid)
-        } else {
             findUserIdByFbUid(fbuid)
+        } else {
+            findUserIdByFxUid(fxuid)
         }
     }
 
