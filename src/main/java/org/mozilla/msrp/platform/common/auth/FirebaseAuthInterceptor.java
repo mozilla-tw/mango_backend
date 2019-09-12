@@ -2,15 +2,18 @@ package org.mozilla.msrp.platform.common.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
 import lombok.extern.log4j.Log4j2;
 import org.mozilla.msrp.platform.common.ErrorMessage;
 import org.mozilla.msrp.platform.profile.ProfileRepository;
+import org.springframework.core.NestedExceptionUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -48,19 +51,28 @@ public class FirebaseAuthInterceptor implements HandlerInterceptor {
                     handleThrowable(response, HttpStatus.UNAUTHORIZED, "No such user");
 
                     return false;
+
+                } else {
+                    request.setAttribute("uid", getUserId(decodedToken));
+                    return true;
                 }
 
-                String fbuid = decodedToken.getUid();
-                String fxuid = (String) decodedToken.getClaims().getOrDefault("fxuid", "");
-                String uid = profileRepository.findUserId(fbuid, fxuid);
-                request.setAttribute("uid", uid);
+            } catch (IllegalArgumentException e) {
+                logThrowable("illegal token format", e);
+                handleThrowable(response, HttpStatus.BAD_REQUEST, "Illegal token format");
+                return false;
+
+            } catch (FirebaseAuthException e) {
+                logThrowable("unauthorized token", e);
+                handleThrowable(response, HttpStatus.UNAUTHORIZED, "Unauthorized token");
+                return false;
 
             } catch (Throwable throwable) {
+                logThrowable("unexpected exception", throwable);
                 handleThrowable(response, HttpStatus.INTERNAL_SERVER_ERROR, "Error loading DB");
 
                 return false;
             }
-            return true;
 
         } else {
 
@@ -83,4 +95,15 @@ public class FirebaseAuthInterceptor implements HandlerInterceptor {
         writer.close();
     }
 
+    @Nullable
+    private String getUserId(FirebaseToken token) {
+        String fbuid = token.getUid();
+        String fxuid = (String) token.getClaims().getOrDefault("fxuid", "");
+        return profileRepository.findUserId(fbuid, fxuid);
+    }
+
+    private void logThrowable(String msg, Throwable throwable) {
+        String message = NestedExceptionUtils.buildMessage(msg, throwable);
+        log.info("authenticate failed, msg={}", message);
+    }
 }
