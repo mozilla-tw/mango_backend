@@ -104,26 +104,31 @@ import javax.inject.Named
         return missionMessageSource.getMessage(id, args, locale)
     }
 
-    fun createMissions(missionList: List<MissionCreateData>): List<MissionCreateResult> {
-        return missionList.map { createData ->
-            val validation = validateMissionCreateData(createData)
-            if (validation.isValid()) {
-                val mission = missionRepository.createMission(createData)
-                MissionCreateResult.Success(
-                        mid = mission.mid,
-                        title = mission.titleId,
-                        description = mission.descriptionId,
-                        expiredDate = mission.expiredDate,
-                        events = mission.interestPings,
-                        endpoint = mission.endpoint,
-                        minVersion = mission.minVersion,
-                        missionParams = mission.missionParams
-                )
+    fun createMissions(missionList: List<MissionCreateData>): MissionCreateResult {
+        val invalidItems = missionList
+                .map { it.missionName to validateMissionCreateData(it) }
+                .filterNot { it.second.isValid() }
+                .map { MissionCreateFailedItem(it.first, it.second.toString()) }
 
-            } else {
-                MissionCreateResult.Error(createData.missionName, validation.toString())
-            }
+        if (invalidItems.isNotEmpty()) {
+            return MissionCreateResult.Error(invalidItems)
         }
+
+        val results = missionList.map { createData ->
+            val mission = missionRepository.createMission(createData)
+            MissionCreateResultItem(
+                    mid = mission.mid,
+                    title = mission.titleId,
+                    description = mission.descriptionId,
+                    expiredDate = mission.expiredDate,
+                    events = mission.interestPings,
+                    endpoint = mission.endpoint,
+                    minVersion = mission.minVersion,
+                    missionParams = mission.missionParams
+            )
+        }
+
+        return MissionCreateResult.Success(results)
     }
 
     private fun validateMissionCreateData(data: MissionCreateData): ValidationResult {
@@ -138,7 +143,7 @@ import javax.inject.Named
             result.addError("empty pings")
         }
 
-        if (data.missionParams.isEmpty()) {
+        if (data.missionParams?.isEmpty() != false) {
             result.addError("no mission parameter specified")
         }
 
