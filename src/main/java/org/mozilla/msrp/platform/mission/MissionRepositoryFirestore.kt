@@ -70,6 +70,13 @@ class MissionRepositoryFirestore @Inject internal constructor(
         return doc
     }
 
+    override fun findMission(missionType: String, mid: String): MissionDoc? {
+        return firestore.collection(missionType)
+                .findDocumentsByMid(mid)
+                .firstOrNull()
+                ?.let { MissionDoc.fromDocument(it) }
+    }
+
     override fun groupMissions(
             groupId: String,
             groupItems: List<MissionGroupItemData>
@@ -167,6 +174,10 @@ class MissionRepositoryFirestore @Inject internal constructor(
 
     private fun Query.findDocumentsByUid(uid: String): List<QueryDocumentSnapshot> {
         return this.whereEqualTo("uid", uid).getResultsUnchecked()
+    }
+
+    private fun Query.findDocumentsByMid(mid: String): List<QueryDocumentSnapshot> {
+        return this.whereEqualTo("mid", mid).getResultsUnchecked()
     }
 
     override fun getDailyMissionParams(mid: String): Map<String, Any> {
