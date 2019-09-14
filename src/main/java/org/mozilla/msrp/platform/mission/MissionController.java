@@ -161,11 +161,25 @@ public class MissionController {
     public ResponseEntity<MissionJoinResponse> joinMission(
             @PathVariable("missionType") String missionType,
             @PathVariable("mid") String mid,
+            @RequestParam("tz") String timezone,
             @RequestAttribute("uid") String uid) {
 
-        MissionJoinResponse result = missionService.joinMission(uid, missionType, mid);
+        ZoneId zone = createZone(timezone);
+        if (zone == null) {
+            return ResponseEntity.badRequest().body(
+                    new MissionJoinResponse.Error("unsupported timezone"));
+        }
 
-        return new ResponseEntity<>(result, HttpStatus.CREATED);
+        MissionJoinResult result = missionService.joinMission(uid, missionType, mid, zone);
+        if (result instanceof MissionJoinResult.Success) {
+            MissionJoinResult.Success successResult = (MissionJoinResult.Success) result;
+            return ResponseEntity.ok(new MissionJoinResponse.Success(successResult));
+
+        } else {
+            MissionJoinResult.Error errorResult = (MissionJoinResult.Error) result;
+            return ResponseEntity.status(errorResult.getCode())
+                    .body(new MissionJoinResponse.Error(errorResult.getMessage()));
+        }
     }
 
     @RequestMapping(value = "/api/v1/missions/{missionType}/{mid}", method = DELETE)
@@ -205,13 +219,10 @@ public class MissionController {
             @RequestParam("tz") String timezone,
             @RequestAttribute("uid") String uid) {
 
-        ZoneId zone;
-        try {
-            zone = ZoneId.of(timezone);
-
-        } catch (DateTimeException e) {
-            log.info("unsupported timezone=" + timezone);
-            return ResponseEntity.badRequest().body(new MissionCheckInResponse.Error("unsupported timezone"));
+        ZoneId zone = createZone(timezone);
+        if (zone == null) {
+            return ResponseEntity.badRequest()
+                    .body(new MissionCheckInResponse.Error("unsupported timezone"));
         }
 
         log.info("ping={}, timezone={}", ping, zone);
@@ -219,5 +230,15 @@ public class MissionController {
         List<MissionCheckInResult> results = missionService.checkInMissions(uid, ping, zone);
 
         return ResponseEntity.ok(new MissionCheckInResponse.Success(results));
+    }
+
+    private ZoneId createZone(String timezone) {
+        try {
+            return ZoneId.of(timezone);
+
+        } catch (DateTimeException e) {
+            log.info("unsupported timezone=" + timezone);
+            return null;
+        }
     }
 }
