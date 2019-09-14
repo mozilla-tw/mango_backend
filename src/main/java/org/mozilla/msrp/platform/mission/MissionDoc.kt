@@ -21,7 +21,10 @@ data class MissionDoc(
         var descriptionId: String = "",
         var missionType: String = "",
         var interestPings: List<String> = emptyList(),
-        var expiredDate: Long = 0L,
+        val startDate: String = "",
+        val joinStartDate: String = "",
+        val joinEndDate: String = "",
+        var expiredDate: String = "",
         var minVersion: Int = 0,
         val missionParams: Map<String, Any> = emptyMap()
 ) {
@@ -35,6 +38,9 @@ data class MissionDoc(
         private const val KEY_PINGS = "interestPings"
         private const val KEY_EXPIRED_DATE = "expiredDate"
         private const val KEY_MISSION_PARAMS = "missionParams"
+        private const val KEY_START_DATE = "startDate"
+        private const val KEY_JOIN_START_DATE = "joinStartDate"
+        private const val KEY_JOIN_END_DATE = "joinEndDate"
 
         @JvmStatic
         fun fromDocument(snapshot: DocumentSnapshot): MissionDoc? {
@@ -54,7 +60,10 @@ data class MissionDoc(
                     KEY_MISSION_TYPE,
                     KEY_PINGS,
                     KEY_EXPIRED_DATE,
-                    KEY_MISSION_PARAMS
+                    KEY_MISSION_PARAMS,
+                    KEY_START_DATE,
+                    KEY_JOIN_END_DATE,
+                    KEY_JOIN_START_DATE
             ))
         }
     }

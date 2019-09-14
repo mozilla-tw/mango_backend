@@ -5,7 +5,9 @@ import com.google.api.core.ApiFuture
 import com.google.cloud.firestore.*
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.UncheckedExecutionException
-import org.mozilla.msrp.platform.util.logger
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 import java.util.concurrent.CancellationException
 
 fun DocumentSnapshot.areFieldsPresent(fieldNames: List<String>): Boolean {
@@ -62,4 +64,9 @@ fun <T> ApiFuture<T>.getUnchecked(): T {
     } catch (e: UncheckedExecutionException) {
         throw FirestoreException(cause = e)
     }
+}
+
+@Throws(DateTimeParseException::class)
+fun stringToLocalDateTime(localDateTimeString: String): LocalDateTime {
+    return LocalDateTime.parse(localDateTimeString, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
 }
