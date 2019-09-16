@@ -28,4 +28,5 @@ interface MissionRepository {
     fun getDailyMissionParams(mid: String): Map<String, Any>
     fun getDailyMissionProgress(uid: String, mid: String): DailyMissionProgressDoc?
     fun updateDailyMissionProgress(progressDoc: MissionProgressDoc)
+    fun clearDailyMissionProgress(uid: String, mid: String)
 }

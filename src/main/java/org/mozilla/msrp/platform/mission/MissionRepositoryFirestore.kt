@@ -1,11 +1,16 @@
 package org.mozilla.msrp.platform.mission
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.cloud.firestore.*
+import com.google.cloud.firestore.Firestore
+import com.google.cloud.firestore.Query
+import com.google.cloud.firestore.QueryDocumentSnapshot
+import com.google.cloud.firestore.SetOptions
 import org.mozilla.msrp.platform.firestore.*
 import org.mozilla.msrp.platform.mission.qualifier.DailyMissionProgressDoc
+import org.mozilla.msrp.platform.mission.qualifier.ProgressType
 import org.mozilla.msrp.platform.mission.qualifier.MissionProgressDoc
 import org.mozilla.msrp.platform.util.logger
+import java.time.Clock
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -15,6 +20,9 @@ class MissionRepositoryFirestore @Inject internal constructor(
 ) : MissionRepository {
 
     private val log = logger()
+
+    @Inject
+    lateinit var clock: Clock
 
     @Inject
     lateinit var mapper: ObjectMapper
@@ -205,14 +213,35 @@ class MissionRepositoryFirestore @Inject internal constructor(
 
         log.info("progress collection=${collection.path}, docId=${result?.reference?.id}")
 
-        return result?.toObject(DailyMissionProgressDoc::class.java)
+        val resultDoc = result?.toObject(DailyMissionProgressDoc::class.java, mapper)
+
+        if (resultDoc?.progressType == ProgressType.Clear) {
+            return null
+        }
+
+        return resultDoc
     }
 
     override fun updateDailyMissionProgress(progressDoc: MissionProgressDoc) {
         val collection = getDailyMissionCollection()
         log.info("firestore path: ${collection.path}")
 
-        collection.document().setUnchecked(progressDoc)
+        collection.document().setUnchecked(progressDoc, mapper)
+    }
+
+    override fun clearDailyMissionProgress(uid: String, mid: String) {
+        val collection = getDailyMissionCollection()
+        val now = clock.instant().toEpochMilli()
+        val clearDoc = DailyMissionProgressDoc(
+                uid = uid,
+                mid = mid,
+                joinDate = 0,
+                timestamp = now,
+                missionType = MissionType.DailyMission.identifier,
+                currentDayCount = 0,
+                progressType = ProgressType.Clear
+        )
+        collection.document().setUnchecked(clearDoc, mapper)
     }
 
     private fun getDailyMissionCollection() =

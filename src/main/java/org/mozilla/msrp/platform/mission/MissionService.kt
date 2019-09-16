@@ -281,6 +281,7 @@ import javax.inject.Named
         }
 
         missionRepository.quitMission(uid, missionType, mid)
+        missionQualifier.clearProgress(uid, mid, MissionType.from(missionType))
         return MissionQuitResponse.Success(mid = mid, status = JoinStatus.New)
     }
 
