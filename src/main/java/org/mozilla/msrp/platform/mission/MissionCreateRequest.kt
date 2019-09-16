@@ -10,7 +10,10 @@ data class MissionCreateData(
         val descriptionId: String,
         val missionType: String,
         val pings: List<String>,
-        val expiredDate: Long,
+        val startDate: String,
+        val joinStartDate: String,
+        val joinEndDate: String,
+        val expiredDate: String,
         val minVersion: Int,
         val missionParams: Map<String, Any>?
 )

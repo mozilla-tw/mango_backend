@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.context.support.ResourceBundleMessageSource
+import java.time.Clock
 import java.util.Locale
 
 @Configuration
@@ -20,5 +21,10 @@ open class MissionConfiguration {
     @Bean
     open fun locale(): Locale {
         return LocaleContextHolder.getLocale()
+    }
+
+    @Bean
+    open fun clock(): Clock {
+        return Clock.systemUTC()
     }
 }

@@ -56,6 +56,9 @@ class MissionRepositoryFirestore @Inject internal constructor(
                 titleId = createData.titleId,
                 descriptionId = createData.descriptionId,
                 missionType = createData.missionType,
+                startDate = createData.startDate,
+                joinStartDate = createData.joinStartDate,
+                joinEndDate = createData.joinEndDate,
                 expiredDate = createData.expiredDate,
                 interestPings = createData.pings,
                 minVersion = createData.minVersion,
@@ -65,6 +68,13 @@ class MissionRepositoryFirestore @Inject internal constructor(
         docRef.setUnchecked(doc)
 
         return doc
+    }
+
+    override fun findMission(missionType: String, mid: String): MissionDoc? {
+        return firestore.collection(missionType)
+                .findDocumentsByMid(mid)
+                .firstOrNull()
+                ?.let { MissionDoc.fromDocument(it) }
     }
 
     override fun groupMissions(
@@ -164,6 +174,10 @@ class MissionRepositoryFirestore @Inject internal constructor(
 
     private fun Query.findDocumentsByUid(uid: String): List<QueryDocumentSnapshot> {
         return this.whereEqualTo("uid", uid).getResultsUnchecked()
+    }
+
+    private fun Query.findDocumentsByMid(mid: String): List<QueryDocumentSnapshot> {
+        return this.whereEqualTo("mid", mid).getResultsUnchecked()
     }
 
     override fun getDailyMissionParams(mid: String): Map<String, Any> {

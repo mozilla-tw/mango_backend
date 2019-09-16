@@ -1,13 +1,16 @@
 package org.mozilla.msrp.platform.mission
 
+import org.mozilla.msrp.platform.firestore.stringToLocalDateTime
 import org.mozilla.msrp.platform.mission.qualifier.MissionProgressDoc
 import org.mozilla.msrp.platform.mission.qualifier.MissionQualifier
 import org.mozilla.msrp.platform.util.logger
 import org.slf4j.Logger
 import org.springframework.context.MessageSource
 import org.springframework.context.NoSuchMessageException
+import org.springframework.core.NestedExceptionUtils
 import org.springframework.http.HttpStatus
-import java.time.ZoneId
+import java.time.*
+import java.time.format.DateTimeParseException
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Named
@@ -29,6 +32,9 @@ import javax.inject.Named
     @Inject
     lateinit var locale: Locale
 
+    @Inject
+    lateinit var clock: Clock
+
     private val log: Logger = logger()
 
     fun getMissionsByGroupId(uid: String, groupId: String): List<MissionListItem> {
@@ -37,12 +43,12 @@ import javax.inject.Named
 
         } else {
             this.missionRepository.getMissionsByGroupId(groupId)
-                    .filter { isMissionAvailable(it) }
+                    .filter { isMissionValid(it) }
                     .map { aggregateMissionListItem(uid, it) }
         }
     }
 
-    private fun isMissionAvailable(mission: MissionDoc): Boolean {
+    private fun isMissionValid(mission: MissionDoc): Boolean {
         if (!hasString(mission.titleId)) {
             log.error("title not defined for mission: ${mission.missionType}/${mission.mid}")
             return false
@@ -120,6 +126,9 @@ import javax.inject.Named
                     mid = mission.mid,
                     title = mission.titleId,
                     description = mission.descriptionId,
+                    startDate = mission.startDate,
+                    joinStartDate = mission.joinStartDate,
+                    joinEndDate = mission.joinEndDate,
                     expiredDate = mission.expiredDate,
                     events = mission.interestPings,
                     endpoint = mission.endpoint,
@@ -166,37 +175,93 @@ import javax.inject.Named
     fun joinMission(
             uid: String,
             missionType: String,
-            mid: String
-    ): MissionJoinResponse {
-        val joinStatus = missionRepository.getJoinStatus(uid, missionType, mid)
+            mid: String,
+            zone: ZoneId
+    ): MissionJoinResult {
+        val logInfo = "uid=$uid, type=$missionType, mid=$mid, zone=$zone"
+        return when (checkMissionJoinableState(uid, missionType, mid, zone)) {
+            JoinableState.NotFound -> {
+                log.info("mission not found, $logInfo")
+                MissionJoinResult.Error("mission not found", HttpStatus.NOT_FOUND)
+            }
 
-        joinStatus ?: return joinWithNewRecord(uid, missionType, mid)
+            JoinableState.BeforeJoinPeriod -> {
+                log.info("not open for join, $logInfo")
+                MissionJoinResult.Error("mission not open", HttpStatus.FORBIDDEN)
+            }
 
-        return if (joinStatus == JoinStatus.New) {
-            val result = missionRepository.joinMission(uid, missionType, mid)
-            MissionJoinResponse.Success(result.uid, result.status)
+            JoinableState.AfterJoinPeriod -> {
+                log.info("exceed join period, $logInfo")
+                MissionJoinResult.Error("mission closed", HttpStatus.GONE)
+            }
 
-        } else {
-            log.info("cannot join mission, uid=$uid, type=$missionType, mid=$mid")
-            MissionJoinResponse.Error("cannot join mission")
+            JoinableState.AlreadyJoined -> {
+                log.info("already joined, $logInfo")
+                MissionJoinResult.Error("already joined", HttpStatus.CONFLICT)
+            }
+
+            JoinableState.IllegalMissionFormat -> {
+                log.error("illegal mission format, $logInfo")
+                MissionJoinResult.Error(
+                        "illegal mission format",
+                        HttpStatus.INTERNAL_SERVER_ERROR
+                )
+            }
+
+            else -> {
+                val joinResult = missionRepository.joinMission(uid, missionType, mid)
+                log.info("join mission, $logInfo, state=${joinResult.status}")
+                MissionJoinResult.Success(joinResult.mid, joinResult.status)
+            }
         }
     }
 
-    private fun joinWithNewRecord(
+    private fun checkMissionJoinableState(
             uid: String,
             missionType: String,
-            mid: String
-    ): MissionJoinResponse {
+            mid: String,
+            zone: ZoneId
+    ): JoinableState {
 
-        val newRecord = MissionJoinDoc(
-                uid = uid,
-                status = JoinStatus.Joined,
-                missionType = missionType,
-                mid = mid
-        )
-        log.info("join mission first time $newRecord")
-        missionRepository.joinMission(uid, missionType, mid)
-        return MissionJoinResponse.Success(newRecord.uid, newRecord.status)
+        // Is exist
+        val mission = missionRepository.findMission(missionType, mid)
+                ?: return JoinableState.NotFound
+
+        val clientDateTime: LocalDateTime = LocalDateTime.ofInstant(Instant.now(clock), zone)
+
+        // Is before the first joinable date
+        val joinStartDateTime = getLocalDateTime(mission.joinStartDate)
+                ?: return JoinableState.IllegalMissionFormat
+
+        if (clientDateTime.isBefore(joinStartDateTime)) {
+            return JoinableState.BeforeJoinPeriod
+        }
+
+        // Is exceed the last joinable date
+        val joinEndDateTime = getLocalDateTime(mission.joinEndDate)
+                ?: return JoinableState.IllegalMissionFormat
+
+        if (clientDateTime.isAfter(joinEndDateTime)) {
+            return JoinableState.AfterJoinPeriod
+        }
+
+        // Already joined
+        val joinStatus = missionRepository.getJoinStatus(uid, missionType, mid)
+        if (joinStatus != null && joinStatus != JoinStatus.New) {
+            return JoinableState.AlreadyJoined
+        }
+
+        return JoinableState.Joinable
+    }
+
+    private fun getLocalDateTime(dateTimeString: String): LocalDateTime? {
+        return try {
+            stringToLocalDateTime(dateTimeString)
+
+        } catch (e: DateTimeParseException) {
+            log.error(NestedExceptionUtils.buildMessage("illegal date time format, string=$dateTimeString", e))
+            return null
+        }
     }
 
     fun quitMission(
@@ -265,5 +330,15 @@ import javax.inject.Named
         response["status"] = status
 
         return MissionCheckInResult(response)
+    }
+
+    private enum class JoinableState {
+        Joinable,
+        Expired,
+        NotFound,
+        AlreadyJoined,
+        IllegalMissionFormat,
+        BeforeJoinPeriod,
+        AfterJoinPeriod,
     }
 }

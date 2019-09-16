@@ -12,6 +12,7 @@ interface MissionRepository {
     fun getMissionsByGroupId(groupId: String): List<MissionDoc>
 
     fun createMission(createData: MissionCreateData): MissionDoc
+    fun findMission(missionType: String, mid: String): MissionDoc?
 
     fun groupMissions(groupId: String, groupItems: List<MissionGroupItemData>): List<MissionReferenceDoc>
 
