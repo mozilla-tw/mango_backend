@@ -7,6 +7,7 @@ import org.mozilla.msrp.platform.util.logger
 import org.slf4j.Logger
 import org.springframework.context.MessageSource
 import org.springframework.context.NoSuchMessageException
+import org.springframework.core.NestedExceptionUtils
 import org.springframework.http.HttpStatus
 import java.time.*
 import java.time.format.DateTimeParseException
@@ -258,6 +259,7 @@ import javax.inject.Named
             stringToLocalDateTime(dateTimeString)
 
         } catch (e: DateTimeParseException) {
+            log.error(NestedExceptionUtils.buildMessage("illegal date time format, string=$dateTimeString", e))
             return null
         }
     }
