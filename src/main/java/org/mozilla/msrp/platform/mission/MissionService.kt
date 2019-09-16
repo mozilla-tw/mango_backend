@@ -212,6 +212,11 @@ import javax.inject.Named
                 MissionJoinResult.Error("mission not found", HttpStatus.NOT_FOUND)
             }
 
+            JoinableState.ReachQuota -> {
+                log.info("mission join quota reached, $logInfo")
+                MissionJoinResult.Error("mission reach join quota", HttpStatus.FORBIDDEN)
+            }
+
             JoinableState.BeforeJoinPeriod -> {
                 log.info("not open for join, $logInfo")
                 MissionJoinResult.Error("mission not open", HttpStatus.FORBIDDEN)
@@ -254,6 +259,13 @@ import javax.inject.Named
         // Is exist
         val mission = missionRepository.findMission(missionType, mid)
                 ?: return JoinableState.NotFound
+
+        // Is reach join quota
+        val joinCount = missionRepository.getJoinCount(missionType, mid)
+        log.info("current join count=$joinCount")
+        if (joinCount >= mission.joinQuota) {
+            return JoinableState.ReachQuota
+        }
 
         val clientDateTime: LocalDateTime = LocalDateTime.ofInstant(Instant.now(clock), zone)
 

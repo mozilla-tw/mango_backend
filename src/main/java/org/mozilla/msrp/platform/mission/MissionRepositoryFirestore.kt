@@ -1,25 +1,15 @@
 package org.mozilla.msrp.platform.mission
 
 import com.fasterxml.jackson.databind.ObjectMapper
-
-import com.google.cloud.firestore.Firestore
-import com.google.cloud.firestore.Query
-import com.google.cloud.firestore.QueryDocumentSnapshot
-import com.google.cloud.firestore.SetOptions
-import com.google.cloud.firestore.Transaction
-import org.mozilla.msrp.platform.firestore.getResultsUnchecked
-import org.mozilla.msrp.platform.firestore.getUnchecked
-import org.mozilla.msrp.platform.firestore.parentCollection
-import org.mozilla.msrp.platform.firestore.parentDocument
-import org.mozilla.msrp.platform.firestore.setUnchecked
-import org.mozilla.msrp.platform.firestore.toObject
 import com.google.cloud.firestore.*
+import com.google.cloud.firestore.Query
 import org.mozilla.msrp.platform.common.firebase.DistributedCounter
 import org.mozilla.msrp.platform.common.firebase.getCounter
 import org.mozilla.msrp.platform.common.firebase.setupCounter
+import org.mozilla.msrp.platform.firestore.*
 import org.mozilla.msrp.platform.mission.qualifier.DailyMissionProgressDoc
-import org.mozilla.msrp.platform.mission.qualifier.ProgressType
 import org.mozilla.msrp.platform.mission.qualifier.MissionProgressDoc
+import org.mozilla.msrp.platform.mission.qualifier.ProgressType
 import org.mozilla.msrp.platform.util.logger
 import java.time.Clock
 import javax.inject.Inject
