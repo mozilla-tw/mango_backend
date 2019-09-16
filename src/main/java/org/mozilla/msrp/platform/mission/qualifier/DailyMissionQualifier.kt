@@ -125,4 +125,8 @@ class DailyMissionQualifier(val clock: Clock = Clock.systemUTC()) {
     fun getProgress(uid: String, mid: String): MissionProgressDoc? {
         return missionRepository.getDailyMissionProgress(uid, mid)
     }
+
+    fun clearProgress(uid: String, mid: String) {
+        missionRepository.clearDailyMissionProgress(uid, mid)
+    }
 }

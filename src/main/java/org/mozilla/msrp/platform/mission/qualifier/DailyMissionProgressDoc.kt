@@ -9,6 +9,7 @@ data class DailyMissionProgressDoc(
         override var joinDate: Long = 0L,
         override var timestamp: Long = 0L,
         override var missionType: String = "",
+        override var progressType: ProgressType = ProgressType.Update,
         var currentDayCount: Int = 0
 ): MissionProgressDoc {
 

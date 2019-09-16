@@ -27,12 +27,19 @@ class MissionQualifier {
         }
     }
 
-    private fun updateDailyMissionProgress(
-            uid: String,
-            mid: String,
-            zone: ZoneId
-    ): MissionProgressDoc? {
+    fun clearProgress(uid: String, mid: String, missionType: MissionType) {
+        when (missionType) {
+            MissionType.DailyMission -> clearDailyMissionProgress(uid, mid)
+            else -> handleUnknownMissionType(mid, missionType)
+        }
+    }
+
+    private fun updateDailyMissionProgress(uid: String, mid: String, zone: ZoneId): MissionProgressDoc? {
         return dailyMissionQualifier.updateProgress(uid, mid, zone)
+    }
+
+    private fun clearDailyMissionProgress(uid: String, mid: String) {
+        dailyMissionQualifier.clearProgress(uid, mid)
     }
 
     private fun handleUnknownMissionType(
