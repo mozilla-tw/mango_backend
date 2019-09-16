@@ -16,7 +16,8 @@ data class MissionCreateData(
         val expiredDate: String,
         val minVersion: Int,
         val missionParams: Map<String, Any>?,
-        val rewardType: String
+        val rewardType: String,
+        val joinQuota: Int
 )
 
 class ValidationResult {

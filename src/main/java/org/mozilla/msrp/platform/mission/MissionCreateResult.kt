@@ -17,7 +17,8 @@ data class MissionCreateResultItem(
         val endpoint: String,
         val minVersion: Int,
         val missionParams: Map<String, Any>,
-        val rewardType: String
+        val rewardType: String,
+        val joinQuota: Int
 )
 
 data class MissionCreateFailedItem(

@@ -77,7 +77,8 @@ class MissionRepositoryFirestore @Inject internal constructor(
                 interestPings = createData.pings,
                 minVersion = createData.minVersion,
                 missionParams = createData.missionParams ?: emptyMap(),
-                rewardType = createData.rewardType
+                rewardType = createData.rewardType,
+                joinQuota = createData.joinQuota
         )
 
         docRef.setUnchecked(doc)

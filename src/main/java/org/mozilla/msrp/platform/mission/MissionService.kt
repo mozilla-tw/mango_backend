@@ -159,7 +159,8 @@ import javax.inject.Named
                     endpoint = mission.endpoint,
                     minVersion = mission.minVersion,
                     missionParams = mission.missionParams,
-                    rewardType = mission.rewardType
+                    rewardType = mission.rewardType,
+                    joinQuota = mission.joinQuota
             )
         }
 
@@ -363,6 +364,7 @@ import javax.inject.Named
 
     private enum class JoinableState {
         Joinable,
+        ReachQuota,
         Expired,
         NotFound,
         AlreadyJoined,
