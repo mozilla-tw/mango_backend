@@ -1,8 +1,8 @@
-package org.mozilla.msrp.platform.profile.data
+package org.mozilla.msrp.platform.user.data
 
 import java.util.*
 
-data class ProfileDoc(
+data class UserDoc(
         val firebase_uid: String,
         val firefox_uid: String?,
         val email: String,

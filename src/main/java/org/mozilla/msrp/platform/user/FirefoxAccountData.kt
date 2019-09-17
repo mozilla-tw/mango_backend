@@ -1,4 +1,4 @@
-package org.mozilla.msrp.platform.profile
+package org.mozilla.msrp.platform.user
 
 
 class FxaTokenResponse(

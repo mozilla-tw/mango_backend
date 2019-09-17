@@ -1,6 +1,6 @@
-package org.mozilla.msrp.platform.profile.data
+package org.mozilla.msrp.platform.user.data
 
-data class ProfileActivityDoc(
+data class UserActivityDoc(
         val userDocId: String,
         val timestamp: Long,
         val action: String,

@@ -1,4 +1,4 @@
-package org.mozilla.msrp.platform.profile;
+package org.mozilla.msrp.platform.user;
 
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;

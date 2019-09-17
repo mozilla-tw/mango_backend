@@ -1,16 +1,16 @@
-package org.mozilla.msrp.platform.profile
+package org.mozilla.msrp.platform.user
 
 import com.google.cloud.firestore.CollectionReference
 import com.google.cloud.firestore.Firestore
 import com.google.cloud.firestore.SetOptions
 import com.google.firebase.auth.FirebaseAuth
-import org.mozilla.msrp.platform.profile.data.ProfileActivityDoc
+import org.mozilla.msrp.platform.user.data.UserActivityDoc
 import org.mozilla.msrp.platform.firestore.getResultsUnchecked
 import org.springframework.stereotype.Repository
 import javax.inject.Inject
 
 @Repository
-class ProfileRepository @Inject constructor(firestore: Firestore) {
+class UserRepository @Inject constructor(firestore: Firestore) {
 
     private var users: CollectionReference
     private var accountActivity: CollectionReference
@@ -108,7 +108,7 @@ class ProfileRepository @Inject constructor(firestore: Firestore) {
     }
 
     private fun logAccountActivity(userDocumentId: String, action: String) {
-        ProfileActivityDoc(userDocumentId, System.currentTimeMillis(), action, 1).let {
+        UserActivityDoc(userDocumentId, System.currentTimeMillis(), action, 1).let {
             accountActivity.document().set(it)
         }
     }

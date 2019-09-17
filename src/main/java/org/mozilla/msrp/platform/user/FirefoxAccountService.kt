@@ -1,6 +1,5 @@
-package org.mozilla.msrp.platform.profile
+package org.mozilla.msrp.platform.user
 
-import com.google.common.annotations.VisibleForTesting
 import org.json.JSONException
 import org.springframework.stereotype.Service
 

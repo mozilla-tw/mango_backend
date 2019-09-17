@@ -1,4 +1,4 @@
-package org.mozilla.msrp.platform.profile;
+package org.mozilla.msrp.platform.user;
 
 import org.json.JSONException;
 import org.springframework.http.HttpStatus;
@@ -14,13 +14,13 @@ import java.io.IOException;
 import java.util.HashMap;
 
 @RestController
-public class ProfileController {
-    private ProfileRepository profileRepository;
+public class UserController {
+    private UserRepository userRepository;
     private FirefoxAccountService firefoxAccountService;
 
     @Inject
-    public ProfileController(ProfileRepository repo, FirefoxAccountService service) {
-        profileRepository = repo;
+    public UserController(UserRepository repo, FirefoxAccountService service) {
+        userRepository = repo;
         firefoxAccountService = service;
     }
 
@@ -55,13 +55,13 @@ public class ProfileController {
             String fxUid = profileResponse.getUid();
             String fxEmail = profileResponse.getEmail();
 
-            profileRepository.signInAndUpdateUserDocument(oldFbUid, fxUid, fxEmail);
+            userRepository.signInAndUpdateUserDocument(oldFbUid, fxUid, fxEmail);
 
             // create custom token (jwt) for Firebase client SDK
             HashMap<String, String> additionalClaims = new HashMap<>();
             additionalClaims.put("fxuid", fxUid);
             additionalClaims.put("oldFbUid", oldFbUid);
-            String customToken = profileRepository.createCustomToken(fxUid, additionalClaims);
+            String customToken = userRepository.createCustomToken(fxUid, additionalClaims);
             // We don't really need this info. Just to let client intercept the url and close the webview.
             // TODO: remove below debugging information
             httpResponse.sendRedirect("/api/v1/done?jwt=" + customToken + "&fxaAccessToken=" + fxaAccessToken);
