@@ -37,13 +37,14 @@ import javax.inject.Named
 
     private val log: Logger = logger()
 
-    fun getMissionsByGroupId(uid: String, groupId: String): List<MissionListItem> {
+    fun getMissionsByGroupId(uid: String, groupId: String, zone: ZoneId): List<MissionListItem> {
         return if (isSuspiciousUser) {
             ArrayList()
 
         } else {
             this.missionRepository.getMissionsByGroupId(groupId)
                     .filter { isMissionValid(it) }
+                    .filter { isMissionAvailableForShowing(uid, it, zone) }
                     .map { aggregateMissionListItem(uid, it) }
         }
     }
@@ -62,12 +63,32 @@ import javax.inject.Named
         return true
     }
 
+    /**
+     * Is this mission available
+     */
+    private fun isMissionAvailableForShowing(uid:String, mission: MissionDoc, zone: ZoneId): Boolean {
+        val missionType = mission.missionType
+        val mid = mission.mid
+
+        val logInfo = "uid=$uid, type=$missionType, mid=$mid, zone=$zone"
+        val result = checkMissionJoinableState(uid, mission.missionType, mission.mid, zone)
+
+        return when (result) {
+            JoinableState.AlreadyJoined -> true
+            JoinableState.Joinable -> true
+            else -> {
+                log.info("mission not available for showing, $logInfo, status=$result")
+                false
+            }
+        }
+    }
+
     private fun hasString(resId: String): Boolean {
         return try {
             getStringById(resId, Locale.getDefault())
             true
 
-        } catch (e : NoSuchMessageException) {
+        } catch (e: NoSuchMessageException) {
             false
         }
     }

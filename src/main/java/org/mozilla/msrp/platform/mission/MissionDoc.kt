@@ -2,7 +2,7 @@ package org.mozilla.msrp.platform.mission
 
 import com.google.cloud.firestore.DocumentSnapshot
 import com.google.cloud.firestore.annotation.IgnoreExtraProperties
-import org.mozilla.msrp.platform.firestore.areFieldsPresent
+import org.mozilla.msrp.platform.firestore.checkAbsentFields
 import org.mozilla.msrp.platform.util.logger
 
 /**
@@ -44,16 +44,17 @@ data class MissionDoc(
 
         @JvmStatic
         fun fromDocument(snapshot: DocumentSnapshot): MissionDoc? {
-            return if (isValidSnapshot(snapshot)) {
+            val lostFields = snapshot.checkAbsentFields(getEssentialFields())
+            return if (lostFields.isEmpty()) {
                 snapshot.toObject(MissionDoc::class.java)
             } else {
-                logger().info("convert to mission doc failed")
+                logger().info("convert to mission doc failed, path=${snapshot.reference.path}, absent=$lostFields")
                 null
             }
         }
 
-        private fun isValidSnapshot(snapshot: DocumentSnapshot): Boolean {
-            return snapshot.areFieldsPresent(listOf(
+        private fun getEssentialFields(): List<String> {
+            return listOf(
                     KEY_MID,
                     KEY_NAME_ID,
                     KEY_DESCRIPTION_ID,
@@ -64,7 +65,7 @@ data class MissionDoc(
                     KEY_START_DATE,
                     KEY_JOIN_END_DATE,
                     KEY_JOIN_START_DATE
-            ))
+            )
         }
     }
 }
