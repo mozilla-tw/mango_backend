@@ -244,6 +244,17 @@ class MissionRepositoryFirestore @Inject internal constructor(
         collection.document().setUnchecked(clearDoc, mapper)
     }
 
+    override fun isImportantMission(missionType: String, mid: String): Boolean {
+        val dataMap = firestore.collection("important_mission")
+                .orderBy("created_timestamp", Query.Direction.DESCENDING)
+                .limit(1)
+                .getResultsUnchecked()
+                .firstOrNull()
+                ?.data ?: return false
+
+        return dataMap["missionType"] == missionType && dataMap["mid"] == mid
+    }
+
     private fun getDailyMissionCollection() =
             firestore.collection("${MissionType.DailyMission.identifier}_progress")
 }

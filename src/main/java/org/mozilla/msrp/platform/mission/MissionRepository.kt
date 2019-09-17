@@ -29,4 +29,6 @@ interface MissionRepository {
     fun getDailyMissionProgress(uid: String, mid: String): DailyMissionProgressDoc?
     fun updateDailyMissionProgress(progressDoc: MissionProgressDoc)
     fun clearDailyMissionProgress(uid: String, mid: String)
+
+    fun isImportantMission(missionType: String, mid: String): Boolean
 }
