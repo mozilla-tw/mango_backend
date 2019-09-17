@@ -44,7 +44,7 @@ class UserRepository @Inject constructor(firestore: Firestore) {
         userActivity = firestore.collection(COLLECTION_USER_ACTIVITY)
     }
 
-    fun createCustomToken(fxUid: String?, additionalClaims: Map<String, String>): String? {
+    fun createCustomToken(fxUid: String, additionalClaims: Map<String, String>): String? {
         return FirebaseAuth.getInstance().createCustomToken(fxUid, additionalClaims)
     }
 
@@ -140,7 +140,7 @@ class UserRepository @Inject constructor(firestore: Firestore) {
         val now = clock.millis()
         val aWeekAgo = now - 7 * 24 * 60 * 60 * 1000L
         return userActivity.whereEqualTo("userDocId", existingUserDocId)
-                .whereEqualTo("action", "sign-in")
+                .whereEqualTo("status", "sign-in")
                 .whereGreaterThan(DOC_FIELD_UPDATED_TIMESTAMP, aWeekAgo)
                 .getResultsUnchecked().size
     }
