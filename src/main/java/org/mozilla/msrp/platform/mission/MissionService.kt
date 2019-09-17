@@ -88,6 +88,8 @@ import javax.inject.Named
                 missionDoc.missionTypeEnum
         )
 
+        val important = missionRepository.isImportantMission(missionDoc.missionType, missionDoc.mid)
+
         return MissionListItem(
                 mid = missionDoc.mid,
                 title = name,
@@ -97,7 +99,8 @@ import javax.inject.Named
                 expiredDate = missionDoc.expiredDate,
                 status = joinStatus,
                 minVersion = missionDoc.minVersion,
-                progress = progress?.toProgressResponse() ?: emptyMap()
+                progress = progress?.toProgressResponse() ?: emptyMap(),
+                important = important
         )
     }
 
