@@ -25,16 +25,7 @@ class UserRepository @Inject constructor(firestore: Firestore) {
         private const val COLLECTION_USER = "users"
         private const val COLLECTION_USER_ACTIVITY = "user_activity"
 
-        private const val DOC_FIELD_USER_FIREBASE_UID = "firebase_uid"
-        private const val DOC_FIELD_USER_FIREFOX_UID = "firefox_uid"
-        private const val DOC_FIELD_USER_EMAIL = "email"
-        private const val DOC_FIELD_USER_UPDATED_TIMESTAMP = "updated_timestamp"
-        private const val DOC_FIELD_USER_STATUS = "status"
-        private const val DOC_FIELD_UPDATED_TIMESTAMP = "updated_timestamp"
 
-        private const val ACCOUNT_ACTIVITY_ACTION_SIGN_IN = "sign-in"
-        private const val ACCOUNT_ACTIVITY_ACTION_DEPRECATED = "deprecated"
-        private const val ACCOUNT_ACTIVITY_ACTION_SUSPEND = "suspend"
         private const val USER_SUSPICIOUS_THRESHOLD = 2
         private const val USER_SUSPICIOUS_WARNING = 1
     }
@@ -63,7 +54,7 @@ class UserRepository @Inject constructor(firestore: Firestore) {
 
             // if the user is deprecated, fail fast
             val userDocFxA = findUserDocumentByFxUid(fxUid)
-            if (userDocFxA?.status == ACCOUNT_ACTIVITY_ACTION_SUSPEND) {
+            if (userDocFxA?.status == UserDoc.STATUS_SUSPEND) {
                 logger.info("UserDoc[$userDocIdFxA] is deprecated")
                 return LoginResponse.Fail("UserDoc[$userDocIdFxA] is deprecated")
             }
@@ -74,8 +65,8 @@ class UserRepository @Inject constructor(firestore: Firestore) {
             // the user had two records in the past week. Means this time is the third time.
             // we should now suspend the user.
             if (USER_SUSPICIOUS_THRESHOLD == signInCountLast7DAYS) {
-                setUserDocStatus(userDocIdFxA, ACCOUNT_ACTIVITY_ACTION_SUSPEND)
-                logUserActivity(userDocIdFxA, ACCOUNT_ACTIVITY_ACTION_SUSPEND)
+                setUserDocStatus(userDocIdFxA, UserDoc.STATUS_SUSPEND)
+                logUserActivity(userDocIdFxA, UserDoc.STATUS_SUSPEND)
 
                 logger.info("UserDoc[$userDocIdFxA] has logged in three times per 7 days.")
                 return LoginResponse.UserSuspended("UserDoc[$userDocIdFxA] has logged in three times per 7 days.")
@@ -86,18 +77,18 @@ class UserRepository @Inject constructor(firestore: Firestore) {
             if (userDocIdFxA == userDocIdFb) {
                 logger.info("userDocIdFxA == userDocIdFb")
 
-                logUserActivity(userDocIdFxA, ACCOUNT_ACTIVITY_ACTION_SIGN_IN)
+                logUserActivity(userDocIdFxA, UserDoc.STATUS_SIGN_IN)
 
             } else {
                 logger.info("signIn userDocIdFxA[$userDocIdFxA]")
                 // the user document is different, means the user sign in FxA in another device.
-                setUserDocStatus(userDocIdFxA, ACCOUNT_ACTIVITY_ACTION_SIGN_IN)
-                logUserActivity(userDocIdFxA, ACCOUNT_ACTIVITY_ACTION_SIGN_IN)
+                setUserDocStatus(userDocIdFxA, UserDoc.STATUS_SIGN_IN)
+                logUserActivity(userDocIdFxA, UserDoc.STATUS_SIGN_IN)
 
                 logger.info("deprecate userDocIdFb[$userDocIdFb]")
                 // set the old document deprecated
-                setUserDocStatus(userDocIdFb, ACCOUNT_ACTIVITY_ACTION_DEPRECATED)
-                logUserActivity(userDocIdFb, ACCOUNT_ACTIVITY_ACTION_DEPRECATED)
+                setUserDocStatus(userDocIdFb, UserDoc.STATUS_DEPRECATED)
+                logUserActivity(userDocIdFb, UserDoc.STATUS_DEPRECATED)
 
             }
 
@@ -114,15 +105,15 @@ class UserRepository @Inject constructor(firestore: Firestore) {
             logger.info("userDocIdFxA == null")
 
             val updateData = mapOf(
-                    DOC_FIELD_USER_FIREFOX_UID to fxUid,
-                    DOC_FIELD_USER_EMAIL to email,
-                    DOC_FIELD_USER_UPDATED_TIMESTAMP to clock.millis(),
-                    DOC_FIELD_USER_STATUS to ACCOUNT_ACTIVITY_ACTION_SIGN_IN
+                    UserDoc.KEY_FIREFOX_UID to fxUid,
+                    UserDoc.KEY_EMAIL to email,
+                    UserDoc.KEY_UPDATED_TIMESTAMP to clock.millis(),
+                    UserDoc.KEY_STATUS to UserDoc.STATUS_SIGN_IN
             )
             users.document(userDocIdFb).set(updateData, SetOptions.merge())
 
             // add account activity
-            logUserActivity(userDocIdFb, ACCOUNT_ACTIVITY_ACTION_SIGN_IN)
+            logUserActivity(userDocIdFb, UserDoc.STATUS_SIGN_IN)
 
             logger.info("UserDoc is promoted [$userDocIdFxA] has logged in")
             return LoginResponse.Success("UserDoc is promoted [$userDocIdFxA] has logged in")
@@ -131,17 +122,17 @@ class UserRepository @Inject constructor(firestore: Firestore) {
 
     private fun setUserDocStatus(currentUserDocId: String, status: String) {
         users.document(currentUserDocId).set(
-                mapOf(DOC_FIELD_USER_STATUS to status,
-                        DOC_FIELD_UPDATED_TIMESTAMP to clock.millis()), SetOptions.merge())
+                mapOf(UserDoc.KEY_STATUS to status,
+                        UserDoc.KEY_UPDATED_TIMESTAMP to clock.millis()), SetOptions.merge())
     }
 
 
     private fun signInCountLast7DAYS(existingUserDocId: String): Int {
         val now = clock.millis()
         val aWeekAgo = now - 7 * 24 * 60 * 60 * 1000L
-        return userActivity.whereEqualTo("userDocId", existingUserDocId)
-                .whereEqualTo("status", "sign-in")
-                .whereGreaterThan(DOC_FIELD_UPDATED_TIMESTAMP, aWeekAgo)
+        return userActivity.whereEqualTo(UserActivityDoc.KEY_USER_DOC_ID, existingUserDocId)
+                .whereEqualTo(UserDoc.KEY_STATUS, UserDoc.STATUS_SIGN_IN)
+                .whereGreaterThan(UserDoc.KEY_UPDATED_TIMESTAMP, aWeekAgo)
                 .getResultsUnchecked().size
     }
 
@@ -154,29 +145,29 @@ class UserRepository @Inject constructor(firestore: Firestore) {
     }
 
     private fun findUserIdByFxUid(fxUid: String): String? {
-        return users.whereEqualTo(DOC_FIELD_USER_FIREFOX_UID, fxUid)
+        return users.whereEqualTo(UserDoc.KEY_FIREFOX_UID, fxUid)
                 .getResultsUnchecked()
                 .firstOrNull()
-                ?.getString("uid")
+                ?.getString(UserDoc.KEY_UID)
     }
 
     private fun findUserIdByFbUid(fbUid: String): String? {
-        return users.whereEqualTo(DOC_FIELD_USER_FIREBASE_UID, fbUid)
+        return users.whereEqualTo(UserDoc.KEY_FIREBASE_UID, fbUid)
                 .getResultsUnchecked()
                 .firstOrNull()
-                ?.getString("uid")
+                ?.getString(UserDoc.KEY_UID)
     }
 
     private fun findUserDocumentIdByFbUid(fbUid: String): String? {
-        return findUserDocSnapshot(DOC_FIELD_USER_FIREBASE_UID, fbUid)?.id
+        return findUserDocSnapshot(UserDoc.KEY_FIREBASE_UID, fbUid)?.id
     }
 
     private fun findUserDocumentIdByFxUid(fxUid: String): String? {
-        return findUserDocSnapshot(DOC_FIELD_USER_FIREFOX_UID, fxUid)?.id
+        return findUserDocSnapshot(UserDoc.KEY_FIREFOX_UID, fxUid)?.id
     }
 
     private fun findUserDocumentByFxUid(fxUid: String): UserDoc? {
-        return findUserDocSnapshot(DOC_FIELD_USER_FIREFOX_UID, fxUid)?.toObject(UserDoc::class.java)
+        return findUserDocSnapshot(UserDoc.KEY_FIREFOX_UID, fxUid)?.toObject(UserDoc::class.java)
     }
 
     private fun findUserDocSnapshot(field: String, fxUid: String): QueryDocumentSnapshot? {
