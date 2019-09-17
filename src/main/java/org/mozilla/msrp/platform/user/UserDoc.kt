@@ -1,12 +1,13 @@
 package org.mozilla.msrp.platform.user.data
 
-import java.util.*
 
 data class UserDoc(
-        val firebase_uid: String,
-        val firefox_uid: String?,
-        val email: String,
-        val created_timestamp: Long,
-        val updated_timestamp: Long,
-        val version: Int = 1,
-        val uid: String = UUID.randomUUID().toString())
+        var uid: String? = null,
+        var firebase_uid: String? = null,
+        var firefox_uid: String? = null,
+        var created_timestamp: Long? = null,
+        var updated_timestamp: Long? = null,
+        var status: String? = null,
+        var email: String? = null,
+        val version: Int = 1
+)
