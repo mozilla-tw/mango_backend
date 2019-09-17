@@ -60,7 +60,7 @@ public class UserController {
                 HashMap<String, String> additionalClaims = new HashMap<>();
                 additionalClaims.put("fxuid", fxUid);
                 additionalClaims.put("oldFbUid", oldFbUid);
-                String customToken = userRepository.createCustomToken(fxUid, additionalClaims);
+                String customToken = userRepository.createCustomToken(oldFbUid, additionalClaims);
                 // We don't really need this info. Just to let client intercept the url and close the webview.
                 // TODO: remove below debugging information
                 httpResponse.sendRedirect("/api/v1/done?jwt=" + customToken + "&fxaAccessToken=" + fxaAccessToken);
