@@ -1,4 +1,4 @@
-package org.mozilla.msrp.platform.profile
+package org.mozilla.msrp.platform.user
 
 import retrofit2.Call
 import retrofit2.http.*

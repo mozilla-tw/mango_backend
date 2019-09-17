@@ -6,7 +6,7 @@ import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
 import lombok.extern.log4j.Log4j2;
 import org.mozilla.msrp.platform.common.ErrorMessage;
-import org.mozilla.msrp.platform.profile.ProfileRepository;
+import org.mozilla.msrp.platform.user.UserRepository;
 import org.springframework.core.NestedExceptionUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -32,7 +32,7 @@ public class FirebaseAuthInterceptor implements HandlerInterceptor {
     ObjectMapper mapper;
 
     @Inject
-    ProfileRepository profileRepository;
+    UserRepository userRepository;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -99,7 +99,7 @@ public class FirebaseAuthInterceptor implements HandlerInterceptor {
     private String getUserId(FirebaseToken token) {
         String fbuid = token.getUid();
         String fxuid = (String) token.getClaims().getOrDefault("fxuid", "");
-        return profileRepository.findUserId(fbuid, fxuid);
+        return userRepository.findUserId(fbuid, fxuid);
     }
 
     private void logThrowable(String msg, Throwable throwable) {

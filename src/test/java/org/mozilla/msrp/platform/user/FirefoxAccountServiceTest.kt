@@ -1,4 +1,4 @@
-package org.mozilla.msrp.platform.profile
+package org.mozilla.msrp.platform.user
 
 import okhttp3.ResponseBody
 import org.junit.Test
@@ -7,13 +7,8 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.mockito.Mock
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
-import org.mockito.stubbing.OngoingStubbing
-import org.mozilla.msrp.platform.common.mock
 import org.mozilla.msrp.platform.common.onRetrofitExecute
-import org.springframework.http.HttpStatus
-import retrofit2.Call
 import retrofit2.Response
 
 
