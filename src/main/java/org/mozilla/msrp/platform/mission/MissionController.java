@@ -47,8 +47,16 @@ public class MissionController {
     @RequestMapping(value = "/api/v1/group/{groupId}/missions", method = GET)
     public ResponseEntity<MissionListResponse> getMissionByGroupId(
             @PathVariable("groupId") String groupId,
+            @RequestParam("tz") String timezone,
             @RequestAttribute("uid") String uid) {
-        List<MissionListItem> missions = missionService.getMissionsByGroupId(uid, groupId);
+
+        ZoneId zone = createZone(timezone);
+        if (zone == null) {
+            return ResponseEntity.badRequest()
+                    .body(new MissionListResponse.Error("unsupported timezone"));
+        }
+
+        List<MissionListItem> missions = missionService.getMissionsByGroupId(uid, groupId, zone);
 
         return ResponseEntity.ok(new MissionListResponse.Success(missions));
     }

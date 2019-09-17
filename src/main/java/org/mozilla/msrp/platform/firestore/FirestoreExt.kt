@@ -17,6 +17,10 @@ fun DocumentSnapshot.areFieldsPresent(fieldNames: List<String>): Boolean {
     return true
 }
 
+fun DocumentSnapshot.checkAbsentFields(fieldNames: List<String>): List<String> {
+    return fieldNames.filter { this.get(it) == null }
+}
+
 /** Extensions for read/write from/to Firestore */
 
 fun Query.getResultsUnchecked(): List<QueryDocumentSnapshot> {
