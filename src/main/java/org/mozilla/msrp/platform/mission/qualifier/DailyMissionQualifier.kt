@@ -4,8 +4,10 @@ import org.mozilla.msrp.platform.mission.JoinStatus
 import org.mozilla.msrp.platform.mission.MissionRepository
 import org.mozilla.msrp.platform.mission.MissionType
 import org.mozilla.msrp.platform.util.logger
+import org.springframework.context.MessageSource
 import java.time.*
 import java.time.temporal.ChronoUnit
+import java.util.*
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -17,6 +19,12 @@ class DailyMissionQualifier(val clock: Clock = Clock.systemUTC()) {
 
     @Inject
     lateinit var missionRepository: MissionRepository
+
+    @Inject
+    lateinit var missionMessageSource: MessageSource
+
+    @Inject
+    lateinit var locale: Locale
 
     fun updateProgress(uid: String, mid: String, zone: ZoneId): MissionProgressDoc {
         val params = missionRepository.getDailyMissionParams(mid)
@@ -35,6 +43,14 @@ class DailyMissionQualifier(val clock: Clock = Clock.systemUTC()) {
 
         if (newProgress != latestRecord) {
             log.info("insert new progress $newProgress, totalDays=$totalDays")
+
+            val messages = params["message"] as? ArrayList<*>
+            val messageId = messages?.getOrNull(newProgress.currentDayCount - 1)
+            val message = messageId?.let {
+                missionMessageSource.getMessage(it.toString(), null, locale)
+            }
+            newProgress.dailyMessage = message ?: ""
+
             missionRepository.updateDailyMissionProgress(newProgress)
         }
 
@@ -80,8 +96,8 @@ class DailyMissionQualifier(val clock: Clock = Clock.systemUTC()) {
         log.info("now: $now, last: $lastCheckInDate, diff=$diffDays")
 
         return when {
-            diffDays >= 20L -> restartProgress(progress)
-            diffDays >= 10L -> advanceProgress(progress)
+            diffDays >= 2L -> restartProgress(progress)
+            diffDays >= 1L -> advanceProgress(progress)
             diffDays >= 0L -> noProgress(progress)
             else -> illegalProgress(progress)
         }
@@ -107,7 +123,7 @@ class DailyMissionQualifier(val clock: Clock = Clock.systemUTC()) {
 
     private fun advanceProgress(progress: DailyMissionProgressDoc): DailyMissionProgressDoc {
         log.info("advance progress")
-        val now = Instant.now().toEpochMilli()
+        val now = clock.instant().toEpochMilli()
         val newDayCount = progress.currentDayCount + 1
         return progress.copy(timestamp = now, currentDayCount = newDayCount)
     }
