@@ -236,6 +236,7 @@ import javax.inject.Named
 
             else -> {
                 val joinResult = missionRepository.joinMission(uid, missionType, mid)
+                missionQualifier.updateProgress(uid, mid, MissionType.from(missionType), zone)
                 log.info("join mission, $logInfo, state=${joinResult.status}")
                 MissionJoinResult.Success(joinResult.mid, joinResult.status)
             }
