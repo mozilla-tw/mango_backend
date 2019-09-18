@@ -50,6 +50,7 @@ class DailyMissionQualifier(val clock: Clock = Clock.systemUTC()) {
                 missionMessageSource.getMessage(it.toString(), null, locale)
             }
             newProgress.dailyMessage = message ?: ""
+            newProgress.totalDays = totalDays
 
             missionRepository.updateDailyMissionProgress(newProgress)
         }
