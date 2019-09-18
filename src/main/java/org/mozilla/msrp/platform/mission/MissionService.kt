@@ -121,7 +121,8 @@ import javax.inject.Named
                 status = joinStatus,
                 minVersion = missionDoc.minVersion,
                 progress = progress?.toProgressResponse() ?: emptyMap(),
-                important = important
+                important = important,
+                missionType = missionDoc.missionType
         )
     }
 
@@ -157,7 +158,8 @@ import javax.inject.Named
                     events = mission.interestPings,
                     endpoint = mission.endpoint,
                     minVersion = mission.minVersion,
-                    missionParams = mission.missionParams
+                    missionParams = mission.missionParams,
+                    rewardType = mission.rewardType
             )
         }
 
