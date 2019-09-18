@@ -13,13 +13,15 @@ data class DailyMissionProgressDoc(
         override var missionType: String = "",
         override var progressType: ProgressType = ProgressType.Update,
         var currentDayCount: Int = 0,
+        var totalDays: Int = 0,
         @JsonIgnore var dailyMessage: String = ""
 ): MissionProgressDoc {
 
     override fun getProgressFields(): Map<String, Any> {
         return mapOf(
                 "currentDayCount" to currentDayCount,
-                "message" to dailyMessage
+                "message" to dailyMessage,
+                "totalDays" to totalDays
         )
     }
 }

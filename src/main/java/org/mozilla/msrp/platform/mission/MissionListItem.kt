@@ -18,5 +18,6 @@ data class MissionListItem(
         val status: JoinStatus,
         val minVersion: Int,
         val progress: Map<String, Any>,
-        val important: Boolean
+        val important: Boolean,
+        val missionType: String
 )

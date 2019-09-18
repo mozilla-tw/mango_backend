@@ -39,7 +39,7 @@ class DailyMissionQualifier(val clock: Clock = Clock.systemUTC()) {
 
         val newProgress = latestRecord?.let {
             checkIn(it, zone)
-        } ?: createNewRecord(uid, mid)
+        } ?: createNewRecord(uid, mid, totalDays)
 
         if (newProgress != latestRecord) {
             log.info("insert new progress $newProgress, totalDays=$totalDays")
@@ -50,6 +50,7 @@ class DailyMissionQualifier(val clock: Clock = Clock.systemUTC()) {
                 missionMessageSource.getMessage(it.toString(), null, locale)
             }
             newProgress.dailyMessage = message ?: ""
+            newProgress.totalDays = totalDays
 
             missionRepository.updateDailyMissionProgress(newProgress)
         }
@@ -71,7 +72,8 @@ class DailyMissionQualifier(val clock: Clock = Clock.systemUTC()) {
 
     private fun createNewRecord(
             uid: String,
-            mid: String
+            mid: String,
+            totalDays: Int
     ): DailyMissionProgressDoc {
         val now = clock.instant().toEpochMilli()
         return DailyMissionProgressDoc(
@@ -80,7 +82,8 @@ class DailyMissionQualifier(val clock: Clock = Clock.systemUTC()) {
                 joinDate = now,
                 timestamp = now,
                 missionType = MissionType.DailyMission.identifier,
-                currentDayCount = 1
+                currentDayCount = 0,
+                totalDays = totalDays
         )
     }
 

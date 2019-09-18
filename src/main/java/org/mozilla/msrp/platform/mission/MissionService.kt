@@ -121,7 +121,8 @@ import javax.inject.Named
                 status = joinStatus,
                 minVersion = missionDoc.minVersion,
                 progress = progress?.toProgressResponse() ?: emptyMap(),
-                important = important
+                important = important,
+                missionType = missionDoc.missionType
         )
     }
 
@@ -157,7 +158,8 @@ import javax.inject.Named
                     events = mission.interestPings,
                     endpoint = mission.endpoint,
                     minVersion = mission.minVersion,
-                    missionParams = mission.missionParams
+                    missionParams = mission.missionParams,
+                    rewardType = mission.rewardType
             )
         }
 
@@ -234,6 +236,7 @@ import javax.inject.Named
 
             else -> {
                 val joinResult = missionRepository.joinMission(uid, missionType, mid)
+                missionQualifier.updateProgress(uid, mid, MissionType.from(missionType), zone)
                 log.info("join mission, $logInfo, state=${joinResult.status}")
                 MissionJoinResult.Success(joinResult.mid, joinResult.status)
             }
