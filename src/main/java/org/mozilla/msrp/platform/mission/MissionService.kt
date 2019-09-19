@@ -353,11 +353,12 @@ import javax.inject.Named
     ): MissionCheckInResult {
         val status = missionRepository.getJoinStatus(uid, missionType, mid)?.status ?: 0
 
-        val response = mutableMapOf<String, Any>()
-        response.putAll(progress.toResponseFields())
-        response["status"] = status
-
-        return MissionCheckInResult(response)
+        return MissionCheckInResult(mapOf(
+                "mid" to mid,
+                "missionType" to missionType,
+                "status" to status,
+                "progress" to progress.toProgressResponse()
+        ))
     }
 
     private enum class JoinableState {
