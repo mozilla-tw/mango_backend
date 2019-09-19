@@ -14,15 +14,6 @@ interface MissionProgressDoc {
     var missionType: String
     var progressType: ProgressType
 
-    fun toResponseFields(): Map<String, Any> {
-        return mutableMapOf(
-                "mid" to mid,
-                "joinDate" to joinDate,
-                "missionType" to missionType,
-                "progress" to getProgressFields()
-        )
-    }
-
     fun toProgressResponse(): Map<String, Any> {
         return mutableMapOf<String, Any>(
                 "joinDate" to joinDate
