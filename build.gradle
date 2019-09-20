@@ -50,6 +50,7 @@ dependencies {
     implementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.+"
     implementation 'com.squareup.retrofit2:converter-simplexml:2.1.0'
 
+    implementation "com.google.guava:guava:28.1-jre"
     // Lombok
     compileOnly "org.projectlombok:lombok:1.18.8"
     annotationProcessor "org.projectlombok:lombok:1.18.8"
