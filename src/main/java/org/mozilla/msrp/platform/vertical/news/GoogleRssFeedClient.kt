@@ -14,7 +14,7 @@ import javax.inject.Named
 
 interface GoogleRssFeedClient {
     @GET("rss")
-    fun rss(@Query("hl") language: String): Call<Rss<LiputanFeedItem>>
+    fun rss(@Query("hl") language: String): Call<GoogleRss>
 
     @GET("rss/headlines/section/topic/{topic}")
     fun rss(
