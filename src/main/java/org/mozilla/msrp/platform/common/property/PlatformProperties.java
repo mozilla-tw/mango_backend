@@ -1,4 +1,4 @@
-package org.mozilla.msrp.platform;
+package org.mozilla.msrp.platform.common.property;
 
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;

@@ -6,7 +6,7 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.cloud.FirestoreClient;
 import lombok.extern.log4j.Log4j2;
-import org.mozilla.msrp.platform.PlatformProperties;
+import org.mozilla.msrp.platform.common.property.PlatformProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
