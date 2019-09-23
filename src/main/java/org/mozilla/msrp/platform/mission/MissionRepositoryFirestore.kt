@@ -1,20 +1,15 @@
 package org.mozilla.msrp.platform.mission
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.cloud.firestore.Firestore
+import com.google.cloud.firestore.*
 import com.google.cloud.firestore.Query
-import com.google.cloud.firestore.QueryDocumentSnapshot
-import com.google.cloud.firestore.SetOptions
-import com.google.cloud.firestore.Transaction
-import org.mozilla.msrp.platform.firestore.getResultsUnchecked
-import org.mozilla.msrp.platform.firestore.getUnchecked
-import org.mozilla.msrp.platform.firestore.parentCollection
-import org.mozilla.msrp.platform.firestore.parentDocument
-import org.mozilla.msrp.platform.firestore.setUnchecked
-import org.mozilla.msrp.platform.firestore.toObject
+import org.mozilla.msrp.platform.common.firebase.DistributedCounter
+import org.mozilla.msrp.platform.common.firebase.getCounter
+import org.mozilla.msrp.platform.common.firebase.setupCounter
+import org.mozilla.msrp.platform.firestore.*
 import org.mozilla.msrp.platform.mission.qualifier.DailyMissionProgressDoc
-import org.mozilla.msrp.platform.mission.qualifier.ProgressType
 import org.mozilla.msrp.platform.mission.qualifier.MissionProgressDoc
+import org.mozilla.msrp.platform.mission.qualifier.ProgressType
 import org.mozilla.msrp.platform.util.logger
 import java.time.Clock
 import javax.inject.Inject
@@ -77,10 +72,12 @@ class MissionRepositoryFirestore @Inject internal constructor(
                 interestPings = createData.pings,
                 minVersion = createData.minVersion,
                 missionParams = createData.missionParams ?: emptyMap(),
-                rewardType = createData.rewardType
+                rewardType = createData.rewardType,
+                joinQuota = createData.joinQuota
         )
 
         docRef.setUnchecked(doc)
+        docRef.setupCounter(COUNTER_JOIN_USERS, 8)
 
         return doc
     }
@@ -132,26 +129,23 @@ class MissionRepositoryFirestore @Inject internal constructor(
     }
 
     override fun joinMission(uid: String, missionType: String, mid: String): MissionJoinDoc {
-        val path = firestore.collection(missionType)
-                .document(mid)
-                .collection("users")
+        val missionRef = firestore.collection(missionType).document(mid)
+        val path = missionRef.collection("users")
 
         val oldRecordSnapshot = path
                 .findDocumentsByUid(uid)
                 .firstOrNull()
 
         val oldRecord = oldRecordSnapshot?.toObject(MissionJoinDoc::class.java, mapper)
+        val newRecordPath = oldRecord ?.let { oldRecordSnapshot.reference } ?: path.document()
 
-        return oldRecord?.let {
-             oldRecord.copy(status = JoinStatus.Joined).apply {
-                 oldRecordSnapshot.reference.setUnchecked(this, mapper)
-             }
+        val newRecord = oldRecord?.copy(status = JoinStatus.Joined)
+                ?: MissionJoinDoc(uid, missionType, mid, JoinStatus.Joined)
 
-        } ?: run {
-            MissionJoinDoc(uid, missionType, mid, JoinStatus.Joined).apply {
-                path.document().setUnchecked(this, mapper)
-            }
-        }
+        newRecordPath.setUnchecked(newRecord, mapper)
+        missionRef.getJoinUserCounter()?.increase()
+
+        return newRecord
     }
 
     // TODO: extract method
@@ -204,14 +198,20 @@ class MissionRepositoryFirestore @Inject internal constructor(
     }
 
     override fun quitMission(uid: String, missionType: String, mid: String): Boolean {
-        val joinRecord = firestore.collection(missionType)
-                .document(mid)
+        val missionRef = firestore.collection(missionType).document(mid)
+
+        val joinRecord = missionRef
                 .collection("users")
                 .findDocumentsByUid(uid)
                 .firstOrNull()
 
         val result = joinRecord?.reference?.delete()
-        return result != null
+
+        if (result != null) {
+            missionRef.getJoinUserCounter()?.decrease()
+            return true
+        }
+        return false
     }
 
     override fun findJoinedMissionsByPing(uid: String, ping: String): List<MissionDoc> {
@@ -311,6 +311,21 @@ class MissionRepositoryFirestore @Inject internal constructor(
         return dataMap["missionType"] == missionType && dataMap["mid"] == mid
     }
 
+    override fun getJoinCount(missionType: String, mid: String): Int {
+        return firestore.collection(missionType)
+                .document(mid)
+                .getJoinUserCounter()
+                ?.count ?: 0
+    }
+
     private fun getDailyMissionCollection() =
             firestore.collection("${MissionType.DailyMission.identifier}_progress")
+
+    private fun DocumentReference.getJoinUserCounter(): DistributedCounter? {
+        return this.getCounter(COUNTER_JOIN_USERS)
+    }
+
+    companion object {
+        private const val COUNTER_JOIN_USERS = "joinUsers"
+    }
 }
