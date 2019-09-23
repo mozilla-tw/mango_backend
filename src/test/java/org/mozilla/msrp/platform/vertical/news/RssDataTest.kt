@@ -34,6 +34,21 @@ class RssDataTest {
         assert(rss.feedItems?.filter { it.pubDate != "" }?.size == 50)
         assert(rss.feedItems?.filter { it.link != "" }?.size == 50)
     }
+
+    @Test
+    fun parseDetik() {
+        val serializer = Persister()
+        val classLoader = javaClass.classLoader
+        val file = File(classLoader.getResource("./rssDetik.xml")!!.file)
+        val rss: DetikRss = read(serializer, file)
+        assert(rss.feedItems?.filter { it.title != "" }?.size == 9)
+        assert(rss.feedItems?.filter { it.image != "" }?.size == 9)
+        assert(rss.feedItems?.filter { it.source != "" }?.size == 9)
+        assert(rss.feedItems?.filter { it.description != "" }?.size == 9)
+        assert(rss.feedItems?.filter { it.pubDate != "" }?.size == 9)
+        assert(rss.feedItems?.filter { it.link != "" }?.size == 9)
+    }
+
 }
 
 inline fun <reified T : Any> read(serializer: Persister, file: File): T = serializer.read(T::class.java, file)

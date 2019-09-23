@@ -13,6 +13,16 @@ open class Rss<T> {
 }
 
 @Root(strict = false)
+class DetikRss : Rss<DetikFeedItem>() {
+    @field:Attribute
+    var version: String? = null
+
+    @field:Path("channel")
+    @field:ElementList(name = "item", entry = "item", type = DetikFeedItem::class, required = true, inline = true)
+    override var feedItems: List<DetikFeedItem>? = null
+}
+
+@Root(strict = false)
 class Liputan6Rss : Rss<LiputanFeedItem>() {
     @field:Attribute
     var version: String? = null
@@ -96,3 +106,29 @@ class GoogleFeedItem @JvmOverloads constructor(
         @field:Element(name = "source")
         override var source: String = ""
 ) : FeedItem()
+
+
+@Root(name = "item", strict = false)
+class DetikFeedItem @JvmOverloads constructor(
+
+        @field:Element
+        override var pubDate: String? = "",
+
+        @field:Path("title")
+        @field:Text(data = true)
+        override var title: String? = "",
+
+        @field:Element
+        override var link: String? = "",
+
+        @field:Path("description")
+        @field:Text(data = true)
+        override var description: String? = "",
+
+        @field:Path("enclosure")
+        @field:Attribute(name = "url", required = false)
+        override var image: String? = "",
+
+        override var source: String = "Detik"
+) : FeedItem()
+

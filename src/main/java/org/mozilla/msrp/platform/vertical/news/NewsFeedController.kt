@@ -37,7 +37,7 @@ class NewsFeedController @Inject constructor(
             @RequestParam(value = "language") language: String,
             @RequestParam(value = "country") country: String): ResponseEntity<List<FeedItem>> {
 
-        log.info("[NEWS====loading Google news [$topic][$country]")
+        log.info("[NEWS]====loading Google news [$topic][$country]")
 
         val containsTopic = googleNewsTopic().contains(topic)
         if (!containsTopic) {
@@ -47,7 +47,7 @@ class NewsFeedController @Inject constructor(
         log.info("[NEWS]====cache Google news [${cache}]")
 
         if (cache == null || cache.isEmpty()) {
-            log.info("[NEWS====cache Google news [${cache.size}]")
+            log.info("[NEWS]====cache Google news [${cache.size}]")
 
             return ResponseEntity(listOf(), HttpStatus.NO_CONTENT)
         }
@@ -93,16 +93,16 @@ class NewsFeedController @Inject constructor(
             @PathVariable("topic") topic: String): ResponseEntity<in Any> {
         val liputanTopic = liputanTopic[topic]
         if (liputanTopic == null) {
-            log.info("[NEWS====No news for topic $String")
+            log.info("[NEWS]====No news for topic $String")
             return ResponseEntity("No such topic", HttpStatus.NO_CONTENT)
         }
         val newsItems = cacheIndonesiaNews.get(liputanTopic)
-        log.info("[NEWS====loading indonesia news [${newsItems.size}]")
+        log.info("[NEWS]====loading indonesia news [${newsItems.size}]")
         if (newsItems.isEmpty()) {
-            log.info("[NEWS====No news for topic $String")
+            log.info("[NEWS]====No news for topic $String")
             return ResponseEntity("No news for topic", HttpStatus.NO_CONTENT)
         }
-        log.info("[NEWS====found [${newsItems.size}] news item for topic $String")
+        log.info("[NEWS]====found [${newsItems.size}] news item for topic $String")
         return ResponseEntity(newsItems, HttpStatus.OK)
     }
 
