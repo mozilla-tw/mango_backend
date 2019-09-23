@@ -14,10 +14,11 @@ data class MissionListItem(
         val description: String,
         val endpoint: String,
         val events: List<String>,
-        val expiredDate: String,
+        val expiredDate: Long,
         val status: JoinStatus,
         val minVersion: Int,
         val progress: Map<String, Any>,
         val important: Boolean,
-        val missionType: String
+        val missionType: String,
+        val joinEndDate: Long
 )

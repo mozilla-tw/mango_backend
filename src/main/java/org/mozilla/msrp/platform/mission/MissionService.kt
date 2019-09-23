@@ -1,5 +1,6 @@
 package org.mozilla.msrp.platform.mission
 
+import org.mozilla.msrp.platform.firestore.stringToLocalDateTime
 import org.mozilla.msrp.platform.mission.qualifier.MissionProgressDoc
 import org.mozilla.msrp.platform.mission.qualifier.MissionQualifier
 import org.mozilla.msrp.platform.util.logger
@@ -48,7 +49,7 @@ import javax.inject.Named
                         val joinCount = missionRepository.getJoinCount(it.missionType, it.mid)
                         isMissionAvailableForShowing(uid, it, joinStatus, joinCount, clock, zone)
                     }
-                    .map { aggregateMissionListItem(uid, it) }
+                    .map { aggregateMissionListItem(uid, it, zone) }
         }
     }
 
@@ -132,7 +133,7 @@ import javax.inject.Named
         }
     }
 
-    private fun aggregateMissionListItem(uid: String, missionDoc: MissionDoc): MissionListItem {
+    private fun aggregateMissionListItem(uid: String, missionDoc: MissionDoc, zone: ZoneId): MissionListItem {
         val name = getStringById(missionDoc.titleId, locale)
         val description = getStringById(missionDoc.descriptionId, locale)
 
@@ -150,18 +151,22 @@ import javax.inject.Named
 
         val important = missionRepository.isImportantMission(missionDoc.missionType, missionDoc.mid)
 
+        val expiredInstant = stringToLocalDateTime(missionDoc.expiredDate).atZone(zone).toInstant()
+        val joinEndInstant = stringToLocalDateTime(missionDoc.joinEndDate).atZone(zone).toInstant()
+
         return MissionListItem(
                 mid = missionDoc.mid,
                 title = name,
                 description = description,
                 endpoint = missionDoc.endpoint,
                 events = missionDoc.interestPings,
-                expiredDate = missionDoc.expiredDate,
+                expiredDate = expiredInstant.toEpochMilli(),
                 status = joinStatus,
                 minVersion = missionDoc.minVersion,
                 progress = progress?.toProgressResponse() ?: emptyMap(),
                 important = important,
-                missionType = missionDoc.missionType
+                missionType = missionDoc.missionType,
+                joinEndDate = joinEndInstant.toEpochMilli()
         )
     }
 
