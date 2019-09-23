@@ -3,7 +3,9 @@ package org.mozilla.msrp.platform.mission
 import com.google.cloud.firestore.DocumentSnapshot
 import com.google.cloud.firestore.annotation.IgnoreExtraProperties
 import org.mozilla.msrp.platform.firestore.checkAbsentFields
+import org.mozilla.msrp.platform.firestore.stringToLocalDateTime
 import org.mozilla.msrp.platform.util.logger
+import java.time.*
 
 /**
  * (All fields are just draft and are subject to change)
@@ -76,3 +78,95 @@ data class MissionDoc(
 
 val MissionDoc.missionTypeEnum: MissionType
     get() = MissionType.from(missionType)
+
+fun MissionDoc.isExpired(clock: Clock, zone: ZoneId): Boolean {
+    val expiredDate = stringToLocalDateTime(expiredDate)
+
+    // Current we only support missions that start/expired at a specific utc time.
+    val isUtcBasedMission = true
+
+    return if (isUtcBasedMission) {
+        val currentServer = clock.instant()
+        val expiredUtc = expiredDate.toInstant(ZoneOffset.UTC)
+        val isExpired = currentServer == expiredUtc || currentServer.isAfter(expiredUtc)
+        logger().info("isExpired=$isExpired, expiredDate=${expiredDate.toInstant(ZoneOffset.UTC)}, currentServerUtc=$currentServer")
+        isExpired
+
+    } else {
+        val currentClient = LocalDateTime.ofInstant(Instant.now(clock), zone)
+        currentClient == expiredDate || currentClient.isAfter(expiredDate)
+    }
+}
+
+fun MissionDoc.isBeforeJoinPeriod(clock: Clock, zone: ZoneId): Boolean {
+    val startDate = stringToLocalDateTime(joinStartDate)
+
+    // Current we only support missions that start/expired at a specific utc time.
+    val isUtcBasedMission = true
+
+    val isBeforeJoinStart: Boolean
+    if (isUtcBasedMission) {
+        val currentServer = clock.instant()
+        val startUtc = startDate.toInstant(ZoneOffset.UTC)
+        isBeforeJoinStart = currentServer.isBefore(startUtc)
+
+        logger().info("isBeforeJoinPeriod=$isBeforeJoinStart, startUtc=$startUtc, currentServerUtc=$currentServer")
+
+    } else {
+        // TODO: Not test yet
+        val currentClient = LocalDateTime.ofInstant(Instant.now(clock), zone)
+        isBeforeJoinStart = currentClient.isBefore(startDate)
+    }
+
+    return isBeforeJoinStart
+}
+
+fun MissionDoc.isAfterJoinPeriod(clock: Clock, zone: ZoneId): Boolean {
+    val endDate = stringToLocalDateTime(joinEndDate)
+
+    // Current we only support missions that start/expired at a specific utc time.
+    val isUtcBasedMission = true
+
+    val isAfterJoinEnd: Boolean
+    if (isUtcBasedMission) {
+        val currentServer = clock.instant()
+        val endUtc = endDate.toInstant(ZoneOffset.UTC)
+        isAfterJoinEnd = currentServer == endUtc || currentServer.isAfter(endUtc)
+
+        logger().info("isAfterJoinPeriod=$isAfterJoinEnd, endUtc=$endUtc, currentServerUtc=$currentServer")
+
+    } else {
+        // TODO: Not test yet
+        val currentClient = LocalDateTime.ofInstant(Instant.now(clock), zone)
+        isAfterJoinEnd = currentClient == endDate || currentClient.isAfter(endDate)
+    }
+
+    return isAfterJoinEnd
+}
+
+fun MissionDoc.isJoinPeriod(clock: Clock, zone: ZoneId): Boolean {
+    val startDate = stringToLocalDateTime(joinStartDate)
+    val endDate = stringToLocalDateTime(joinEndDate)
+
+    // Current we only support missions that start/expired at a specific utc time.
+    val isUtcBasedMission = true
+
+    val isAfterJoinStart: Boolean
+    val isBeforeJoinEnd: Boolean
+    return if (isUtcBasedMission) {
+        val currentServer = clock.instant()
+        val startUtc = startDate.toInstant(ZoneOffset.UTC)
+        val endUtc = endDate.toInstant(ZoneOffset.UTC)
+        isAfterJoinStart = currentServer == startUtc || currentServer.isAfter(startUtc)
+        isBeforeJoinEnd = currentServer.isBefore(endUtc)
+        val result = isAfterJoinStart && isBeforeJoinEnd
+        logger().info("isJoinPeriod=$result, startUtc=$startUtc, endUtc=$endUtc, currentServerUtc=$currentServer")
+        result
+
+    } else {
+        val currentClient = LocalDateTime.ofInstant(Instant.now(clock), zone)
+        isAfterJoinStart = currentClient.isAfter(startDate)
+        isBeforeJoinEnd = currentClient.isBefore(endDate)
+        isAfterJoinStart && isBeforeJoinEnd
+    }
+}
