@@ -2,6 +2,7 @@ package org.mozilla.msrp.platform.vertical.news
 
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
+import org.mozilla.msrp.platform.common.property.NewsProperties
 import org.mozilla.msrp.platform.util.logger
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -16,7 +17,8 @@ import javax.inject.Inject
 @RestController
 class NewsFeedController @Inject constructor(
         private val googleNewsFeedService: GoogleNewsFeedService,
-        private val indonesiaNewsFeedService: IndonesiaNewsFeedService) {
+        private val indonesiaNewsFeedService: IndonesiaNewsFeedService,
+        private val newsProperties: NewsProperties) {
 
     private val log = logger()
 
@@ -59,8 +61,8 @@ class NewsFeedController @Inject constructor(
 
 
     private val cacheGoogleNews = CacheBuilder.newBuilder()
-            .maximumSize(1000)  // todo: hard code value
-            .refreshAfterWrite(15, TimeUnit.MINUTES)// todo: hard code value
+            .maximumSize(newsProperties.cacheSize)
+            .refreshAfterWrite(newsProperties.cacheTtl, TimeUnit.MINUTES)
             .recordStats()
             .build(
                     object : CacheLoader<String, List<FeedItem>>() {
@@ -76,8 +78,8 @@ class NewsFeedController @Inject constructor(
 
 
     private val cacheIndonesiaNews = CacheBuilder.newBuilder()
-            .maximumSize(1000)// todo: hard code value
-            .refreshAfterWrite(15, TimeUnit.MINUTES)// todo: hard code value
+            .maximumSize(newsProperties.cacheSize)
+            .refreshAfterWrite(newsProperties.cacheTtl, TimeUnit.MINUTES)
             .recordStats()
             .build(
                     object : CacheLoader<String, List<FeedItem>>() {

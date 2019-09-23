@@ -11,6 +11,9 @@ logging.level:
   org.mozilla.msrp: DEBUG
 platform:
   firebaseProjectId: rocket-dev01
+news:
+    cache-size: 100
+    cache-ttl: 15
 ---
 # Configuration to be enabled when the "prod" profile is active
 # Example: ./gradlew bootRun --args='--spring.profiles.active=prod'
@@ -21,3 +24,6 @@ logging.level:
   org.mozilla.msrp: INFO
 platform:
   firebaseProjectId: rocket
+news:
+  cache-size: 100
+  cache-ttl: 15
