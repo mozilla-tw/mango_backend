@@ -13,8 +13,8 @@ import javax.inject.Named
 
 interface DetikRssFeedClient {
 
-    @GET("{topic}")
-    fun rss(@Path("topic") topic: String): Call<Rss<LiputanFeedItem>>
+    @GET("index.php/{topic}")
+    fun rss(@Path("topic") topic: String): Call<DetikRss>
 
 }
 
