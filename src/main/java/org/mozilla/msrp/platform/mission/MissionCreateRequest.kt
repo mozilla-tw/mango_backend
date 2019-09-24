@@ -17,7 +17,8 @@ data class MissionCreateData(
         val minVersion: Int,
         val missionParams: Map<String, Any>?,
         val rewardType: String,
-        val joinQuota: Int
+        val joinQuota: Int,
+        val imageUrl: String
 )
 
 class ValidationResult {

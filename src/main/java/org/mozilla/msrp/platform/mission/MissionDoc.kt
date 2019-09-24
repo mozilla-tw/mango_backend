@@ -30,7 +30,8 @@ data class MissionDoc(
         var minVersion: Int = 0,
         val missionParams: Map<String, Any> = emptyMap(),
         var rewardType: String = "", // the Firestore collection for reward inventory
-        val joinQuota: Int = -1
+        val joinQuota: Int = -1,
+        val imageUrl: String = ""
 ) {
     val endpoint = "/$missionType/$mid"
 

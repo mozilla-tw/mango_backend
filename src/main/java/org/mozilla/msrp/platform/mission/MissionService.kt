@@ -158,7 +158,8 @@ import javax.inject.Named
                 mid = missionDoc.mid,
                 title = name,
                 description = description,
-                endpoint = missionDoc.endpoint,
+                joinEndpoint = "/api/v1/missions/${missionDoc.missionType}/${missionDoc.mid}",
+                redeemEndpoint = "/api/v1/redeem/${missionDoc.missionType}&mid=${missionDoc.mid}",
                 events = missionDoc.interestPings,
                 expiredDate = expiredInstant.toEpochMilli(),
                 status = joinStatus,
@@ -166,7 +167,8 @@ import javax.inject.Named
                 progress = progress?.toProgressResponse() ?: emptyMap(),
                 important = important,
                 missionType = missionDoc.missionType,
-                joinEndDate = joinEndInstant.toEpochMilli()
+                joinEndDate = joinEndInstant.toEpochMilli(),
+                imageUrl = missionDoc.imageUrl
         )
     }
 
@@ -204,7 +206,8 @@ import javax.inject.Named
                     minVersion = mission.minVersion,
                     missionParams = mission.missionParams,
                     rewardType = mission.rewardType,
-                    joinQuota = mission.joinQuota
+                    joinQuota = mission.joinQuota,
+                    imageUrl = mission.imageUrl
             )
         }
 

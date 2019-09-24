@@ -12,7 +12,8 @@ data class MissionListItem(
         val mid: String,
         val title: String,
         val description: String,
-        val endpoint: String,
+        val joinEndpoint: String,
+        val redeemEndpoint: String,
         val events: List<String>,
         val expiredDate: Long,
         val status: JoinStatus,
@@ -20,5 +21,6 @@ data class MissionListItem(
         val progress: Map<String, Any>,
         val important: Boolean,
         val missionType: String,
-        val joinEndDate: Long
+        val joinEndDate: Long,
+        val imageUrl: String
 )
