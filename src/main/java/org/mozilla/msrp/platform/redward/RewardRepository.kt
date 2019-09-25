@@ -21,7 +21,7 @@ sealed class RedeemResult(val debugInfo: String) {
 }
 
 @Named
-class RewardRepository @Inject constructor(
+open class RewardRepository @Inject constructor(
 
         private val missionRepository: MissionRepository,
         private val firestore: Firestore) {

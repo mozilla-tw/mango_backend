@@ -3,6 +3,8 @@ package org.mozilla.msrp.platform.mission
 import org.mozilla.msrp.platform.firestore.stringToLocalDateTime
 import org.mozilla.msrp.platform.mission.qualifier.MissionProgressDoc
 import org.mozilla.msrp.platform.mission.qualifier.MissionQualifier
+import org.mozilla.msrp.platform.redward.RedeemResult
+import org.mozilla.msrp.platform.redward.RewardRepository
 import org.mozilla.msrp.platform.util.logger
 import org.slf4j.Logger
 import org.springframework.context.MessageSource
@@ -16,7 +18,8 @@ import javax.inject.Inject
 import javax.inject.Named
 
 @Named class MissionService @Inject constructor(
-        private val missionRepository: MissionRepository
+        private val missionRepository: MissionRepository,
+        private val rewardRepository: RewardRepository
 ) {
 
     // TODO: Verify user status
@@ -154,6 +157,13 @@ import javax.inject.Named
         val expiredInstant = stringToLocalDateTime(missionDoc.expiredDate).atZone(zone).toInstant()
         val joinEndInstant = stringToLocalDateTime(missionDoc.joinEndDate).atZone(zone).toInstant()
 
+        val redeemResult = rewardRepository.redeem(missionDoc.missionType, missionDoc.mid, uid)
+        val redeemedDate = if (joinStatus == JoinStatus.Redeemed && redeemResult is RedeemResult.Success) {
+            redeemResult.rewardCouponDoc.updated_timestamp ?: 0
+        } else {
+            0L
+        }
+
         return MissionListItem(
                 mid = missionDoc.mid,
                 title = name,
@@ -168,7 +178,8 @@ import javax.inject.Named
                 important = important,
                 missionType = missionDoc.missionType,
                 joinEndDate = joinEndInstant.toEpochMilli(),
-                imageUrl = missionDoc.imageUrl
+                imageUrl = missionDoc.imageUrl,
+                redeemedDate = redeemedDate
         )
     }
 
