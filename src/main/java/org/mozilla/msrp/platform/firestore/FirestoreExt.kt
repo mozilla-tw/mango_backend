@@ -11,10 +11,7 @@ import java.time.format.DateTimeParseException
 import java.util.concurrent.CancellationException
 
 fun DocumentSnapshot.areFieldsPresent(fieldNames: List<String>): Boolean {
-    fieldNames.forEach { fieldName ->
-        this.get(fieldName) ?: return false
-    }
-    return true
+    return fieldNames.none { this.get(it) == null }
 }
 
 fun DocumentSnapshot.checkAbsentFields(fieldNames: List<String>): List<String> {
@@ -25,10 +22,12 @@ fun DocumentSnapshot.checkAbsentFields(fieldNames: List<String>): List<String> {
 
 fun Query.getResultsUnchecked(): List<QueryDocumentSnapshot> {
    return get().getUnchecked().documents
+           .apply { FirestoreReadWriteCounter.incRead(size) }
 }
 
 fun DocumentReference.getUnchecked(): DocumentSnapshot {
     return get().getUnchecked()
+            .apply { FirestoreReadWriteCounter.incRead(1) }
 }
 
 fun DocumentReference.setUnchecked(
@@ -39,9 +38,9 @@ fun DocumentReference.setUnchecked(
 
     val newObj = mapper?.convertValue(obj, Map::class.java) ?: obj
 
-    return options?.let {
-        set(newObj, options).getUnchecked()
-    } ?: set(newObj).getUnchecked()
+    val operation = options?.let { set(newObj, options) } ?: set(newObj)
+    return operation.getUnchecked()
+            .apply { FirestoreReadWriteCounter.incWrite(1) }
 }
 
 fun <T> DocumentSnapshot.toObject(classType: Class<T>, mapper: ObjectMapper? = null): T? {
