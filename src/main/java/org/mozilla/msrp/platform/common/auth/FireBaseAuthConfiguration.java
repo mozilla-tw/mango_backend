@@ -28,8 +28,8 @@ public class FireBaseAuthConfiguration implements WebMvcConfigurer {
                         "/api/v1/group/**",
                         "/api/v1/ping/**");
 
-        registry.addInterceptor(this.administratorAuthInterceptor)
-                .addPathPatterns("/api/v1/admin/**");
+//        registry.addInterceptor(this.administratorAuthInterceptor)
+//                .addPathPatterns("/api/v1/admin/**");
 
     }
 }

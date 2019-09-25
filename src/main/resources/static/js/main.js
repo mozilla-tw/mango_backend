@@ -1,14 +1,14 @@
 $(document).ready(function () {
 
-    $("#search-form").submit(function (event) {
-
-        //stop submit the form, we will post it manually.
-        event.preventDefault();
-        console.log("=====hi=======");
-
-        fire_ajax_submit();
-
-    });
+    // $("#search-form").submit(function (event) {
+    //
+    //     //stop submit the form, we will post it manually.
+    //     event.preventDefault();
+    //     console.log("=====hi=======");
+    //     window.location.href="api/v1/admin/login";
+    //     // fire_ajax_submit();
+    //
+    // });
 
 });
 

@@ -24,6 +24,8 @@ public class UserController {
         firefoxAccountService = service;
     }
 
+    
+
     @RequestMapping("/api/v1/done")
     String done(@RequestParam(value = "jwt") String jwt, @RequestParam(value = "fxaAccessToken") String fxaAccessToken) {
         if (jwt == null || jwt.length() == 0) {

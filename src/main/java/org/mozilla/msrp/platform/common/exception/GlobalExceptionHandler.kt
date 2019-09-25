@@ -15,7 +15,7 @@ class GlobalExceptionHandler {
     /**
      * Default handler
      */
-    @ExceptionHandler(value = [Exception::class])
+//    @ExceptionHandler(value = [Exception::class])
     fun handleException(e: Exception): ResponseEntity<ErrorResponseMessage> {
         val msg = NestedExceptionUtils.buildMessage("", e)
         log.info("global uncaught exception: {}", msg)

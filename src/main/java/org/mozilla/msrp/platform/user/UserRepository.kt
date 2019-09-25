@@ -197,6 +197,16 @@ class UserRepository @Inject constructor(firestore: Firestore) {
         }
         return false
     }
+
+    fun findFirebaseUidByEmail(email: String): String? {
+        if (isUserAdmin(email)) {
+            val resultsUnchecked = users.whereEqualTo("email", email).getResultsUnchecked()
+            if (resultsUnchecked.size >= 1) {
+                return resultsUnchecked[0].getString("firebase_uid")
+            }
+        }
+        return null
+    }
 }
 
 sealed class LoginResponse {
