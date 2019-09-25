@@ -4,6 +4,7 @@ import com.google.cloud.firestore.*
 import com.google.firebase.auth.FirebaseAuth
 import org.mozilla.msrp.platform.user.data.UserActivityDoc
 import org.mozilla.msrp.platform.firestore.getResultsUnchecked
+import org.mozilla.msrp.platform.firestore.getUnchecked
 import org.mozilla.msrp.platform.user.data.UserDoc
 import org.mozilla.msrp.platform.util.logger
 import org.springframework.stereotype.Repository
@@ -14,6 +15,7 @@ import javax.inject.Inject
 class UserRepository @Inject constructor(firestore: Firestore) {
 
     private var users: CollectionReference
+    private var usersAdmin: CollectionReference
     private var userActivity: CollectionReference
     private val logger = logger()
 
@@ -23,6 +25,7 @@ class UserRepository @Inject constructor(firestore: Firestore) {
 
     companion object {
         private const val COLLECTION_USER = "users"
+        private const val COLLECTION_USER_ADMIN = "users_admin"
         private const val COLLECTION_USER_ACTIVITY = "user_activity"
 
 
@@ -32,6 +35,7 @@ class UserRepository @Inject constructor(firestore: Firestore) {
 
     init {
         users = firestore.collection(COLLECTION_USER)
+        usersAdmin = firestore.collection(COLLECTION_USER_ADMIN)
         userActivity = firestore.collection(COLLECTION_USER_ACTIVITY)
     }
 
@@ -183,6 +187,15 @@ class UserRepository @Inject constructor(firestore: Firestore) {
 
             logger.info("log UserDoc[$userDocumentId] has action [$action] ")
         }
+    }
+
+    public fun isUserAdmin(email: String): Boolean {
+        for (document in usersAdmin.get().getUnchecked().documents) {
+            if (document.getString("email") == email) {
+                return true
+            }
+        }
+        return false
     }
 }
 

@@ -45,7 +45,6 @@ public class FirebaseAuthInterceptor implements HandlerInterceptor {
 
             try {
                 FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(jwt);
-
                 if (decodedToken.getUid().isEmpty()) {
 
                     handleThrowable(response, HttpStatus.UNAUTHORIZED, "No such user");
@@ -53,7 +52,8 @@ public class FirebaseAuthInterceptor implements HandlerInterceptor {
                     return false;
 
                 } else {
-                    request.setAttribute("uid", getUserId(decodedToken));
+                    setRequestAttribute(request, decodedToken);
+
                     return true;
                 }
 
@@ -82,6 +82,10 @@ public class FirebaseAuthInterceptor implements HandlerInterceptor {
 
             return false;
         }
+    }
+
+    void setRequestAttribute(HttpServletRequest request, FirebaseToken decodedToken) {
+        request.setAttribute("uid", getUserId(decodedToken));
     }
 
     private void handleThrowable(HttpServletResponse response, HttpStatus httpStatus, String message) throws IOException {

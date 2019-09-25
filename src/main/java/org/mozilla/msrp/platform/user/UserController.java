@@ -60,6 +60,9 @@ public class UserController {
                 HashMap<String, String> additionalClaims = new HashMap<>();
                 additionalClaims.put("fxuid", fxUid);
                 additionalClaims.put("oldFbUid", oldFbUid);
+
+                setAdminUser(additionalClaims, fxEmail);
+
                 String customToken = userRepository.createCustomToken(oldFbUid, additionalClaims);
                 // We don't really need this info. Just to let client intercept the url and close the webview.
                 // TODO: remove below debugging information
@@ -75,6 +78,12 @@ public class UserController {
 
         } catch (IOException | JSONException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getLocalizedMessage());
+        }
+    }
+
+    private void setAdminUser(HashMap<String, String> additionalClaims, String fxEmail) {
+        if (fxEmail != null && fxEmail.contains("@mozilla.com") && userRepository.isUserAdmin(fxEmail)) {
+            additionalClaims.put("role", "admin");
         }
     }
 }

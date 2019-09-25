@@ -10,11 +10,14 @@ import javax.inject.Inject;
 public class FireBaseAuthConfiguration implements WebMvcConfigurer {
 
     private FirebaseAuthInterceptor firebaseAuthInterceptor;
+    private AdministratorAuthInterceptor administratorAuthInterceptor;
 
 
     @Inject
-    public FireBaseAuthConfiguration(FirebaseAuthInterceptor firebaseAuthInterceptor) {
+    public FireBaseAuthConfiguration(FirebaseAuthInterceptor firebaseAuthInterceptor,
+                                     AdministratorAuthInterceptor administratorAuthInterceptor) {
         this.firebaseAuthInterceptor = firebaseAuthInterceptor;
+        this.administratorAuthInterceptor = administratorAuthInterceptor;
     }
 
     @Override
@@ -24,5 +27,9 @@ public class FireBaseAuthConfiguration implements WebMvcConfigurer {
                         "/api/v1/missions/**",
                         "/api/v1/group/**",
                         "/api/v1/ping/**");
+
+        registry.addInterceptor(this.administratorAuthInterceptor)
+                .addPathPatterns("/api/v1/admin/**");
+
     }
 }
