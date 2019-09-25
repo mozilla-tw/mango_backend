@@ -1,9 +1,8 @@
-package org.mozilla.msrp.platform.vertical.game
+package org.mozilla.msrp.platform.vertical.content
 
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import org.mozilla.msrp.platform.util.logger
-import org.mozilla.msrp.platform.vertical.common.UiModel
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -16,7 +15,7 @@ import javax.inject.Inject
 
 
 @RestController
-class GameController @Inject constructor(private val gamesRepository: GamesRepository) {
+class GameController @Inject constructor(private val contentRepository: ContentRepository) {
 
     private val log = logger()
 
@@ -25,9 +24,9 @@ class GameController @Inject constructor(private val gamesRepository: GamesRepos
             .refreshAfterWrite(15, TimeUnit.MINUTES)
             .recordStats()
             .build(
-                    object : CacheLoader<GamesRepoQuery, GamesRepoResult>() {
-                        override fun load(key: GamesRepoQuery): GamesRepoResult {
-                            return gamesRepository.getGames(key)
+                    object : CacheLoader<ContentRepoQuery, ContentRepoResult>() {
+                        override fun load(key: ContentRepoQuery): ContentRepoResult {
+                            return contentRepository.getContent(key)
                         }
                     })
 
@@ -50,11 +49,11 @@ class GameController @Inject constructor(private val gamesRepository: GamesRepos
         }
 
         try {
-            return when (val result = cacheGames.get(GamesRepoQuery(safeCategory, language))) {
-                is GamesRepoResult.Success -> {
+            return when (val result = cacheGames.get(ContentRepoQuery(safeCategory, language))) {
+                is ContentRepoResult.Success -> {
                     ResponseEntity.ok(result.result)
                 }
-                is GamesRepoResult.Fail -> {
+                is ContentRepoResult.Fail -> {
                     val message = "Can't find games for $category/$language/$country"
                     log.warn("[Games]====$message")
                     ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.message)

@@ -1,4 +1,4 @@
-package org.mozilla.msrp.platform.vertical.game
+package org.mozilla.msrp.platform.vertical.content
 
 import com.google.cloud.storage.BlobId
 import com.google.cloud.storage.Storage
@@ -9,30 +9,30 @@ import java.nio.charset.StandardCharsets.UTF_8
 import javax.inject.Inject
 
 @Repository
-class GamesRepository @Inject constructor(private var storage: Storage) {
+class ContentRepository @Inject constructor(private var storage: Storage) {
 
     private val log = logger()
 
-    fun getGames(gamesRepoQuery: GamesRepoQuery): GamesRepoResult {
+    fun getContent(contentRepoQuery: ContentRepoQuery): ContentRepoResult {
         return try {
-            val path = "v1/${gamesRepoQuery.category}/${gamesRepoQuery.languageLocale}/"
+            val path = "v1/${contentRepoQuery.category}/${contentRepoQuery.languageLocale}/"
             val blobId = BlobId.of("rocket-admin-dev", "${path}game_mock_items.json")
             val bytes = storage.readAllBytes(blobId)
-            GamesRepoResult.Success(String(bytes, UTF_8))
+            ContentRepoResult.Success(String(bytes, UTF_8))
         } catch (e: StorageException) {
             val message = "error loading games"
             log.error("[Games]====$message:${e.localizedMessage}")
-            GamesRepoResult.Fail(message)
+            ContentRepoResult.Fail(message)
         }
     }
 }
 
-sealed class GamesRepoResult {
-    class Success(val result: String) : GamesRepoResult()
-    class Fail(val message: String) : GamesRepoResult()
+sealed class ContentRepoResult {
+    class Success(val result: String) : ContentRepoResult()
+    class Fail(val message: String) : ContentRepoResult()
 }
 
-data class GamesRepoQuery(
+data class ContentRepoQuery(
         val category: String,
         val languageLocale: String
 )
