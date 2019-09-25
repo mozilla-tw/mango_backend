@@ -2,6 +2,8 @@ package org.mozilla.msrp.platform.common.firebase;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.firestore.Firestore;
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageOptions;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.cloud.FirestoreClient;
@@ -9,6 +11,7 @@ import lombok.extern.log4j.Log4j2;
 import org.mozilla.msrp.platform.common.property.PlatformProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 
 import java.io.IOException;
 
@@ -29,13 +32,24 @@ public class FirebaseConfiguration {
         return credentials;
     }
 
-    @Bean
-    public Firestore firestore(GoogleCredentials credentials, PlatformProperties platformProperties) {
+    @Bean("FirebaseApp")
+    public FirebaseApp firebaseApp(GoogleCredentials credentials, PlatformProperties platformProperties) {
         FirebaseOptions options = new FirebaseOptions.Builder()
                 .setCredentials(credentials)
                 .setProjectId(platformProperties.getFirebaseProjectId())
                 .build();
-        FirebaseApp.initializeApp(options);
+        return FirebaseApp.initializeApp(options);
+    }
+
+    @Bean
+    @DependsOn({"FirebaseApp"})
+    public Firestore firestore() {
         return FirestoreClient.getFirestore();
+    }
+
+    @Bean
+    @DependsOn({"FirebaseApp"})
+    public Storage cloudStorage() {
+        return StorageOptions.getDefaultInstance().getService();
     }
 }
