@@ -41,7 +41,7 @@ class NewsFeedController @Inject constructor(
 
         val containsTopic = googleNewsTopic().contains(topic)
         if (!containsTopic) {
-            return ResponseEntity(listOf(), HttpStatus.NO_CONTENT)
+            return ResponseEntity(listOf(), HttpStatus.BAD_REQUEST)
         }
         val cache = cacheGoogleNews.get(topic + delimiters + language)
         log.info("[NEWS]====cache Google news [${cache}]")
@@ -94,7 +94,7 @@ class NewsFeedController @Inject constructor(
         val liputanTopic = liputanTopic[topic]
         if (liputanTopic == null) {
             log.info("[NEWS]====No news for topic $String")
-            return ResponseEntity("No such topic", HttpStatus.NO_CONTENT)
+            return ResponseEntity("No such topic", HttpStatus.BAD_REQUEST)
         }
         val newsItems = cacheIndonesiaNews.get(liputanTopic)
         log.info("[NEWS]====loading indonesia news [${newsItems.size}]")
