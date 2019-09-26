@@ -46,7 +46,12 @@ class UserRepository @Inject constructor(firestore: Firestore) {
     fun signInAndUpdateUserDocument(oldFbUid: String, fxUid: String, email: String): LoginResponse {
 
         val userDocIdFb = findUserDocumentIdByFbUid(oldFbUid)
-                ?: return LoginResponse.Fail("No such user oldFbUid[$oldFbUid]")
+        if (userDocIdFb == null) {
+            if (isUserAdmin(email)) {
+                return LoginResponse.Admin("$email is admin")
+            }
+            return LoginResponse.Fail("No such user oldFbUid[$oldFbUid]")
+        }
 
         val userDocIdFxA = findUserDocumentIdByFxUid(fxUid)
         logger.info("signInAndUpdateUserDocument=== userDocIdFb[$userDocIdFb]====userDocIdFxA[$userDocIdFxA]")
@@ -189,10 +194,12 @@ class UserRepository @Inject constructor(firestore: Firestore) {
         }
     }
 
-    public fun isUserAdmin(email: String): Boolean {
-        for (document in usersAdmin.get().getUnchecked().documents) {
-            if (document.getString("email") == email) {
-                return true
+    fun isUserAdmin(email: String): Boolean {
+        if (email.contains("@mozilla.com")) {
+            for (document in usersAdmin.get().getUnchecked().documents) {
+                if (document.getString("email") == email) {
+                    return true
+                }
             }
         }
         return false
@@ -210,9 +217,10 @@ class UserRepository @Inject constructor(firestore: Firestore) {
 }
 
 sealed class LoginResponse {
-    class Success(val message: String) : LoginResponse()
+    open class Success(open val message: String) : LoginResponse()
     class SuspiciousWarning(val message: String) : LoginResponse() // a special version of failure
     class UserSuspended(val message: String) : LoginResponse()  // a special version of failure
+    class Admin(override val message: String) : Success(message) // Business logic
     class Fail(val message: String) : LoginResponse() // Business logic
     class Error(val message: String) : LoginResponse() // server error
 }

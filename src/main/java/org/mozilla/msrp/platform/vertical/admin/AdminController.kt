@@ -18,12 +18,8 @@ class AdminController @Inject constructor(
 
     private val log = logger()
     @GetMapping("api/v1/admin/shopping")
-    fun adminShopping(@RequestAttribute admin: Boolean): String {
-        if (admin) {
-            return "ADMIN"
-        } else {
-            return "NON"
-        }
+    fun adminShopping(@RequestParam jwt: String): String {
+        return "===$jwt===="
     }
 
     // internal only

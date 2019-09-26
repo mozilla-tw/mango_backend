@@ -24,7 +24,6 @@ public class UserController {
         firefoxAccountService = service;
     }
 
-    
 
     @RequestMapping("/api/v1/done")
     String done(@RequestParam(value = "jwt") String jwt, @RequestParam(value = "fxaAccessToken") String fxaAccessToken) {
@@ -36,7 +35,7 @@ public class UserController {
 
     @RequestMapping("/api/v1/login")
     ResponseEntity<LoginResponse> login(@RequestParam(value = "code") String code,
-                                        @RequestParam(value = "state") String oldFbUid,
+                                        @RequestParam(value = "state") String state,
                                         HttpServletResponse httpResponse) {    // need HttpServletResponse to redirect
 
         try {
@@ -57,15 +56,21 @@ public class UserController {
             if (fxUid == null || fxEmail == null) {
                 return new ResponseEntity<>(new LoginResponse.Fail("error in Fxa token api"), HttpStatus.INTERNAL_SERVER_ERROR);
             }
-            LoginResponse loginResponse = userRepository.signInAndUpdateUserDocument(oldFbUid, fxUid, fxEmail);
+
+            LoginResponse loginResponse = userRepository.signInAndUpdateUserDocument(state, fxUid, fxEmail);
             if (loginResponse instanceof LoginResponse.Success) {
                 HashMap<String, String> additionalClaims = new HashMap<>();
                 additionalClaims.put("fxuid", fxUid);
-                additionalClaims.put("oldFbUid", oldFbUid);
+                additionalClaims.put("oldFbUid", state);
 
-                setAdminUser(additionalClaims, fxEmail);
+                String customToken = userRepository.createCustomToken(state, additionalClaims);
 
-                String customToken = userRepository.createCustomToken(oldFbUid, additionalClaims);
+                if (loginResponse instanceof LoginResponse.Admin) {
+                    additionalClaims.put("role", "admin");
+//                    httpResponse.setHeader("Authorization", "Bearer " + customToken);
+                    httpResponse.sendRedirect("admin/shopping?jwt="+customToken);
+                    return new ResponseEntity<>(HttpStatus.PERMANENT_REDIRECT);
+                }
                 // We don't really need this info. Just to let client intercept the url and close the webview.
                 // TODO: remove below debugging information
                 httpResponse.sendRedirect("/api/v1/done?jwt=" + customToken + "&fxaAccessToken=" + fxaAccessToken);
@@ -75,17 +80,16 @@ public class UserController {
             } else if (loginResponse instanceof LoginResponse.UserSuspended) {
                 return new ResponseEntity<>(loginResponse, HttpStatus.UNAUTHORIZED);
             }
+//            else if (loginResponse instanceof LoginResponse.Admin) {
+//                httpResponse.setHeader("", "");
+//                httpResponse.sendRedirect("/api/v1/done?jwt=" + customToken + "&fxaAccessToken=" + fxaAccessToken);
+//                return new ResponseEntity<>(HttpStatus.PERMANENT_REDIRECT);
+//            }
 
             return new ResponseEntity<>(loginResponse, HttpStatus.BAD_REQUEST);
 
         } catch (IOException | JSONException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getLocalizedMessage());
-        }
-    }
-
-    private void setAdminUser(HashMap<String, String> additionalClaims, String fxEmail) {
-        if (fxEmail != null && fxEmail.contains("@mozilla.com") && userRepository.isUserAdmin(fxEmail)) {
-            additionalClaims.put("role", "admin");
         }
     }
 }
