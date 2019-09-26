@@ -16,12 +16,12 @@ class ContentRepository @Inject constructor(private var storage: Storage) {
     fun getContent(contentRepoQuery: ContentRepoQuery): ContentRepoResult {
         return try {
             val path = "v1/${contentRepoQuery.category}/${contentRepoQuery.languageLocale}/"
-            val blobId = BlobId.of("rocket-admin-dev", "${path}game_mock_items.json")
+            val blobId = BlobId.of("rocket-admin-dev", "${path}data.json")
             val bytes = storage.readAllBytes(blobId)
             ContentRepoResult.Success(String(bytes, UTF_8))
         } catch (e: StorageException) {
             val message = "error loading games"
-            log.error("[Games]====$message:${e.localizedMessage}")
+            log.error("[Games]====$message====$e")
             ContentRepoResult.Fail(message)
         }
     }
