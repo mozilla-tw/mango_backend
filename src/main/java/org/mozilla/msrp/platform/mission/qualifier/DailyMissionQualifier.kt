@@ -91,6 +91,10 @@ class DailyMissionQualifier(val clock: Clock = Clock.systemUTC()) {
             progress: DailyMissionProgressDoc,
             zone: ZoneId
     ): DailyMissionProgressDoc {
+        if (progress.currentDayCount >= progress.totalDays) {
+            return noProgress(progress)
+        }
+
         val lastCheckInDate = Instant.ofEpochMilli(progress.timestamp).atZone(zone)
         val now = clock.instant().atZone(zone)
 
