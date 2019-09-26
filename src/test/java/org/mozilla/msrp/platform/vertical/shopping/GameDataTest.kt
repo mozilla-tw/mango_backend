@@ -16,15 +16,15 @@ class ShoppingDataTest {
 
     @Test
     fun testCsvParsing() {
-        val file1 = "201909Indonesia_shopping_deal_banner_uploading.csv"
-        val file2 = "201909Indonesia_shopping_deal_uploading.csv"
+        val file1 = "201909India_shopping_deal_banner_uploading.csv"
+        val file2 = "201909Indonesia_shopping_coupon_uploading.csv"
         val classLoader = javaClass.classLoader
         val f1 = File(classLoader.getResource(file1)!!.file)
         val f2 = File(classLoader.getResource(file2)!!.file)
 
-        val response = parseContent(f1, f2)
+        val response = parseContent(null, f2)
 
-        println("JSON======${ObjectMapper().writeValueAsString(response)}")
+        println("JSON5======${ObjectMapper().writeValueAsString(response)}")
     }
 }
 
@@ -75,7 +75,11 @@ private fun parseOthers(listFile: File): List<Subcategory> {
                         content.image ?: break,
                         content.destination ?: break,
                         content.title ?: break,
-                        content.destination?.hash() ?: break
+                        content.destination?.hash() ?: break,
+                        content.price ?: "",
+                        content.discount ?: "",
+                        content.score ?: 0.0,
+                        content.score_reviews ?: 0
                 ))
             }
         }
@@ -97,7 +101,11 @@ private fun parseBanner(bannerFile: File?): Subcategory? {
                 content.image ?: break,
                 content.destination ?: break,
                 content.title ?: break,
-                content.destination?.hash() ?: break
+                content.destination?.hash() ?: break,
+                content.price ?: "",
+                content.discount ?: "",
+                content.score ?: 0.0,
+                content.score_reviews ?: 0
         ))
     }
     return Subcategory("banner", "banner", 4, bannerItems)

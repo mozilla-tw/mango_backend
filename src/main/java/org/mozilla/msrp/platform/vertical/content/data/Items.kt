@@ -5,5 +5,9 @@ data class Item(
         val imageUrl: String,
         val linkUrl: String,
         val title: String,
-        val componentId: String
+        val componentId: String,
+        val price: String = "",
+        var discount: String = "",
+        var rating: Double = 0.0,
+        var reviews: Int = 0
 )
