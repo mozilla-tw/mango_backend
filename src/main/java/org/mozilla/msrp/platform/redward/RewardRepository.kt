@@ -1,14 +1,16 @@
 package org.mozilla.msrp.platform.redward
 
 import com.google.api.core.ApiFuture
-import com.google.cloud.firestore.DocumentReference
 import com.google.cloud.firestore.Firestore
 import com.google.cloud.firestore.Transaction
 import org.mozilla.msrp.platform.firestore.getUnchecked
 import org.mozilla.msrp.platform.mission.JoinStatus
 import org.mozilla.msrp.platform.mission.MissionJoinDoc
 import org.mozilla.msrp.platform.mission.MissionRepository
+import org.mozilla.msrp.platform.mission.isExpired
 import java.time.Clock
+import java.time.ZoneId
+import java.util.concurrent.ExecutionException
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -16,7 +18,7 @@ sealed class RedeemResult(val debugInfo: String) {
     class Success(val rewardCouponDoc: RewardCouponDoc, debugMessage: String) : RedeemResult(debugMessage)
     class UsedUp(val message: String, debugMessage: String) : RedeemResult(debugMessage)
     class NotReady(val message: String, debugMessage: String) : RedeemResult(debugMessage)
-    class InvalidRewardType(val message: String, debugMessage: String) : RedeemResult(debugMessage)
+    class InvalidReward(val message: String, debugMessage: String) : RedeemResult(debugMessage)
     class Failure(val message: String, debugMessage: String) : RedeemResult(debugMessage)
 }
 
@@ -30,7 +32,7 @@ open class RewardRepository @Inject constructor(
     lateinit var clock: Clock
 
     /**
-     * Return a Reward document for ther user.
+     * Return a RedeemResult for the user.
      * If the user/mission is not eligible for redeem, return null
      *
      * @param mid mission id
@@ -38,67 +40,87 @@ open class RewardRepository @Inject constructor(
      *
      * @return RedeemResult
      * */
-    fun redeem(missionType: String, mid: String, uid: String): RedeemResult? {
+    fun redeem(missionType: String, mid: String, uid: String, zoneId: ZoneId): RedeemResult {
 
-        val rewardType: String = missionRepository.findMission(missionType, mid)?.rewardType
-                ?: // should be "reward_coupon"
-                return RedeemResult.InvalidRewardType(
+        // check if the reward is expired
+        val findMission = missionRepository.findMission(missionType, mid)
+
+        val rewardType: String = findMission?.rewardType
+                ?: // should be the name of the reward collection
+                return RedeemResult.InvalidReward(
                         "Can't find Reward Type",
                         "Can't find Reward Type for missionType[$missionType] mid[$mid] uid[$uid]")
 
-        // TODO: extract all firebase related class here, and move business logic to a domain class
-        val trans: ApiFuture<RedeemResult> = firestore.runTransaction { transaction ->
+        try {
 
-            // search for the mission and see its redeem status.
-            val missionJoinDoc = missionRepository.getMissionJoinDoc(uid, missionType, mid)
-            when (missionJoinDoc?.status) {
-                JoinStatus.Redeemed -> {
-                    val rewardDocId = missionJoinDoc.rewardDocId
-                            ?: // shouldn't happen, data error
+            // TODO: extract all firebase related class here, and move business logic to a domain class
+            val trans: ApiFuture<RedeemResult> = firestore.runTransaction { transaction ->
+
+                // search for the mission and see its redeem status.
+                val missionJoinDoc = missionRepository.getMissionJoinDoc(uid, missionType, mid)
+                when (missionJoinDoc?.status) {
+                    JoinStatus.Redeemed -> {
+                        val rewardDocId = missionJoinDoc.rewardDocId
+                                ?: // shouldn't happen, data error
+                                return@runTransaction RedeemResult.Failure(
+                                        "Reward format invalid",
+                                        "MissionJoinDoc 's status is Redeemed, but RewardDocId is null ${info(missionJoinDoc)}")
+
+                        // return its related RewardDoc, currently we only have Coupon-Reward
+                        val rewardCouponDoc = getRewardDoc(rewardType, rewardDocId)
+                                ?: // shouldn't happen, data error
+                                return@runTransaction RedeemResult.Failure("Can't find your reward", "Found RewardDocId $rewardDocId but no Doc is found ${info(missionJoinDoc)}")
+
+                        return@runTransaction RedeemResult.Success(rewardCouponDoc, "Reward doc ")
+                    }
+
+                    JoinStatus.Complete -> {
+
+                        if (findMission.isExpired(clock, zoneId)) {
+                            return@runTransaction RedeemResult.InvalidReward(
+                                    "Reward Expired",
+                                    "Reward Expired for missionType[$missionType] mid[$mid] uid[$uid]")
+                        }
+                        // update RewardDoc
+                        val rewardDocId = requestReward(rewardType, transaction)?.rid
+                                ?: // shouldn't happen, data error
+                                return@runTransaction RedeemResult.UsedUp(
+                                        "No reward left",
+                                        "No reward left ${info(missionJoinDoc)}")
+
+                        val rewardDoc = consumeRewardDoc(rewardType, uid, mid, rewardDocId, transaction)
+
+                        // update MissionJoinDoc
+                        val success = missionRepository.updateMissionJoinDocAfterRedeem(uid, missionType, mid, rewardDocId, transaction)
+                        if (success && rewardDoc != null) {
+
+                            return@runTransaction RedeemResult.Success(rewardDoc, "Reward consumed! ${info(missionJoinDoc)}")
+
+                        } else {
                             return@runTransaction RedeemResult.Failure(
-                                    "Reward format invalid",
-                                    "MissionJoinDoc 's status is Redeemed, but RewardDocId is null ${info(missionJoinDoc)}")
-
-                    // return its related RewardDoc, currently we only have Coupon-Reward
-                    val rewardCouponDoc = getRewardDoc(rewardType, rewardDocId)
-                            ?: // shouldn't happen, data error
-                            return@runTransaction RedeemResult.Failure("Can't find your reward", "Found RewardDocId $rewardDocId but no Doc is found ${info(missionJoinDoc)}")
-
-                    return@runTransaction RedeemResult.Success(rewardCouponDoc, "Reward doc ")
-                }
-
-                JoinStatus.Complete -> {
-
-                    // update RewardDoc
-                    val rewardDocId = requestReward(rewardType, transaction)?.rid
-                            ?: // shouldn't happen, data error
-                            return@runTransaction RedeemResult.UsedUp(
-                                    "No reward left",
-                                    "No reward left ${info(missionJoinDoc)}")
-
-                    val rewardDoc = consumeRewardDoc(rewardType, uid, mid, rewardDocId, transaction)
-
-                    // update MissionJoinDoc
-                    val success = missionRepository.updateMissionJoinDocAfterRedeem(uid, missionType, mid, rewardDocId, transaction)
-                    if (success && rewardDoc != null) {
-
-                        return@runTransaction RedeemResult.Success(rewardDoc, "Reward consumed! ${info(missionJoinDoc)}")
-
-                    } else {
-                        return@runTransaction RedeemResult.Failure(
-                                "Can't update Mission Progress",
-                                "Can't update MissionJoinDoc ${info(missionJoinDoc)}")
+                                    "Can't update Mission Progress",
+                                    "Can't update MissionJoinDoc ${info(missionJoinDoc)}")
+                        }
+                    }
+                    else -> {
+                        // mission in state other than `Completed` or `Redeemed` are not eligible for redeem
+                        return@runTransaction RedeemResult.NotReady(
+                                "Not ready to redeem",
+                                "Not ready to redeem for mission ${missionJoinDoc?.mid}, user ${missionJoinDoc?.uid}")
                     }
                 }
-                else -> {
-                    // mission in state other than `Completed` or `Redeemed` are not eligible for redeem
-                    return@runTransaction RedeemResult.NotReady(
-                            "Not ready to redeem",
-                            "Not ready to redeem for mission ${missionJoinDoc?.mid}, user ${missionJoinDoc?.uid}")
-                }
             }
+            return trans.get()
+        } catch (e: InterruptedException) {
+            return RedeemResult.Failure(
+                    "Not able to redeem",
+                    "[Redeem][Error][missionType[$missionType] mid[$mid] uid[$uid]]====$e")
+
+        } catch (e: ExecutionException) {
+            return RedeemResult.Failure(
+                    "Not able to redeem",
+                    "[Redeem][Error][missionType[$missionType] mid[$mid] uid[$uid]]====$e")
         }
-        return trans.get()
     }
 
     private fun info(missionJoinDoc: MissionJoinDoc) =
