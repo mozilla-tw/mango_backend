@@ -17,7 +17,8 @@ import java.util.*
 import javax.inject.Inject
 import javax.inject.Named
 
-@Named class MissionService @Inject constructor(
+@Named
+class MissionService @Inject constructor(
         private val missionRepository: MissionRepository,
         private val rewardRepository: RewardRepository
 ) {
@@ -157,7 +158,7 @@ import javax.inject.Named
         val expiredInstant = stringToLocalDateTime(missionDoc.expiredDate).atZone(zone).toInstant()
         val joinEndInstant = stringToLocalDateTime(missionDoc.joinEndDate).atZone(zone).toInstant()
 
-        val redeemResult = rewardRepository.redeem(missionDoc.missionType, missionDoc.mid, uid)
+        val redeemResult = rewardRepository.redeem(missionDoc.missionType, missionDoc.mid, uid, zone)
         val redeemedDate = if (joinStatus == JoinStatus.Redeemed && redeemResult is RedeemResult.Success) {
             redeemResult.rewardCouponDoc.updated_timestamp ?: 0
         } else {

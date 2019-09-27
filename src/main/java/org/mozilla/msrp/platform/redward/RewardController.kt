@@ -4,6 +4,8 @@ import org.mozilla.msrp.platform.util.logger
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.time.DateTimeException
+import java.time.ZoneId
 import javax.inject.Inject
 
 
@@ -27,23 +29,43 @@ class RedeemController @Inject constructor(val rewardRepository: RewardRepositor
      * */
     @RequestMapping("/api/v1/redeem/{missionType}")
     internal fun redeem(@PathVariable("missionType") missionType: String,
+                        @RequestParam(value = "tz") tz: String,
                         @RequestParam(value = "mid") mid: String,
                         @RequestAttribute("uid") uid: String): ResponseEntity<RedeemResponse>? {
-        val redeemResult = rewardRepository.redeem(missionType, mid, uid)
+        val zoneId = createZone(tz)
+                ?: return ResponseEntity(RedeemResponse.Fail("Timezone is not correct"), HttpStatus.BAD_REQUEST)
 
-        if (redeemResult == null) {
-            logger.error("Unexpected error when redeem: Type for missionType[$missionType] mid[$mid] uid[$uid]")
-        } else {
-            logger.info(redeemResult.debugInfo)
+        return when (val redeemResult = rewardRepository.redeem(missionType, mid, uid, zoneId)) {
+            is RedeemResult.Success -> {
+                logger.info(redeemResult.debugInfo)
+                ResponseEntity(RedeemResponse.Success(redeemResult.rewardCouponDoc), HttpStatus.OK)
+            }
+            is RedeemResult.UsedUp -> {
+                logger.info(redeemResult.debugInfo)
+                ResponseEntity(RedeemResponse.Fail("No reward left"), HttpStatus.NOT_FOUND)
+            }
+            is RedeemResult.NotReady -> {
+                logger.info(redeemResult.debugInfo)
+                ResponseEntity(RedeemResponse.Fail("Not ready to redeem"), HttpStatus.FORBIDDEN)
+            }
+            is RedeemResult.InvalidReward -> {
+                logger.info(redeemResult.debugInfo)
+                ResponseEntity(RedeemResponse.Fail("Invalid reward"), HttpStatus.BAD_REQUEST)
+            }
+            is RedeemResult.Failure -> {
+                logger.error(redeemResult.debugInfo)
+                ResponseEntity(RedeemResponse.Fail("Not able to redeem"), HttpStatus.INTERNAL_SERVER_ERROR)
+            }
         }
+    }
 
-        // TODO: add logging
-        return when (redeemResult) {
-            is RedeemResult.Success -> ResponseEntity(RedeemResponse.Success(redeemResult.rewardCouponDoc), HttpStatus.OK)
-            is RedeemResult.UsedUp -> ResponseEntity(RedeemResponse.Fail("No reward left"), HttpStatus.NOT_FOUND)
-            is RedeemResult.NotReady -> ResponseEntity(RedeemResponse.Fail("Not ready to redeem"), HttpStatus.FORBIDDEN)
-            is RedeemResult.InvalidRewardType -> ResponseEntity(RedeemResponse.Fail("Invalid reward type"), HttpStatus.BAD_REQUEST)
-            else -> ResponseEntity(RedeemResponse.Fail("Not able to redeem"), HttpStatus.INTERNAL_SERVER_ERROR)
+    private fun createZone(timezone: String): ZoneId? {
+        return try {
+            ZoneId.of(timezone)
+
+        } catch (e: DateTimeException) {
+            logger.info("unsupported timezone=$timezone")
+            null
         }
     }
 }
