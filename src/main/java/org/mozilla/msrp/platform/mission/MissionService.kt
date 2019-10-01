@@ -264,55 +264,85 @@ class MissionService @Inject constructor(
             mid: String,
             zone: ZoneId
     ): MissionJoinResult {
-        val logInfo = "uid=$uid, type=$missionType, mid=$mid, zone=$zone"
+        val logInfo = "joinMission: uid=$uid, type=$missionType, mid=$mid, zone=$zone"
 
         val mission = missionRepository.findMission(missionType, mid) ?: run {
-            log.info("mission not found, $logInfo")
+            log.info("joinMission: mission not found")
             return MissionJoinResult.Error("mission not found", HttpStatus.NOT_FOUND)
         }
 
         val joinStatus = missionRepository.getJoinStatus(uid, missionType, mid)
         val joinCount = missionRepository.getJoinCount(missionType, mid)
 
+        when (checkJoinable(mission, joinStatus, joinCount, clock, zone)) {
+            MissionJoinableState.NotOpen -> {
+                log.info("joinMission: not open for join")
+                return MissionJoinResult.Error("mission not open", HttpStatus.FORBIDDEN)
+            }
+
+            MissionJoinableState.Closed -> {
+                log.info("joinMission: exceed join period")
+                return MissionJoinResult.Error("mission closed", HttpStatus.GONE)
+            }
+
+            MissionJoinableState.AlreadyJoin -> {
+                log.info("joinMission: already joined")
+                return MissionJoinResult.Error("already joined", HttpStatus.CONFLICT)
+            }
+
+            MissionJoinableState.NoQuota -> {
+                log.info("joinMission: mission join quota reached")
+                return MissionJoinResult.Error("mission reach join quota", HttpStatus.FORBIDDEN)
+            }
+
+            MissionJoinableState.Unknown -> {
+                log.error("joinMission: unknown error")
+                return MissionJoinResult.Error("unknown error", HttpStatus.INTERNAL_SERVER_ERROR)
+            }
+
+            MissionJoinableState.Joinable -> {
+                val joinResult = missionRepository.joinMission(uid, missionType, mid)
+                missionQualifier.updateProgress(uid, mid, MissionType.from(missionType), zone)
+                log.info("join mission, $logInfo, state=${joinResult.status}")
+                return MissionJoinResult.Success(joinResult.mid, joinResult.status)
+            }
+        }
+    }
+
+    internal fun checkJoinable(
+            mission: MissionDoc,
+            joinStatus: JoinStatus?,
+            joinCount: Int,
+            clock: Clock,
+            zone: ZoneId
+    ): MissionJoinableState {
         val missionState = try {
             getMissionJoinState(mission, joinStatus, joinCount, clock, zone)
 
         } catch (e: DateTimeParseException) {
-            log.error("illegal mission format, $logInfo")
-            return MissionJoinResult.Error(
-                    "illegal mission format",
-                    HttpStatus.INTERNAL_SERVER_ERROR
-            )
+            return MissionJoinableState.Unknown
         }
 
         if (missionState.reachQuota) {
-            log.info("mission join quota reached, $logInfo")
-            return MissionJoinResult.Error("mission reach join quota", HttpStatus.FORBIDDEN)
+            return MissionJoinableState.NoQuota
         }
 
         if (missionState.isBeforeJoinPeriod) {
-            log.info("not open for join, $logInfo")
-            return MissionJoinResult.Error("mission not open", HttpStatus.FORBIDDEN)
+            return MissionJoinableState.NotOpen
         }
 
         if (missionState.isAfterJoinPeriod) {
-            log.info("exceed join period, $logInfo")
-            return MissionJoinResult.Error("mission closed", HttpStatus.GONE)
+            return MissionJoinableState.Closed
         }
 
         if (missionState.isJoined) {
-            log.info("already joined, $logInfo")
-            return MissionJoinResult.Error("already joined", HttpStatus.CONFLICT)
+            return MissionJoinableState.AlreadyJoin
         }
 
-        // Available for join
-        val joinResult = missionRepository.joinMission(uid, missionType, mid)
-        missionQualifier.updateProgress(uid, mid, MissionType.from(missionType), zone)
-        log.info("join mission, $logInfo, state=${joinResult.status}")
-        return MissionJoinResult.Success(joinResult.mid, joinResult.status)
+        return MissionJoinableState.Joinable
     }
 
-    private data class MissionJoinState(
+    internal data class MissionJoinState(
         var reachQuota: Boolean = false,
 
         var isBeforeJoinPeriod: Boolean = false,
@@ -324,7 +354,16 @@ class MissionService @Inject constructor(
         var isComplete: Boolean = false
     )
 
-    private fun getMissionJoinState(
+    internal sealed class MissionJoinableState {
+        object Joinable : MissionJoinableState()
+        object NotOpen : MissionJoinableState()
+        object Closed : MissionJoinableState()
+        object AlreadyJoin : MissionJoinableState()
+        object NoQuota : MissionJoinableState()
+        object Unknown : MissionJoinableState()
+    }
+
+    internal fun getMissionJoinState(
             mission: MissionDoc,
             joinStatus: JoinStatus?,
             joinCount: Int,
