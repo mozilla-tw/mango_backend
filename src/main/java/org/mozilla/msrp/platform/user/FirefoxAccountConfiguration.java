@@ -34,7 +34,7 @@ public class FirefoxAccountConfiguration {
                 return new FirefoxAccountServiceInfo(id, secret, token, profile);
             }
         } catch (InterruptedException | ExecutionException e) {
-            log.error("Get FirefoxAccount settings -- failed :" + e.getLocalizedMessage());
+            log.error("Get FirefoxAccount settings -- failed :" + e);
         }
         log.error("Get FirefoxAccount settings -- failed, shouldn't reach this line --- ");
         return null;
