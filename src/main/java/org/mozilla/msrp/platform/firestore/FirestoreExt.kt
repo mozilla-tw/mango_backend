@@ -9,6 +9,9 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.util.concurrent.CancellationException
+import kotlin.math.ceil
+
+const val BATCH_VOLUME = 500
 
 fun DocumentSnapshot.areFieldsPresent(fieldNames: List<String>): Boolean {
     fieldNames.forEach { fieldName ->
@@ -73,4 +76,8 @@ fun <T> ApiFuture<T>.getUnchecked(): T {
 @Throws(DateTimeParseException::class)
 fun stringToLocalDateTime(localDateTimeString: String): LocalDateTime {
     return LocalDateTime.parse(localDateTimeString, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+}
+
+fun <T> getBatchIteration(list: List<T>): Int {
+    return ceil(list.size / BATCH_VOLUME.toFloat()).toInt()
 }

@@ -1,14 +1,21 @@
 package org.mozilla.msrp.platform.redward
 
 import com.google.api.core.ApiFuture
+import com.google.cloud.firestore.CollectionReference
 import com.google.cloud.firestore.Firestore
 import com.google.cloud.firestore.Transaction
+import com.google.cloud.firestore.QueryDocumentSnapshot
+import org.mozilla.msrp.platform.firestore.getBatchIteration
+import org.mozilla.msrp.platform.firestore.getResultsUnchecked
 import org.mozilla.msrp.platform.firestore.getUnchecked
+import org.mozilla.msrp.platform.firestore.stringToLocalDateTime
 import org.mozilla.msrp.platform.mission.JoinStatus
+import org.mozilla.msrp.platform.mission.MissionDoc
 import org.mozilla.msrp.platform.mission.MissionJoinDoc
 import org.mozilla.msrp.platform.mission.MissionRepository
 import org.mozilla.msrp.platform.mission.isExpired
 import java.time.Clock
+import java.time.ZoneOffset
 import java.time.ZoneId
 import java.util.concurrent.ExecutionException
 import javax.inject.Inject
@@ -163,5 +170,68 @@ open class RewardRepository @Inject constructor(
                 .toObject(RewardCouponDoc::class.java)
     }
 
-}
+    fun uploadCoupons(
+            coupons: List<String>,
+            couponName: String,
+            missionType: String,
+            mid: String
+    ): List<RewardCouponDoc> {
+        val collection = firestore.collection(couponName)
+        val createdTime = clock.instant().toEpochMilli()
 
+        val mission = missionRepository.findMission(missionType, mid)
+                ?: return emptyList()
+
+        clearCollection(collection)
+
+        return coupons.mapByBatch { batchUpdateCoupons(it, collection, mission, createdTime) }.flatten()
+    }
+
+    private fun clearCollection(collection: CollectionReference) {
+        collection.getResultsUnchecked().mapByBatch { batchDeleteDocuments(it) }
+    }
+
+    private fun batchDeleteDocuments(docs: List<QueryDocumentSnapshot>) {
+        firestore.runTransaction { tran ->
+            docs.map { tran.delete(it.reference) }
+        }
+    }
+
+    private fun batchUpdateCoupons(
+            coupons: List<String>,
+            collection: CollectionReference,
+            mission: MissionDoc,
+            createdTime: Long
+    ): List<RewardCouponDoc> {
+        return firestore.runTransaction { tran ->
+            coupons.map { couponCode ->
+                val docRef = collection.document()
+                val doc = RewardCouponDoc(
+                        rid = docRef.id,
+                        mid = mission.mid,
+                        code = couponCode,
+                        expire_date = stringToLocalDateTime(mission.expiredDate)
+                                .toInstant(ZoneOffset.UTC)
+                                .toEpochMilli(),
+                        created_timestamp = createdTime,
+                        updated_timestamp = 0
+                )
+                tran.set(docRef, doc)
+                doc
+            }
+        }.getUnchecked()
+    }
+
+    private fun <T, K> List<T>.mapByBatch(block: (List<T>) -> K): List<K> {
+        val nBatch = getBatchIteration(this)
+        return this.groupByIndex { it % nBatch }.values.map { block(it) }
+    }
+
+    private fun <T, K> List<T>.groupByIndex(selector: (Int) -> K): Map<K, List<T>> {
+        return mapIndexed { index, value -> index to value }
+                .groupBy { selector(it.first) }
+                .mapValues { entry ->
+                    entry.value.map { it.second }
+                }
+    }
+}

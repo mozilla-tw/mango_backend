@@ -4,6 +4,7 @@ import org.mozilla.msrp.platform.util.logger
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 import java.time.DateTimeException
 import java.time.ZoneId
 import javax.inject.Inject
@@ -11,7 +12,12 @@ import javax.inject.Inject
 
 sealed class RedeemResponse {
     class Success(val rewardCoupon: RewardCouponDoc) : RedeemResponse()
-    class Fail(val message: kotlin.String) : RedeemResponse()
+    class Fail(val message: String) : RedeemResponse()
+}
+
+sealed class CouponUploadResponse {
+    class Success(val message: String) : CouponUploadResponse()
+    class Fail(val message: String) : CouponUploadResponse()
 }
 
 /**
@@ -67,5 +73,24 @@ class RedeemController @Inject constructor(val rewardRepository: RewardRepositor
             logger.info("unsupported timezone=$timezone")
             null
         }
+    }
+
+    @RequestMapping(value = ["/api/v1/redeem/coupon/{couponName}"], method = [RequestMethod.POST])
+    internal fun uploadCoupons(@PathVariable("couponName") couponName: String,
+                               @RequestParam("file") file: MultipartFile,
+                               @RequestParam("missionType") missionType: String,
+                               @RequestParam("mid") mid: String): ResponseEntity<CouponUploadResponse> {
+        if (file.isEmpty) {
+            return ResponseEntity.badRequest().body(CouponUploadResponse.Fail("empty coupon file"))
+        }
+
+        val coupons = file.inputStream.bufferedReader().readLines()
+        if (coupons.isEmpty()) {
+            return ResponseEntity.badRequest().body(CouponUploadResponse.Fail("illegal coupon file format, please " +
+                    "separate coupon codes into separated lines"))
+        }
+
+        val couponDocs = rewardRepository.uploadCoupons(coupons, couponName, missionType, mid)
+        return ResponseEntity.ok(CouponUploadResponse.Success("${couponDocs.size} coupons uploaded"))
     }
 }
