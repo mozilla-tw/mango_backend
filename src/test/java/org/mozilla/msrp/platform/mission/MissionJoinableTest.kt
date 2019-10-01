@@ -32,82 +32,50 @@ class MissionJoinableTest {
     private val service = MissionService(missionRepo, rewardRepo)
 
     @Test
-    fun `beforeStart + (any status) + (any quota) = notVisible`() {
-        testVisibility()
-                .periodNotStart()
-                .forAllStatus()
-                .flatMap { it.forAllQuota() }
-                .apply { logger().info("combinations=$size") }
-                .forEach { it.test(false) }
+    fun `test getMissionJoinState()`() {
+        val notStart = testVisibility().periodNotStart().forAllStatus().flatMap { it.forAllQuota() }
+        val started = testVisibility().periodStart()
+        val end = testVisibility().periodEnd().forAllStatus().flatMap { it.forAllQuota() }
+        val expired = testVisibility().periodExpired().forAllStatus().flatMap { it.forAllQuota() }
+
+        // Not start
+        notStart.forEach { it.joinableTest(false) }
+        end.forEach { it.joinableTest(false) }
+        expired.forEach { it.joinableTest(false) }
+
+        // Start + NotJoin
+        started.statusNotJoin().quotaAvailable().joinableTest(true)
+        started.statusNotJoin().quotaUnavailable().joinableTest(false)
+
+        // Start + Joined/Completed/Redeemed
+        started.statusJoined().forAllQuota().forEach { it.joinableTest(false) }
+        started.statusCompleted().forAllQuota().forEach { it.joinableTest(false) }
+        started.statusRedeemed().forAllQuota().forEach { it.joinableTest(false) }
     }
 
     @Test
-    fun `afterStart + notJoin + hasQuota = visible`() {
-        testVisibility()
-                .periodStart()
-                .statusNotJoin()
-                .quotaAvailable()
-                .test(true)
-    }
+    fun `test isMissionAvailableForShowing()`() {
+        val notStart = testVisibility().periodNotStart().forAllStatus().flatMap { it.forAllQuota() }
+        val started = testVisibility().periodStart()
+        val end = testVisibility().periodEnd()
+        val expired = testVisibility().periodExpired()
 
-    @Test
-    fun `afterStart + notJoin + noQuota = invisible`() {
-        testVisibility()
-                .periodStart()
-                .statusNotJoin()
-                .quotaUnavailable()
-                .test(false)
-    }
+        notStart.forEach { it.test(false) }
 
-    @Test
-    fun `afterStart + joined + (any quota) = visible`() {
-        testVisibility()
-                .periodStart()
-                .statusJoined()
-                .forAllQuota()
-                .forEach { it.test(true) }
-    }
+        started.statusNotJoin().quotaAvailable().test(true)
+        started.statusNotJoin().quotaUnavailable().test(false)
 
-    @Test
-    fun `afterEnd + notJoin + (any quota) = invisible`() {
-        testVisibility()
-                .periodEnd()
-                .statusNotJoin()
-                .forAllQuota()
-                .forEach { it.test(false) }
-    }
+        started.statusJoined().forAllQuota().forEach { it.test(true) }
 
-    @Test
-    fun `afterEnd + joined + (any quota) = visible`() {
-        testVisibility()
-                .periodEnd()
-                .statusJoined()
-                .forAllQuota()
-                .forEach { it.test(true) }
-    }
+        end.statusNotJoin().forAllQuota().forEach { it.test(false) }
+        end.statusJoined().forAllQuota().forEach { it.test(true) }
 
-    @Test
-    fun `expired + notComplete + (any quota) = invisible`() {
-        testVisibility()
-                .periodExpired()
-                .statusNotJoin()
-                .forAllQuota()
-                .forEach { it.test(false) }
+        expired.statusCompleted().forAllQuota().forEach { it.test(true) }
+        expired.statusRedeemed().forAllQuota().forEach { it.test(true)}
 
-        testVisibility()
-                .periodExpired()
-                .statusJoined()
-                .forAllQuota()
-                .forEach { it.test(false) }
-    }
+        expired.statusJoined().forAllQuota().forEach { it.test(false) }
+        expired.statusNotJoin().forAllQuota().forEach { it.test(false) }
 
-    @Test
-    fun `expired + completed + (any quota) = visible`() {
-        testVisibility()
-                .periodExpired()
-                .statusCompleted()
-                .forAllQuota()
-                .forEach { it.test(true) }
     }
 
     private fun testVisibility(): JoinPeriodConfig {
@@ -203,6 +171,21 @@ class MissionJoinableTest {
                     clock,
                     zoneJakarta
             ))
+        }
+
+        fun joinableTest(expected: Boolean) {
+            val fixInstant = dateTime.toInstant(zoneJakarta)
+            val clock = Clock.fixed(fixInstant, zoneJakarta)
+
+            val actual = service.checkJoinable(
+                    createMissionDoc(),
+                    status,
+                    count,
+                    clock,
+                    zoneJakarta
+            ) is MissionService.MissionJoinableState.Joinable
+
+            assertEquals(expected, actual)
         }
     }
 }
