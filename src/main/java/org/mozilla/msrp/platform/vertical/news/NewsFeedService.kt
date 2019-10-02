@@ -22,7 +22,7 @@ class IndonesiaNewsFeedService @Inject constructor(
         val liputan6List = liputan6RssFeedRepository.news(liputanTopicId)
         var detikList: List<FeedItem>? = null
         if (detikTopicId != null) {
-//            detikList = detikRssFeedRepository.news(detikTopicId)
+            detikList = detikRssFeedRepository.news(detikTopicId)
         }
 
         return liputan6List?.toMutableList()?.apply {
