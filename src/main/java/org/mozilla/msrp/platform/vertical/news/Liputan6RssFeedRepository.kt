@@ -4,11 +4,11 @@ import javax.inject.Inject
 import javax.inject.Named
 
 @Named
-class LiputanRssFeedRepository @Inject constructor(private val liputanRssFeedClient: LiputanRssFeedClient) {
+class Liputan6RssFeedRepository @Inject constructor(private val liputan6RssFeedClient: Liputan6RssFeedClient) {
 
     fun news(topic: String): List<FeedItem>? {
 
-        val rss = liputanRssFeedClient.rss("{$topic}").execute().body()
+        val rss = liputan6RssFeedClient.rss(topic).execute().body()
         println(rss?.feedItems?.size)
         return rss?.feedItems
     }

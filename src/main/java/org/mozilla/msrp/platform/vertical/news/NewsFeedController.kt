@@ -89,14 +89,14 @@ class NewsFeedController @Inject constructor(
                     })
 
     @GetMapping("/api/v1/news/indonesia/topic/{topic}")
-    internal fun idonesiaNewsByTopic(
+    internal fun indonesiaNewsByTopic(
             @PathVariable("topic") topic: String): ResponseEntity<in Any> {
-        val liputanTopic = liputanTopic[topic]
-        if (liputanTopic == null) {
+        val liputan6Topic = liputan6Topic[topic]
+        if (liputan6Topic == null) {
             log.info("[NEWS]====No news for topic $String")
             return ResponseEntity("No such topic", HttpStatus.BAD_REQUEST)
         }
-        val newsItems = cacheIndonesiaNews.get(liputanTopic)
+        val newsItems = cacheIndonesiaNews.get(liputan6Topic)
         log.info("[NEWS]====loading indonesia news [${newsItems.size}]")
         if (newsItems.isEmpty()) {
             log.info("[NEWS]====No news for topic $String")
@@ -107,7 +107,7 @@ class NewsFeedController @Inject constructor(
     }
 
 
-    private val liputanTopic = mapOf(
+    private val liputan6Topic = mapOf(
             "NEWS" to "17",
             "TEKNO" to "8",
             "GLOBAL" to "274",
@@ -129,7 +129,7 @@ class NewsFeedController @Inject constructor(
             "486" to "sport")
 
     @GetMapping("/api/v1/news/indonesia/topics")
-    fun idNewsTopic() = liputanTopic.keys
+    fun idNewsTopic() = liputan6Topic.keys
 
     companion object {
 
