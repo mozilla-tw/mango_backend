@@ -1,5 +1,6 @@
 package org.mozilla.msrp.platform.redward
 
+import org.mozilla.msrp.platform.common.auth.JwtHelper
 import org.mozilla.msrp.platform.util.logger
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -75,11 +76,15 @@ class RedeemController @Inject constructor(val rewardRepository: RewardRepositor
         }
     }
 
-    @RequestMapping(value = ["/api/v1/redeem/coupon/{couponName}"], method = [RequestMethod.POST])
-    internal fun uploadCoupons(@PathVariable("couponName") couponName: String,
+    @RequestMapping(value = ["/api/v1/admin/coupon"], method = [RequestMethod.POST])
+    internal fun uploadCoupons(@RequestParam token: String,
+                               @RequestParam("couponName") couponName: String,
                                @RequestParam("file") file: MultipartFile,
                                @RequestParam("missionType") missionType: String,
                                @RequestParam("mid") mid: String): ResponseEntity<CouponUploadResponse> {
+        if (JwtHelper.verify(token) !== JwtHelper.ROLE_MSRP_ADMIN) {
+            return ResponseEntity(CouponUploadResponse.Fail("No Permission"), HttpStatus.UNAUTHORIZED)
+        }
         if (file.isEmpty) {
             return ResponseEntity.badRequest().body(CouponUploadResponse.Fail("empty coupon file"))
         }

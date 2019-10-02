@@ -1,11 +1,14 @@
 package org.mozilla.msrp.platform.mission;
 
 import lombok.extern.log4j.Log4j2;
+import org.mozilla.msrp.platform.common.auth.JwtHelper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.time.DateTimeException;
 import java.time.ZoneId;
@@ -99,8 +102,7 @@ public class MissionController {
      * @param request data needed to create mission
      * @return response with created mission in body
      */
-    @RequestMapping(value = "/api/v1/missions", method = POST)
-    public ResponseEntity<MissionCreateResponse> createMission(
+    private ResponseEntity<MissionCreateResponse> createMission(
             @RequestBody MissionCreateRequest request) {
 
         MissionCreateResult result = missionService.createMissions(request.getMissions());
@@ -114,6 +116,54 @@ public class MissionController {
             return ResponseEntity.badRequest()
                     .body(new MissionCreateResponse.Error(errorResult.getResults()));
         }
+    }
+
+    @RequestMapping(value = "/api/v1/admin/missions", method = POST)
+    public ResponseEntity createMissionForm(
+            @RequestParam String token,
+            @RequestParam String missionName,
+            @RequestParam String missionType,
+            @RequestParam String rewardType,
+            @RequestParam int totalDays,
+            @RequestParam int joinQuota,
+            @RequestParam String titleId,
+            @RequestParam String descriptionId,
+            @RequestParam String imageUrl,
+            @RequestParam String startDate,
+            @RequestParam String joinStartDate,
+            @RequestParam String joinEndDate,
+            @RequestParam String expiredDate,
+            @RequestParam String pings,
+            @RequestParam int minVersion) {
+
+        if (!JwtHelper.ROLE_MSRP_ADMIN.equals(JwtHelper.verify(token))) {
+            return new ResponseEntity("No Permission", HttpStatus.UNAUTHORIZED);
+        }
+        MissionCreateRequest request = new MissionCreateRequest();
+        ArrayList<MissionCreateData> missionList = new ArrayList<>();
+        ArrayList<String> pingList = new ArrayList<>();
+        HashMap<String, Object> params = new HashMap<>();
+        params.put("totalDays", totalDays);
+        pingList.add(pings);
+        MissionCreateData mCreated = new MissionCreateData(
+                missionName,
+                titleId,
+                descriptionId,
+                missionType,
+                pingList,
+                startDate,
+                joinStartDate,
+                joinEndDate,
+                expiredDate,
+                minVersion,
+                params,
+                rewardType,
+                joinQuota,
+                imageUrl
+        );
+        missionList.add(mCreated);
+        request.missions = missionList;
+        return createMission(request);
     }
 
     /**

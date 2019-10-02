@@ -203,6 +203,10 @@ class UserRepository @Inject constructor(firestore: Firestore) {
         return false
     }
 
+    fun isMsrpAdmin(email: String): Boolean {
+        return isPublishAdmin(email)
+    }
+
     fun findFirebaseUidByEmail(email: String): String? {
         if (isPublishAdmin(email)) {
             val resultsUnchecked = users.whereEqualTo("email", email).getResultsUnchecked()
