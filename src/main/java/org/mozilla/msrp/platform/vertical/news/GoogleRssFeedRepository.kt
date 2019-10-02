@@ -1,5 +1,6 @@
 package org.mozilla.msrp.platform.vertical.news
 
+import org.mozilla.msrp.platform.util.logger
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -7,8 +8,11 @@ import javax.inject.Named
 @Named
 class GoogleRssFeedRepository @Inject constructor(private val googleRssFeedClient: GoogleRssFeedClient) {
 
+    val log = logger()
+
     fun news(language: String): List<FeedItem>? {
         val rss = googleRssFeedClient.rss(language).execute().body()
+        log.info("[NEWS]====loading Google news [${rss?.feedItems?.size}]")
         return rss?.feedItems
     }
 
@@ -16,7 +20,7 @@ class GoogleRssFeedRepository @Inject constructor(private val googleRssFeedClien
 
 
         val rss = googleRssFeedClient.rss(topic, language).execute().body()
-        println(rss?.feedItems?.size)
+        println("---news----google----"+rss?.feedItems?.size)
         return rss?.feedItems
     }
 
