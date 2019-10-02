@@ -2,6 +2,7 @@ package org.mozilla.msrp.platform.vertical.content
 
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.mozilla.msrp.platform.common.auth.JwtHelper
 import org.mozilla.msrp.platform.util.logger
 import org.mozilla.msrp.platform.vertical.content.data.parseContent
 import org.springframework.http.HttpStatus
@@ -69,13 +70,17 @@ class ContentController @Inject constructor(private val contentRepository: Conte
 
     @RequestMapping(value = ["/api/v1/admin/content"], method = [RequestMethod.POST])
     internal fun uploadContent(
+            @RequestParam token: String,
             @RequestParam(value = "category") category: String,
             @RequestParam(value = "locale") locale: String,
             @RequestParam(value = "tag") tag: String,
             @RequestParam(value = "banner", required = false) banner: MultipartFile?,
             @RequestParam(value = "other") other: MultipartFile
     ): ResponseEntity<String> {
-
+        val role = JwtHelper.verify(token)
+        if (role != JwtHelper.ROLE_PUBLISH_ADMIN) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No Permission")
+        }
         val safeCategory = safeCategory(category, locale)
         if (safeCategory == null) {
             val message = "Not supported parameters for shopping: $category/$locale"

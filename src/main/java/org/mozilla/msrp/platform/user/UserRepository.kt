@@ -4,6 +4,7 @@ import com.google.cloud.firestore.*
 import com.google.firebase.auth.FirebaseAuth
 import org.mozilla.msrp.platform.user.data.UserActivityDoc
 import org.mozilla.msrp.platform.firestore.getResultsUnchecked
+import org.mozilla.msrp.platform.firestore.getUnchecked
 import org.mozilla.msrp.platform.user.data.UserDoc
 import org.mozilla.msrp.platform.util.logger
 import org.springframework.stereotype.Repository
@@ -14,6 +15,7 @@ import javax.inject.Inject
 class UserRepository @Inject constructor(firestore: Firestore) {
 
     private var users: CollectionReference
+    private var publishAdmin: CollectionReference
     private var userActivity: CollectionReference
     private val logger = logger()
 
@@ -25,6 +27,8 @@ class UserRepository @Inject constructor(firestore: Firestore) {
         private const val COLLECTION_USER = "users"
         private const val COLLECTION_USER_ACTIVITY = "user_activity"
 
+        private const val COLLECTION_PUBLISH_ADMIN = "publish_admin"
+
 
         private const val USER_SUSPICIOUS_THRESHOLD = 2
         private const val USER_SUSPICIOUS_WARNING = 1
@@ -33,6 +37,9 @@ class UserRepository @Inject constructor(firestore: Firestore) {
     init {
         users = firestore.collection(COLLECTION_USER)
         userActivity = firestore.collection(COLLECTION_USER_ACTIVITY)
+
+        publishAdmin = firestore.collection(COLLECTION_PUBLISH_ADMIN)
+
     }
 
     fun createCustomToken(fxUid: String, additionalClaims: Map<String, String>): String? {
@@ -184,10 +191,31 @@ class UserRepository @Inject constructor(firestore: Firestore) {
             logger.info("log UserDoc[$userDocumentId] has action [$action] ")
         }
     }
+
+    fun isPublishAdmin(email: String): Boolean {
+        if (email.contains("@mozilla.com")) {
+            for (document in publishAdmin.get().getUnchecked().documents) {
+                if (document.getString("email") == email) {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
+    fun findFirebaseUidByEmail(email: String): String? {
+        if (isPublishAdmin(email)) {
+            val resultsUnchecked = users.whereEqualTo("email", email).getResultsUnchecked()
+            if (resultsUnchecked.size >= 1) {
+                return resultsUnchecked[0].getString("firebase_uid")
+            }
+        }
+        return null
+    }
 }
 
 sealed class LoginResponse {
-    class Success(val message: String) : LoginResponse()
+    open class Success(open val message: String) : LoginResponse()
     class SuspiciousWarning(val message: String) : LoginResponse() // a special version of failure
     class UserSuspended(val message: String) : LoginResponse()  // a special version of failure
     class Fail(val message: String) : LoginResponse() // Business logic

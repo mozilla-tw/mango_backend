@@ -1,6 +1,7 @@
 package org.mozilla.msrp.platform.user;
 
 import org.json.JSONException;
+import org.mozilla.msrp.platform.common.auth.JwtHelper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,6 +13,9 @@ import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.HashMap;
+
+import static org.mozilla.msrp.platform.common.auth.JwtHelper.ROLE_PUBLISH_ADMIN;
+
 
 @RestController
 public class UserController {
@@ -34,7 +38,7 @@ public class UserController {
 
     @RequestMapping("/api/v1/login")
     ResponseEntity<LoginResponse> login(@RequestParam(value = "code") String code,
-                                        @RequestParam(value = "state") String oldFbUid,
+                                        @RequestParam(value = "state") String state,
                                         HttpServletResponse httpResponse) {    // need HttpServletResponse to redirect
 
         try {
@@ -52,9 +56,17 @@ public class UserController {
 
             String fxUid = profileResponse.getUid();
             String fxEmail = profileResponse.getEmail();
+
             if (fxUid == null || fxEmail == null) {
                 return new ResponseEntity<>(new LoginResponse.Fail("error in Fxa token api"), HttpStatus.INTERNAL_SERVER_ERROR);
             }
+
+            if ("publish".equals(state) && userRepository.isPublishAdmin(fxEmail)) {
+                String token = JwtHelper.createToken(ROLE_PUBLISH_ADMIN);
+                httpResponse.sendRedirect("/api/v1/admin/publish?token=" + token);
+                return new ResponseEntity<>(HttpStatus.PERMANENT_REDIRECT);
+            }
+            String oldFbUid = state;
             LoginResponse loginResponse = userRepository.signInAndUpdateUserDocument(oldFbUid, fxUid, fxEmail);
             if (loginResponse instanceof LoginResponse.Success) {
                 HashMap<String, String> additionalClaims = new HashMap<>();
