@@ -15,17 +15,17 @@ class GoogleNewsFeedService @Inject constructor(private val googleRssFeedReposit
 
 @Named
 class IndonesiaNewsFeedService @Inject constructor(
-    private val liputanRssFeedRepository: LiputanRssFeedRepository,
-    private val detikRssFeedRepository: DetikRssFeedRepository) {
+        private val liputan6RssFeedRepository: Liputan6RssFeedRepository,
+        private val detikRssFeedRepository: DetikRssFeedRepository) {
 
     fun getNews(liputanTopicId: String, detikTopicId: String?): List<FeedItem>? {
-        val liputanList = liputanRssFeedRepository.news(liputanTopicId)
+        val liputan6List = liputan6RssFeedRepository.news(liputanTopicId)
         var detikList: List<FeedItem>? = null
         if (detikTopicId != null) {
 //            detikList = detikRssFeedRepository.news(detikTopicId)
         }
 
-        return liputanList?.toMutableList()?.apply {
+        return liputan6List?.toMutableList()?.apply {
             addAll(detikList?.toList() ?: listOf())
         }
     }

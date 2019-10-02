@@ -11,17 +11,17 @@ import retrofit2.http.GET
 import retrofit2.http.Query
 import javax.inject.Named
 
-interface LiputanRssFeedClient {
+interface Liputan6RssFeedClient {
 
     @GET("mozilla?source=Digital%20Marketing&medium=Partnership")
     fun rss(@Query("categories[]") topic: String): Call<Liputan6Rss>
 }
 
 @Named
-class LiputanRssFeedClientConfig {
+class Liputan6RssFeedClientConfig {
 
     @Bean
-    fun LiputanRssFeedClientFactory(): LiputanRssFeedClient {
+    fun Liputan6RssFeedClientFactory(): Liputan6RssFeedClient {
         val interceptor = HttpLoggingInterceptor()
         interceptor.level = HttpLoggingInterceptor.Level.BODY
         val client = OkHttpClient.Builder().addInterceptor(interceptor).build()
@@ -31,6 +31,6 @@ class LiputanRssFeedClientConfig {
                 .client(client)
                 .addConverterFactory(SimpleXmlConverterFactory.create())
                 .build()
-                .create(LiputanRssFeedClient::class.java)
+                .create(Liputan6RssFeedClient::class.java)
     }
 }

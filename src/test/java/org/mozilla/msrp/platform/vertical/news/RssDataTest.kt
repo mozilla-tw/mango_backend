@@ -22,7 +22,7 @@ class RssDataTest {
     }
 
     @Test
-    fun parseLiputan() {
+    fun parseLiputan6() {
         val serializer = Persister()
         val classLoader = javaClass.classLoader
         val file = File(classLoader.getResource("./rssLiputan6.xml")!!.file)
