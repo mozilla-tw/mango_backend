@@ -27,6 +27,7 @@ public class FirebaseConfiguration {
      */
     @Bean
     public GoogleCredentials googleApplicationCredentials() throws IOException {
+        log.info(" --- Bean Creation GoogleCredentials ---");
         GoogleCredentials credentials = GoogleCredentials.getApplicationDefault();
         log.info("GoogleCredentials is created successfully.");
         return credentials;
@@ -34,21 +35,38 @@ public class FirebaseConfiguration {
 
     @Bean("FirebaseApp")
     public FirebaseApp firebaseApp(GoogleCredentials credentials, PlatformProperties platformProperties) {
+        log.info(" --- Bean Creation firebaseApp ---");
+        if (!FirebaseApp.getApps().isEmpty()) {
+            log.info(" --- Bean Creation firebaseApp skip---");
+
+            FirebaseApp firebaseApp = FirebaseApp.getApps().get(0);
+            log.info(" --- Bean Creation firebaseApp skip---" + firebaseApp.hashCode());
+            firebaseApp.delete();
+        }
         FirebaseOptions options = new FirebaseOptions.Builder()
                 .setCredentials(credentials)
                 .setProjectId(platformProperties.getFirebaseProjectId())
                 .build();
-        return FirebaseApp.initializeApp(options);
+        FirebaseApp firebaseApp = FirebaseApp.initializeApp(options);
+        log.info(" --- Bean Creation firebaseApp done---" + firebaseApp.hashCode());
+
+        return firebaseApp;
     }
 
-    @Bean
+    @Bean("Firestore")
     public Firestore firestore(FirebaseApp app) {
-        return FirestoreClient.getFirestore(app);
+        log.info(" --- Bean Creation Firestore ---" + app.hashCode());
+        Firestore firestore = FirestoreClient.getFirestore();
+        log.info(" --- Bean Creation Firestore ---done:" + firestore.hashCode());
+
+        return firestore;
     }
 
     @Bean
     @DependsOn({"FirebaseApp"})
     public Storage cloudStorage() {
+        log.info(" --- Bean Creation cloudStorage ---");
+
         return StorageOptions.getDefaultInstance().getService();
     }
 }

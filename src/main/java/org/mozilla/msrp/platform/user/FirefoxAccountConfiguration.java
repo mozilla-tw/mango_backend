@@ -7,6 +7,7 @@ import com.google.cloud.firestore.QuerySnapshot;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -16,8 +17,9 @@ import java.util.concurrent.ExecutionException;
 public class FirefoxAccountConfiguration {
 
     @Bean
+    @DependsOn({"Firestore"})
     public FirefoxAccountServiceInfo firefoxAccountServiceInfo(Firestore firestore) {
-        log.info("Get FirefoxAccount settings --- start ---");
+        log.info(" --- Bean Creation firefoxAccountServiceInfo ---");
         try {
             // asynchronously retrieve all users
             ApiFuture<QuerySnapshot> query = firestore.collection("settings").get();
