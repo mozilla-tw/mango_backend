@@ -1,8 +1,8 @@
 package org.mozilla.msrp.platform.vertical.content.data
 
 data class Subcategory(
-        val componentType: String,
-        val subcategoryName: String,
-        val subcategoryId: Int,
-        var items: List<Item>
+        var componentType: String = "",
+        var subcategoryName: String = "",
+        var subcategoryId: Int = 0,
+        var items: List<Item> = listOf()
 )

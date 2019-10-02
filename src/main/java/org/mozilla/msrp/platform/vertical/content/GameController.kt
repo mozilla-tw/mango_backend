@@ -39,7 +39,7 @@ class GameController @Inject constructor(private val contentRepository: ContentR
     internal fun games(
             @PathVariable(value = "category") category: String,
             @RequestParam(value = "language") language: String,
-            @RequestParam(value = "country") country: String): ResponseEntity<String> {
+            @RequestParam(value = "country") country: String): ResponseEntity<Any> {
 
         val safeCategory = categoryMapping[category]
         if (safeCategory == null || !supportLanguageLocale.contains(language)) {
