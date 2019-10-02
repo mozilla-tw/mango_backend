@@ -33,36 +33,48 @@ class ShoppingController @Inject constructor(private val contentRepository: Cont
     private val categoryMapping = hashMapOf(
             "deal" to "shopping_deal",
             "coupon" to "shopping_coupon")
-    private val supportLanguageLocale = listOf("id-ID", "en-IN")
+    private val supportLocale = listOf("id-ID", "en-IN")
 
     @GetMapping("/api/v1/shopping/{category}")
     internal fun shopping(
             @PathVariable(value = "category") category: String,
-            @RequestParam(value = "language") language: String,
-            @RequestParam(value = "country") country: String): ResponseEntity<String> {
+            @RequestParam(value = "locale") locale: String,
+            @RequestParam(value = "latest", required = false) latest: Boolean): ResponseEntity<Any> {
 
-        val safeCategory = categoryMapping[category]
-        if (safeCategory == null || !supportLanguageLocale.contains(language)) {
-            val message = "Not supported parameters for shopping: $category/$language/$country"
+        val safeCategory = safeCategory(category, locale)
+        if (safeCategory == null) {
+            val message = "Not supported parameters for shopping: $category/$locale"
             log.warn("[Shopping]====$message")
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message)
         }
 
         try {
-            return when (val result = cacheShopping.get(ContentRepoQuery(safeCategory, language))) {
+            if (latest) {
+                cacheShopping.invalidateAll()
+            }
+            return when (val result = cacheShopping.get(ContentRepoQuery(safeCategory, locale))) {
                 is ContentRepoResult.Success -> {
                     ResponseEntity.ok(result.result)
                 }
                 is ContentRepoResult.Fail -> {
-                    val message = "Can't find shopping for $category/$language/$country"
+                    val message = "Can't find shopping for $category/$locale"
                     log.warn("[Shopping]====$message")
                     ResponseEntity.status(HttpStatus.NOT_FOUND).body(result.message)
                 }
             }
         } catch (e: ExecutionException) {
             val message = "error loading news"
-            log.error("[Shopping]====$message====$e")
+            log.error("[Shopping]====$message:${e.localizedMessage}")
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(message)
         }
+    }
+
+    // check category and locale. If they are valid, return the safe category. (keep locale as is)
+    private fun safeCategory(category: String, locale: String): String? {
+        val safeCategory = categoryMapping[category]
+        if (safeCategory == null || !supportLocale.contains(locale)) {
+            return null
+        }
+        return safeCategory
     }
 }
