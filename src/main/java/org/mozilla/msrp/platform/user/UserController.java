@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.HashMap;
 
+import static org.mozilla.msrp.platform.common.auth.JwtHelper.ROLE_MSRP_ADMIN;
 import static org.mozilla.msrp.platform.common.auth.JwtHelper.ROLE_PUBLISH_ADMIN;
 
 
@@ -61,9 +62,15 @@ public class UserController {
                 return new ResponseEntity<>(new LoginResponse.Fail("error in Fxa token api"), HttpStatus.INTERNAL_SERVER_ERROR);
             }
 
-            if ("publish".equals(state) && userRepository.isPublishAdmin(fxEmail)) {
+            if (ROLE_PUBLISH_ADMIN.equals(state) && userRepository.isPublishAdmin(fxEmail)) {
                 String token = JwtHelper.createToken(ROLE_PUBLISH_ADMIN);
                 httpResponse.sendRedirect("/api/v1/admin/publish?token=" + token);
+                return new ResponseEntity<>(HttpStatus.PERMANENT_REDIRECT);
+            }
+
+            if (ROLE_MSRP_ADMIN.equals(state) && userRepository.isMsrpAdmin(fxEmail)) {
+                String token = JwtHelper.createToken(ROLE_MSRP_ADMIN);
+                httpResponse.sendRedirect("/api/v1/admin/msrp?token=" + token);
                 return new ResponseEntity<>(HttpStatus.PERMANENT_REDIRECT);
             }
             String oldFbUid = state;

@@ -11,6 +11,7 @@ import java.util.UUID
 object JwtHelper {
 
     const val ROLE_PUBLISH_ADMIN = "publish_admin"
+    const val ROLE_MSRP_ADMIN = "msrp_admin"
 
     private const val ISSUER = "org.mozilla.msrp"
     private const val ROLE = "role"
@@ -37,6 +38,7 @@ object JwtHelper {
         }
     }
 
+    @JvmStatic
     fun verify(token: String): String? {
         return try {
             verifier.verify(token).getClaim(ROLE).asString()

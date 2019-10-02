@@ -77,8 +77,7 @@ class ContentController @Inject constructor(private val contentRepository: Conte
             @RequestParam(value = "banner", required = false) banner: MultipartFile?,
             @RequestParam(value = "other") other: MultipartFile
     ): ResponseEntity<String> {
-        val role = JwtHelper.verify(token)
-        if (role != JwtHelper.ROLE_PUBLISH_ADMIN) {
+        if (JwtHelper.verify(token) != JwtHelper.ROLE_PUBLISH_ADMIN) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No Permission")
         }
         val safeCategory = safeCategory(category, locale)

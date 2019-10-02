@@ -1,0 +1,72 @@
+<! DOCTYPE html>
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+<body>
+
+<h1>Create Mission</h1>
+<hr>
+<form action="/api/v1/admin/missions" method="post" enctype='application/json'>
+
+    <input type="hidden" name="token" th:value="${token}">
+
+
+    missionName
+    <input type="text" name="missionName"><br>
+
+    missionType
+    <input type="text" name="missionType"  value="mission_daily"><br>
+
+    rewardType
+    <input type="text" name="rewardType"><br>
+
+    totalDays
+    <input type="text" name="totalDays"><br>
+
+    joinQuota
+    <input type="number" name="joinQuota"><br>
+
+    titleId
+    <input type="text" name="titleId"><br>
+
+    descriptionId
+    <input type="text" name="descriptionId"><br>
+
+    "imageUrl": "https://homepages.cae.wisc.edu/~ece533/images/lena.png",
+    <input type="text" name="imageUrl"><br>
+
+    "startDate": "2019-05-10T10:00:00"
+    <input type="text" name="startDate"><br>
+
+    "joinStartDate": "2019-09-10T10:00:00"
+    <input type="text" name="joinStartDate"><br>
+
+    "joinEndDate": "2019-09-10T10:00:00"
+    <input type="text" name="joinEndDate"><br>
+
+
+    "expiredDate": "2019-09-10T10:00:00",
+    <input type="text" name="expiredDate"><br>
+
+    "pings": ["ping-pong-ping-pong"]
+    <input type="text" name="pings"><br>
+
+
+    "min_version": 12345
+    <input type="text" name="minVersion"><br>
+
+    <input type="submit" value="Upload coupons" name="submit">
+</form>
+
+<h1>Upload Reward</h1>
+<hr>
+<form action="/api/v1/admin/coupon" method="post" enctype="multipart/form-data">
+
+    couponName<input type="text" name="couponName"><br>
+    file<input type="file" name="file"><br>
+    missionType<input type="text" name="missionType" value="mission_daily"><br>
+    mid<input type="text" name="mid"><br>
+
+    <input type="submit" value="Upload coupons" name="submit">
+</form>
+
+
+</body>
