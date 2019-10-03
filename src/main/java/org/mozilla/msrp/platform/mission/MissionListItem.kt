@@ -18,7 +18,7 @@ data class MissionListItem(
         val expiredDate: Long,
         val status: JoinStatus,
         val minVersion: Int,
-        val progress: Map<String, Any>,
+        var progress: Map<String, Any>,
         val important: Boolean,
         val missionType: String,
         val joinEndDate: Long,

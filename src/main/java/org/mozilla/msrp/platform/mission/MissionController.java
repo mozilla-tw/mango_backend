@@ -251,17 +251,7 @@ public class MissionController {
     /**
      * Check-in missions that are interest in the give ping
      *
-     * Response (daily mission as example)
-     * {
-     *     "result": [
-     *          "mid": "3zpBONndZxBE76J6ZJl1",
-     *          "joinDate": 1567572602095,
-     *          "missionType": "mission_daily",
-     *          "progress": {
-     *              "currentDayCount": 1
-     *          }
-     *     ]
-     * }
+     * Response (daily mission as example) // same as /api/v1/group/{groupId}/missions
      *
      * Invalid timezone
      * {
@@ -285,7 +275,7 @@ public class MissionController {
 
         log.info("ping={}, timezone={}", ping, zone);
 
-        List<MissionCheckInResult> results = missionService.checkInMissions(uid, ping, zone);
+        List<MissionListItem> results = missionService.checkInMissions(uid, ping, zone);
 
         return ResponseEntity.ok(new MissionCheckInResponse.Success(results));
     }

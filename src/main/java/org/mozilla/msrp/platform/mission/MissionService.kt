@@ -343,15 +343,15 @@ class MissionService @Inject constructor(
     }
 
     internal data class MissionJoinState(
-        var reachQuota: Boolean = false,
+            var reachQuota: Boolean = false,
 
-        var isBeforeJoinPeriod: Boolean = false,
-        var isOpenedForJoin: Boolean = false,
-        var isAfterJoinPeriod: Boolean = false,
+            var isBeforeJoinPeriod: Boolean = false,
+            var isOpenedForJoin: Boolean = false,
+            var isAfterJoinPeriod: Boolean = false,
 
-        var isExpired: Boolean = false,
-        var isJoined: Boolean = false,
-        var isComplete: Boolean = false
+            var isExpired: Boolean = false,
+            var isJoined: Boolean = false,
+            var isComplete: Boolean = false
     )
 
     internal sealed class MissionJoinableState {
@@ -393,7 +393,7 @@ class MissionService @Inject constructor(
             uid: String,
             missionType: String,
             mid: String
-    ) : MissionQuitResponse {
+    ): MissionQuitResponse {
 
         val status = missionRepository.getJoinStatus(uid, missionType, mid)
 
@@ -417,15 +417,27 @@ class MissionService @Inject constructor(
             uid: String,
             ping: String,
             zone: ZoneId
-    ): List<MissionCheckInResult> {
+    ): List<MissionListItem> {
 
         val missions = missionRepository.findJoinedMissionsByPing(uid, ping)
         log.info("ping=$ping, missions=${missions.map { "${it.missionType}/${it.mid}" }}")
 
-        return missions
-                .filter { isJoined(uid, it.missionType, it.mid) }
-                .mapNotNull { updateProgress(uid, it.missionType, it.mid, zone) }
-                .map { convertToCheckInResult(uid, it.missionType, it.mid, it) }
+        val joinedMissions = missions.filter { isJoined(uid, it.missionType, it.mid) }
+
+        val joinedMissionListItem = joinedMissions.map { aggregateMissionListItem(uid, it, zone) }
+
+        // update MissionProgressDoc since we only get the message when we update the progress
+        // This is ugly but I don't have time to re-write `aggregateMissionListItem` right now.
+        // TODO: fix the n*n complexity here :(
+        joinedMissions.map {
+            val progressDoc = updateProgress(uid, it.missionType, it.mid, zone)
+            for (missionListItem in joinedMissionListItem) {
+                if (missionListItem.mid == progressDoc?.mid) {
+                    missionListItem.progress = progressDoc.toProgressResponse()
+                }
+            }
+        }
+        return joinedMissionListItem
     }
 
     private fun isJoined(uid: String, missionType: String, mid: String): Boolean {
@@ -441,21 +453,5 @@ class MissionService @Inject constructor(
 
         log.info("update progress, mid=$mid, type=$missionType")
         return missionQualifier.updateProgress(uid, mid, MissionType.from(missionType), zone)
-    }
-
-    private fun convertToCheckInResult(
-            uid: String,
-            missionType: String,
-            mid: String,
-            progress: MissionProgressDoc
-    ): MissionCheckInResult {
-        val status = missionRepository.getJoinStatus(uid, missionType, mid)?.status ?: 0
-
-        return MissionCheckInResult(mapOf(
-                "mid" to mid,
-                "missionType" to missionType,
-                "status" to status,
-                "progress" to progress.toProgressResponse()
-        ))
     }
 }
