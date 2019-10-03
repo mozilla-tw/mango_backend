@@ -3,32 +3,32 @@ package org.mozilla.msrp.platform.vertical.content.data
 import com.opencsv.bean.CsvBindByName
 import com.opencsv.bean.CsvToBeanBuilder
 import org.mozilla.msrp.platform.util.hash
-import java.io.File
-import java.io.FileReader
+import java.io.ByteArrayInputStream
+import java.io.InputStreamReader
 
 
 // TODO: remove the file after parsing. Or just change to IO stream
-fun parseContent(version: Int, bannerFile: File?, listFile: File): ContentResponse {
+fun parseContent(version: Int, bannerBytes: ByteArray?, listItemBytes: ByteArray): ContentResponse {
 
     val subCategories = mutableListOf<Subcategory>()
 
 
     // add banner Subcategory
-    val bannerSubCategory = parseBanner(bannerFile)
+    val bannerSubCategory = parseBanner(bannerBytes)
     if (bannerSubCategory != null) {
         subCategories.add(bannerSubCategory)
     }
 
     // get other Subcategory
-    val otherSubcategory = parseOthers(listFile)
+    val otherSubcategory = parseOthers(listItemBytes)
 
     subCategories.addAll(otherSubcategory)
 
     return ContentResponse(version, subCategories)
 }
 
-private fun parseOthers(listFile: File): List<Subcategory> {
-    val csvEntryList = CsvToBeanBuilder<CsvEntry>(FileReader(listFile)).withType(CsvEntry::class.java).build().parse()
+private fun parseOthers(bytes: ByteArray): List<Subcategory> {
+    val csvEntryList = CsvToBeanBuilder<CsvEntry>(InputStreamReader(ByteArrayInputStream(bytes))).withType(CsvEntry::class.java).build().parse()
 
     // collect sub-categories
     val subCategorySet = linkedSetOf<Subcategory>()
@@ -69,10 +69,10 @@ private fun parseOthers(listFile: File): List<Subcategory> {
 
 }
 
-private fun parseBanner(bannerFile: File?): Subcategory? {
-    if (bannerFile == null) return null
+private fun parseBanner(bytes: ByteArray?): Subcategory? {
+    if (bytes == null) return null
     val bannerItems = mutableListOf<Item>()
-    val csvEntryList = CsvToBeanBuilder<CsvEntry>(FileReader(bannerFile)).withType(CsvEntry::class.java).build().parse()
+    val csvEntryList = CsvToBeanBuilder<CsvEntry>(InputStreamReader(ByteArrayInputStream(bytes))).withType(CsvEntry::class.java).build().parse()
     for (content in csvEntryList) {
         bannerItems.add(Item(
                 content.source_name ?: break,
