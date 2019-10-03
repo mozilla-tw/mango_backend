@@ -182,13 +182,18 @@ open class RewardRepository @Inject constructor(
             coupons: List<String>,
             couponName: String,
             missionType: String,
-            mid: String
+            mid: String,
+            clear: Boolean
     ): List<RewardCouponDoc> {
         val collection = firestore.collection(couponName)
         val createdTime = clock.instant().toEpochMilli()
 
         val mission = missionRepository.findMission(missionType, mid)
                 ?: return emptyList()
+
+        if (!clear && collection.getResultsUnchecked().isNotEmpty()) {
+            return listOf()
+        }
 
         clearCollection(collection)
 
