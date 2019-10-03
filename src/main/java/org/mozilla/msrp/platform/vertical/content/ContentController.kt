@@ -88,12 +88,12 @@ class ContentController @Inject constructor(private val contentRepository: Conte
         }
 
         try {
-            var bannerFile: File? = null
-            val otherFile = convertMultiPartToFile(other)
+            var bannerBytes: ByteArray? = null
+            val listItemBytes = other.bytes
             if (banner != null && !banner.isEmpty) {
-                bannerFile = convertMultiPartToFile(banner)
+                bannerBytes = banner.bytes
             }
-            val parseContent = parseContent(SHOPPING_SCHEMA_VERSION, bannerFile, otherFile)
+            val parseContent = parseContent(SHOPPING_SCHEMA_VERSION, bannerBytes, listItemBytes)
             val data = mapper.writeValueAsString(parseContent)
             val publishDocId = contentRepository.addContent(AddContentRequest(SHOPPING_SCHEMA_VERSION, tag, safeCategory, locale, data))
             if (publishDocId == null) {
@@ -104,12 +104,12 @@ class ContentController @Inject constructor(private val contentRepository: Conte
             return publishContent(category, locale, publishDocId)
 
         } catch (iOException: IOException) {
-            val message = "[Shopping][Error]==== uploading file: ${other.originalFilename}"
+            val message = "[Shopping][IOException]==== uploading file: ${other.originalFilename}"
             log.error("$message====$iOException")
             return ResponseEntity.badRequest().body(message)
 
         } catch (jsonProcessingException: JsonProcessingException) {
-            val message = "[Shopping][Error]==== uploading file: ${other.originalFilename}"
+            val message = "[Shopping][jsonProcessingException]==== uploading file: ${other.originalFilename}"
             log.error("$message====$jsonProcessingException")
             return ResponseEntity.badRequest().body(message)
         }
