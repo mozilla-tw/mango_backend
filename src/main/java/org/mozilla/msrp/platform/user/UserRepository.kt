@@ -62,8 +62,9 @@ class UserRepository @Inject constructor(firestore: Firestore) {
             // if the user is deprecated, fail fast
             val userDocFxA = findUserDocumentByFxUid(fxUid)
             if (userDocFxA?.status == UserDoc.STATUS_SUSPEND) {
-                logger.info("UserDoc[$userDocIdFxA] is deprecated")
-                return LoginResponse.Fail("UserDoc[$userDocIdFxA] is deprecated")
+                logger.info("UserDoc[$userDocIdFxA] is ${UserDoc.STATUS_SUSPEND}")
+                logUserActivity(userDocIdFxA, UserDoc.STATUS_SUSPEND)   // suspended user logs in again and is still suspended.
+                return LoginResponse.UserSuspended("UserDoc[$userDocIdFxA] is ${UserDoc.STATUS_SUSPEND}")
             }
             // get the sign-in count for the last 7 days
             val signInCountLast7DAYS: Int = signInCountLast7DAYS(userDocIdFxA)
@@ -122,8 +123,8 @@ class UserRepository @Inject constructor(firestore: Firestore) {
             // add account activity
             logUserActivity(userDocIdFb, UserDoc.STATUS_SIGN_IN)
 
-            logger.info("UserDoc is promoted [$userDocIdFxA] has logged in")
-            return LoginResponse.Success("UserDoc is promoted [$userDocIdFxA] has logged in")
+            logger.info("UserDoc is promoted [$userDocIdFxA] just logged in")
+            return LoginResponse.Success("UserDoc is promoted [$userDocIdFxA] just logged in")
         }
     }
 

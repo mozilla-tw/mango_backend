@@ -1,9 +1,11 @@
 package org.mozilla.msrp.platform.user;
 
+import lombok.extern.log4j.Log4j2;
 import org.json.JSONException;
 import org.mozilla.msrp.platform.common.auth.JwtHelper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,7 +19,7 @@ import java.util.HashMap;
 import static org.mozilla.msrp.platform.common.auth.JwtHelper.ROLE_MSRP_ADMIN;
 import static org.mozilla.msrp.platform.common.auth.JwtHelper.ROLE_PUBLISH_ADMIN;
 
-
+@Log4j2
 @RestController
 public class UserController {
     private UserRepository userRepository;
@@ -29,70 +31,75 @@ public class UserController {
         firefoxAccountService = service;
     }
 
-    @RequestMapping("/api/v1/done")
-    String done(@RequestParam(value = "jwt") String jwt, @RequestParam(value = "fxaAccessToken") String fxaAccessToken) {
-        if (jwt == null || jwt.length() == 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "GWT generation failed");
-        }
-        return "Debug:jwt[" + jwt + "]  [" + fxaAccessToken + "], closing the webview";
+    // when the client sees this API, close the WebView
+    @GetMapping("/api/v1/done")
+    void done() {
     }
 
-    @RequestMapping("/api/v1/login")
-    ResponseEntity<LoginResponse> login(@RequestParam(value = "code") String code,
-                                        @RequestParam(value = "state") String state,
-                                        HttpServletResponse httpResponse) {    // need HttpServletResponse to redirect
+    @GetMapping("/api/v1/login")
+    void login(@RequestParam(value = "code") String code,
+               @RequestParam(value = "state") String state,
+               HttpServletResponse httpResponse) {    // need HttpServletResponse to redirect
 
         try {
             FxaTokenRequest fxaTokenRequest = firefoxAccountService.genFxaTokenRequest(code);
             String fxaAccessToken = firefoxAccountService.token(fxaTokenRequest);
             if (fxaAccessToken == null) {
-                return new ResponseEntity<>(new LoginResponse.Fail("error in Fxa token api"), HttpStatus.INTERNAL_SERVER_ERROR);
+                log.error("[login][" + state + "] Fxa token api");
+                httpResponse.sendRedirect("/api/v1/done?login_success=false");
+                return;
             }
 
             FxaProfileResponse profileResponse = firefoxAccountService.profile("Bearer " + fxaAccessToken);
 
             if (profileResponse == null) {
-                return new ResponseEntity<>(new LoginResponse.Fail("error in Fxa token api"), HttpStatus.INTERNAL_SERVER_ERROR);
+                log.error("[login][" + state + "] Fxa profile api");
+                httpResponse.sendRedirect("/api/v1/done?login_success=false");
+                return;
             }
 
             String fxUid = profileResponse.getUid();
             String fxEmail = profileResponse.getEmail();
 
             if (fxUid == null || fxEmail == null) {
-                return new ResponseEntity<>(new LoginResponse.Fail("error in Fxa token api"), HttpStatus.INTERNAL_SERVER_ERROR);
+                log.error("[login][" + state + "] Fxa profile api");
+                httpResponse.sendRedirect("/api/v1/done?login_success=false");
+                return;
             }
 
             if (ROLE_PUBLISH_ADMIN.equals(state) && userRepository.isPublishAdmin(fxEmail)) {
                 String token = JwtHelper.createToken(ROLE_PUBLISH_ADMIN);
+                log.info("[login][" + state + "] ROLE_PUBLISH_ADMIN");
                 httpResponse.sendRedirect("/api/v1/admin/publish?token=" + token);
-                return new ResponseEntity<>(HttpStatus.PERMANENT_REDIRECT);
+                return;
             }
 
             if (ROLE_MSRP_ADMIN.equals(state) && userRepository.isMsrpAdmin(fxEmail)) {
                 String token = JwtHelper.createToken(ROLE_MSRP_ADMIN);
+                log.info("[login][" + state + "] ROLE_PUBLISH_ADMIN");
                 httpResponse.sendRedirect("/api/v1/admin/msrp?token=" + token);
-                return new ResponseEntity<>(HttpStatus.PERMANENT_REDIRECT);
+                return;
             }
             String oldFbUid = state;
             LoginResponse loginResponse = userRepository.signInAndUpdateUserDocument(oldFbUid, fxUid, fxEmail);
+
+            HashMap<String, String> additionalClaims = new HashMap<>();
+            additionalClaims.put("fxuid", fxUid);
+            additionalClaims.put("oldFbUid", oldFbUid);
+            String customToken = userRepository.createCustomToken(oldFbUid, additionalClaims);
+            // log are handled in the repository
             if (loginResponse instanceof LoginResponse.Success) {
-                HashMap<String, String> additionalClaims = new HashMap<>();
-                additionalClaims.put("fxuid", fxUid);
-                additionalClaims.put("oldFbUid", oldFbUid);
-                String customToken = userRepository.createCustomToken(oldFbUid, additionalClaims);
-                // We don't really need this info. Just to let client intercept the url and close the webview.
-                // TODO: remove below debugging information
-                httpResponse.sendRedirect("/api/v1/done?jwt=" + customToken + "&fxaAccessToken=" + fxaAccessToken);
-                return new ResponseEntity<>(HttpStatus.PERMANENT_REDIRECT);
+                httpResponse.sendRedirect("/api/v1/done?jwt=" + customToken + "&login_success=true&disabled=false&times=1");
             } else if (loginResponse instanceof LoginResponse.SuspiciousWarning) {
-                return new ResponseEntity<>(loginResponse, HttpStatus.PARTIAL_CONTENT);
+                httpResponse.sendRedirect("/api/v1/done?jwt=" + customToken + "&login_success=true&disabled=false&times=2");
             } else if (loginResponse instanceof LoginResponse.UserSuspended) {
-                return new ResponseEntity<>(loginResponse, HttpStatus.UNAUTHORIZED);
+                httpResponse.sendRedirect("/api/v1/done?jwt=" + customToken + "&login_success=true&disabled=true&times=3");
+            } else {
+                httpResponse.sendRedirect("/api/v1/done?login_success=false");
             }
 
-            return new ResponseEntity<>(loginResponse, HttpStatus.BAD_REQUEST);
-
         } catch (IOException | JSONException e) {
+            log.error("[login][" + state + "] Exception:" + e);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getLocalizedMessage());
         }
     }
