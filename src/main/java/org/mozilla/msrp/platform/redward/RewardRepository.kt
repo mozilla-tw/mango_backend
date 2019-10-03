@@ -14,6 +14,7 @@ import org.mozilla.msrp.platform.mission.MissionDoc
 import org.mozilla.msrp.platform.mission.MissionJoinDoc
 import org.mozilla.msrp.platform.mission.MissionRepository
 import org.mozilla.msrp.platform.mission.isExpired
+import org.mozilla.msrp.platform.user.UserRepository
 import java.time.Clock
 import java.time.ZoneOffset
 import java.time.ZoneId
@@ -33,6 +34,7 @@ sealed class RedeemResult(val debugInfo: String) {
 open class RewardRepository @Inject constructor(
 
         private val missionRepository: MissionRepository,
+        private val userRepository: UserRepository,
         private val firestore: Firestore) {
 
     @Inject
@@ -48,6 +50,12 @@ open class RewardRepository @Inject constructor(
      * @return RedeemResult
      * */
     fun redeem(missionType: String, mid: String, uid: String, zoneId: ZoneId): RedeemResult {
+
+        if (userRepository.isFxaUser(uid)) {
+            return RedeemResult.InvalidReward(
+                    "You need to sign In Firefox Account first",
+                    "Redeem but not signed in [$missionType] mid[$mid] uid[$uid]")
+        }
 
         // check if the reward is expired
         val findMission = missionRepository.findMission(missionType, mid)
