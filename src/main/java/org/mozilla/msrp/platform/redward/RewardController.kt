@@ -1,5 +1,6 @@
 package org.mozilla.msrp.platform.redward
 
+import com.sun.org.apache.xpath.internal.operations.Bool
 import org.mozilla.msrp.platform.common.auth.JwtHelper
 import org.mozilla.msrp.platform.util.logger
 import org.springframework.http.HttpStatus
@@ -81,7 +82,8 @@ class RedeemController @Inject constructor(val rewardRepository: RewardRepositor
                                @RequestParam("couponName") couponName: String,
                                @RequestParam("file") file: MultipartFile,
                                @RequestParam("missionType") missionType: String,
-                               @RequestParam("mid") mid: String): ResponseEntity<CouponUploadResponse> {
+                               @RequestParam("mid") mid: String,
+                               @RequestParam(required = false) clear: Boolean = false): ResponseEntity<CouponUploadResponse> {
         if (JwtHelper.verify(token) != JwtHelper.ROLE_MSRP_ADMIN) {
             logger.warn("[Reward][uploadCoupons] Role violation: token[$token] couponName[$couponName] missionType[$missionType] mid[$mid]")
             return ResponseEntity(CouponUploadResponse.Fail("No Permission"), HttpStatus.UNAUTHORIZED)
@@ -100,7 +102,8 @@ class RedeemController @Inject constructor(val rewardRepository: RewardRepositor
                     "separate coupon codes into separated lines"))
         }
 
-        val couponDocs = rewardRepository.uploadCoupons(coupons, couponName, missionType, mid)
+        val couponDocs = rewardRepository.uploadCoupons(coupons, couponName, missionType, mid, clear)
+
         return ResponseEntity.ok(CouponUploadResponse.Success("${couponDocs.size} coupons uploaded"))
     }
 }
