@@ -216,6 +216,11 @@ class UserRepository @Inject constructor(firestore: Firestore) {
         }
         return null
     }
+
+    fun isFxaUser(uid: String): Boolean {
+        val fxUid = users.whereEqualTo(UserDoc.KEY_UID, uid).getResultsUnchecked().firstOrNull()?.get(UserDoc.KEY_FIREFOX_UID) as? String?
+        return fxUid?.isEmpty() ?: false
+    }
 }
 
 sealed class LoginResponse {
