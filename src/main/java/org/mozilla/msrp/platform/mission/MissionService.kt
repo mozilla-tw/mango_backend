@@ -170,7 +170,7 @@ class MissionService @Inject constructor(
                 title = name,
                 description = description,
                 joinEndpoint = "/api/v1/missions/${missionDoc.missionType}/${missionDoc.mid}",
-                redeemEndpoint = "/api/v1/redeem/${missionDoc.missionType}&mid=${missionDoc.mid}",
+                redeemEndpoint = "/api/v1/redeem/${missionDoc.missionType}?mid=${missionDoc.mid}",
                 events = missionDoc.interestPings,
                 expiredDate = expiredInstant.toEpochMilli(),
                 status = joinStatus,
