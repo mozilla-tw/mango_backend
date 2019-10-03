@@ -60,6 +60,8 @@
 <hr>
 <form action="/api/v1/admin/coupon" method="post" enctype="multipart/form-data">
 
+    <input type="hidden" name="token" th:value="${token}">
+
     couponName<input type="text" name="couponName"><br>
     file<input type="file" name="file"><br>
     missionType<input type="text" name="missionType" value="mission_daily"><br>

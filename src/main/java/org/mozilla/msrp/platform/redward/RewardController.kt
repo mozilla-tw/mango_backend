@@ -49,19 +49,19 @@ class RedeemController @Inject constructor(val rewardRepository: RewardRepositor
             }
             is RedeemResult.UsedUp -> {
                 logger.info(redeemResult.debugInfo)
-                ResponseEntity(RedeemResponse.Fail("No reward left"), HttpStatus.NOT_FOUND)
+                ResponseEntity(RedeemResponse.Fail(redeemResult.message), HttpStatus.NOT_FOUND)
             }
             is RedeemResult.NotReady -> {
                 logger.info(redeemResult.debugInfo)
-                ResponseEntity(RedeemResponse.Fail("Not ready to redeem"), HttpStatus.FORBIDDEN)
+                ResponseEntity(RedeemResponse.Fail(redeemResult.message), HttpStatus.FORBIDDEN)
             }
             is RedeemResult.InvalidReward -> {
                 logger.info(redeemResult.debugInfo)
-                ResponseEntity(RedeemResponse.Fail("Invalid reward"), HttpStatus.BAD_REQUEST)
+                ResponseEntity(RedeemResponse.Fail(redeemResult.message), HttpStatus.BAD_REQUEST)
             }
             is RedeemResult.Failure -> {
                 logger.error(redeemResult.debugInfo)
-                ResponseEntity(RedeemResponse.Fail("Not able to redeem"), HttpStatus.INTERNAL_SERVER_ERROR)
+                ResponseEntity(RedeemResponse.Fail(redeemResult.message), HttpStatus.INTERNAL_SERVER_ERROR)
             }
         }
     }
@@ -82,15 +82,20 @@ class RedeemController @Inject constructor(val rewardRepository: RewardRepositor
                                @RequestParam("file") file: MultipartFile,
                                @RequestParam("missionType") missionType: String,
                                @RequestParam("mid") mid: String): ResponseEntity<CouponUploadResponse> {
-        if (JwtHelper.verify(token) !== JwtHelper.ROLE_MSRP_ADMIN) {
+        if (JwtHelper.verify(token) != JwtHelper.ROLE_MSRP_ADMIN) {
+            logger.warn("[Reward][uploadCoupons] Role violation: token[$token] couponName[$couponName] missionType[$missionType] mid[$mid]")
             return ResponseEntity(CouponUploadResponse.Fail("No Permission"), HttpStatus.UNAUTHORIZED)
         }
         if (file.isEmpty) {
+            logger.warn("[Reward][uploadCoupons] Empty file: token[$token] couponName[$couponName] missionType[$missionType] mid[$mid]")
+
             return ResponseEntity.badRequest().body(CouponUploadResponse.Fail("empty coupon file"))
         }
 
         val coupons = file.inputStream.bufferedReader().readLines()
         if (coupons.isEmpty()) {
+            logger.warn("[Reward][uploadCoupons] No content: token[$token] couponName[$couponName] missionType[$missionType] mid[$mid]")
+
             return ResponseEntity.badRequest().body(CouponUploadResponse.Fail("illegal coupon file format, please " +
                     "separate coupon codes into separated lines"))
         }
