@@ -8,7 +8,7 @@ class GoogleNewsFeedService @Inject constructor(private val googleRssFeedReposit
 
     fun getNews(language: String) = googleRssFeedRepository.news(language)
 
-    fun getNews(language: String, topic: String) = googleRssFeedRepository.news(language, topic)
+    fun getNews(topic: String, hl: String, gl: String, ceid: String) = googleRssFeedRepository.news(topic, hl, gl, ceid)
 
 }
 
