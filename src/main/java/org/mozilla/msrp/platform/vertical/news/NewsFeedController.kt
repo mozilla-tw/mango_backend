@@ -119,8 +119,7 @@ class NewsFeedController @Inject constructor(
             "SHOWBIZ" to "13",
             "FASHION" to "842",
             "PARENTING" to "1065",
-            "LIFESTYLE" to "908",
-            "ZODIAK" to "601")
+            "LIFESTYLE" to "908")
 
     private val detikTopic = mapOf(
             "17" to "hot",
