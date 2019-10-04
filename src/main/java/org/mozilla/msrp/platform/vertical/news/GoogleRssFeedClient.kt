@@ -16,10 +16,8 @@ interface GoogleRssFeedClient {
     @GET("rss")
     fun rss(@Query("hl") language: String): Call<GoogleRss>
 
-    @GET("rss/headlines/section/topic/{topic}")
-    fun rss(
-        @Path("topic") topic: String,
-        @Query("hl") language: String): Call<GoogleRss>
+    @GET("rss/headlines/section/topic/{topic}?pz=1&cf=all")
+    fun rss(@Path("topic") topic: String, @Query("hl") hl: String, @Query("gl") gl: String, @Query("ceid") ceid: String): Call<GoogleRss>
 
 }
 
@@ -33,10 +31,10 @@ class GoogleRssFeedClientConfiguration {
         val client = OkHttpClient.Builder().addInterceptor(interceptor).build()
 
         return Retrofit.Builder()
-            .baseUrl("https://news.google.com/")
-            .client(client)
-            .addConverterFactory(SimpleXmlConverterFactory.create())
-            .build()
-            .create(GoogleRssFeedClient::class.java)
+                .baseUrl("https://news.google.com/")
+                .client(client)
+                .addConverterFactory(SimpleXmlConverterFactory.create())
+                .build()
+                .create(GoogleRssFeedClient::class.java)
     }
 }

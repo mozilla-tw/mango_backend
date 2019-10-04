@@ -34,24 +34,25 @@ class NewsFeedController @Inject constructor(
     @GetMapping("/api/v1/news/google/topic/{topic}")
     internal fun googleNewsByTopic(
             @PathVariable("topic") topic: String,
-            @RequestParam(value = "language") language: String,
-            @RequestParam(value = "country") country: String): ResponseEntity<List<FeedItem>> {
+            @RequestParam hl: String,
+            @RequestParam gl: String,
+            @RequestParam ceid: String): ResponseEntity<List<FeedItem>> {
 
-        log.info("[NEWS]====loading Google news [$topic][$country]")
+        log.info("[NEWS]====loading Google news [$topic][$hl][$gl][$ceid]")
 
         val containsTopic = googleNewsTopic().contains(topic)
         if (!containsTopic) {
             return ResponseEntity(listOf(), HttpStatus.BAD_REQUEST)
         }
-        val cache = cacheGoogleNews.get(topic + delimiters + language)
-        log.info("[NEWS]====cache Google news [${cache}]")
+        val key = topic + delimiters + hl + delimiters + gl + delimiters + ceid
+        val cache = cacheGoogleNews.get(key)
+        log.info("[NEWS]====cache Google news key[${key}]")
 
         if (cache == null || cache.isEmpty()) {
-            log.info("[NEWS]====cache Google news [${cache.size}]")
 
             return ResponseEntity(listOf(), HttpStatus.NO_CONTENT)
         }
-
+        log.info("[NEWS]====cache Google news [${cache.size}]")
 
         return ResponseEntity(cache, HttpStatus.OK)
     }
@@ -69,10 +70,10 @@ class NewsFeedController @Inject constructor(
                         override fun load(key: String): List<FeedItem> {
 
                             val split = key.split(delimiters)
-                            if (split.size != 2) {
+                            if (split.size != 4) {
                                 return listOf()
                             }
-                            return googleNewsFeedService.getNews(split[1], split[0]) ?: listOf()
+                            return googleNewsFeedService.getNews(split[0], split[1], split[2], split[3]) ?: listOf()
                         }
                     })
 

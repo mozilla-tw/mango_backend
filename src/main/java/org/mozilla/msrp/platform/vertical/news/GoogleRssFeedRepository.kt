@@ -16,10 +16,10 @@ class GoogleRssFeedRepository @Inject constructor(private val googleRssFeedClien
         return rss?.feedItems
     }
 
-    fun news(language: String, topic: String): List<FeedItem>? {
+    fun news(topic: String, hl: String, gl: String, ceid: String): List<FeedItem>? {
 
 
-        val rss = googleRssFeedClient.rss(topic, language).execute().body()
+        val rss = googleRssFeedClient.rss(topic, hl, gl, ceid).execute().body()
         println("---news----google----"+rss?.feedItems?.size)
         return rss?.feedItems
     }
