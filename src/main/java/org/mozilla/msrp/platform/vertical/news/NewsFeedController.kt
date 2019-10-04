@@ -115,7 +115,7 @@ class NewsFeedController @Inject constructor(
             "BOLA" to "11",
             "E-SPORTS" to "1071",
             "RAGAM" to "486",
-            "INDONESIAv" to "423",
+            "INDONESIA" to "423",
             "SHOWBIZ" to "13",
             "FASHION" to "842",
             "PARENTING" to "1065",
