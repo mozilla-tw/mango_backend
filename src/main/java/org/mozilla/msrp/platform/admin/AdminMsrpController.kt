@@ -13,8 +13,8 @@ class AdminMsrpController {
     @GetMapping("/api/v1/admin/msrp")
     fun adminPublish(@RequestParam token: String, model: Model): String {
         val role = JwtHelper.verify(token)
-        model.addAttribute("token", token)
         if (role == JwtHelper.ROLE_MSRP_ADMIN) {
+            model.addAttribute("token", token)
             return "msrp"
         }
         return "401"

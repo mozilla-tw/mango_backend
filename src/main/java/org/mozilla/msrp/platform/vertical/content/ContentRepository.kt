@@ -12,6 +12,8 @@ import org.mozilla.msrp.platform.firestore.getUnchecked
 import org.mozilla.msrp.platform.firestore.toObject
 import org.mozilla.msrp.platform.util.logger
 import org.mozilla.msrp.platform.vertical.content.data.Category
+import org.mozilla.msrp.platform.vertical.content.db.PublishControlDoc
+import org.mozilla.msrp.platform.vertical.content.db.PublishDoc
 import org.springframework.stereotype.Repository
 import java.lang.Exception
 import java.nio.charset.StandardCharsets.UTF_8
@@ -157,6 +159,10 @@ class ContentRepository @Inject constructor(private var storage: Storage,
             listOf()
         }
     }
+
+    fun getContentByPublishDocId(publishDocId: String): PublishDoc? {
+        return publish.document(publishDocId).getUnchecked().toObject(PublishDoc::class.java)
+    }
     /**
     publish/{publishID}/
     schema_version{v1,v2}
@@ -180,17 +186,8 @@ class AddContentRequest(
         val data: String
 )
 
-class PublishDoc(
-        var schema_version: Int? = null,
-        var category: String? = null,
-        var locale: String? = null,
-        var created_timestamp: Long? = null,
-        var data: Category? = null
-)
 
-class PublishControlDoc(
-        var version: Int = 0
-)
+
 
 sealed class ContentRepoResult {
     class Success(val category: Category) : ContentRepoResult()

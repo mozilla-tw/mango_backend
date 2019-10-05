@@ -1,0 +1,72 @@
+<! DOCTYPE html>
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+<body>
+
+<h1>Preview Content</h1>
+
+<hr>
+
+<table border="1" cellspacing="1" cellpadding="5">
+    <tr>
+        <td>
+            created_at
+        </td>
+        <td>country</td>
+        <td>source_name</td>
+        <td>source_type</td>
+        <td>partner</td>
+        <td>vertical_name</td>
+        <td>vertical_id</td>
+        <td>category_name</td>
+        <td>category_id</td>
+        <td>subcategory_name</td>
+        <td>subcategory_id</td>
+        <td>component_type_name</td>
+        <td>component_type_id</td>
+        <td>image_type</td>
+        <td>image</td>
+        <td>destination</td>
+        <td>title</td>
+        <td>description</td>
+        <td>score</td>
+        <td>score_reviews</td>
+        <td>price</td>
+        <td>discount</td>
+        <td>fresh</td>
+        <td>start_date</td>
+        <td>end_date</td>
+    </tr>
+    <div th:each="subcat : ${publishDoc.data.subcategories}" th:remove="tag">
+        <tr th:each="item : ${subcat.items}">
+            <td th:text="${item.created_at}"> -</td>
+            <td th:text="${item.country}"> -</td>
+            <td th:text="${item.source_name}"> -</td>
+            <td th:text="${item.source_type}"> -</td>
+            <td th:text="${item.partner}"> -</td>
+            <td th:text="${item.vertical_name}"> -</td>
+            <td th:text="${item.vertical_id}"> -</td>
+            <td th:text="${item.category_name}"> -</td>
+            <td th:text="${item.category_id}"> -</td>
+            <td th:text="${item.subcategory_name}"> -</td>
+            <td th:text="${item.subcategory_id}"> -</td>
+            <td th:text="${item.component_type_name}"> -</td>
+            <td th:text="${item.component_type_id}"> -</td>
+            <td th:text="${item.image_type}"> -</td>
+            <td><img th:src="${item.image}"> -</td>
+            <td th:text="${item.destination}"> -</td>
+            <td th:text="${item.title}"> -</td>
+            <td th:text="${item.description}"> -</td>
+            <td th:text="${item.score}"> -</td>
+            <td th:text="${item.score_reviews}"> -</td>
+            <td th:text="${item.price}"> -</td>
+            <td th:text="${item.discount}"> -</td>
+            <td th:text="${item.fresh}"> -</td>
+            <td th:text="${item.start_date}"> -</td>
+            <td th:text="${item.end_date}"> -</td>
+
+
+        </tr>
+    </div>
+</table>
+
+</body>
