@@ -11,7 +11,7 @@ import org.mozilla.msrp.platform.firestore.getResultsUnchecked
 import org.mozilla.msrp.platform.firestore.getUnchecked
 import org.mozilla.msrp.platform.firestore.toObject
 import org.mozilla.msrp.platform.util.logger
-import org.mozilla.msrp.platform.vertical.content.data.ContentResponse
+import org.mozilla.msrp.platform.vertical.content.data.Category
 import org.springframework.stereotype.Repository
 import java.lang.Exception
 import java.nio.charset.StandardCharsets.UTF_8
@@ -53,7 +53,7 @@ class ContentRepository @Inject constructor(private var storage: Storage,
             val bytes = storage.readAllBytes(blobId)
             val str = String(bytes, UTF_8)
 
-            ContentRepoResult.Success(mapper.readValue(str, ContentResponse::class.java))
+            ContentRepoResult.Success(mapper.readValue(str, Category::class.java))
         } catch (e: StorageException) {
             val message = "error loading games"
             log.error("[Games]====$message====$e")
@@ -65,7 +65,7 @@ class ContentRepository @Inject constructor(private var storage: Storage,
     fun getContentFromDB(contentRepoQuery: ContentRepoQuery): ContentRepoResult {
         return try {
 
-            val publishDocId = publishControl(contentRepoQuery.category, contentRepoQuery.locale).getUnchecked()["publishDocId"] as? String
+            val publishDocId = pickPublishControl(contentRepoQuery.category, contentRepoQuery.locale).getUnchecked()["publishDocId"] as? String
             if (publishDocId == null) {
                 val message = "[Content]====No result for :$contentRepoQuery"
                 log.warn(message)
@@ -88,18 +88,30 @@ class ContentRepository @Inject constructor(private var storage: Storage,
     }
 
     fun addContent(request: AddContentRequest): String? {
+        // todo: consider make it a transaction
         try {
+            val publishControlDoc: PublishControlDoc? = getPublishControlDoc().getUnchecked().toObject(PublishControlDoc::class.java)
+            if (publishControlDoc == null) {
+                log.error("[ContentRepository][addContent]====Can't get PublishControlDoc document")
+                return null
+
+            }
+            // this is slow. But we don't have too much write for now so we don't use distributed counter
+            val newVersion = publishControlDoc.version++
+            // write the new version first in case the next operation fails
+            getPublishControlDoc().set(publishControlDoc, SetOptions.merge())
+
             val publishDoc = PublishDoc(
-                    request.schemaVersion,
+                    newVersion,
                     request.category,
                     request.locale,
                     clock.millis(),
-                    mapper.readValue(request.data, ContentResponse::class.java))
+                    mapper.readValue(request.data, Category::class.java))
             val document = publish.document()
             document.set(publishDoc).getUnchecked()
             return document.id
         } catch (e: Exception) {
-            log.error("[Content]====addContent====$e")
+            log.error("[ContentRepository][addContent]====$e")
             return null
         }
     }
@@ -107,7 +119,7 @@ class ContentRepository @Inject constructor(private var storage: Storage,
     fun publish(category: String, locale: String, publishDocId: String, editorUid: String) {
         try {
             // TODO: make it a transaction
-            publishControl(category, locale).set(
+            pickPublishControl(category, locale).set(
                     mapOf("publishDocId" to publishDocId), SetOptions.merge()).getUnchecked()
 
             updatePublishHistory(publishDocId, editorUid)
@@ -125,7 +137,8 @@ class ContentRepository @Inject constructor(private var storage: Storage,
                 )).getUnchecked()
     }
 
-    private fun publishControl(category: String, locale: String) = publishControl.document("v1").collection(category).document(locale)
+    private fun pickPublishControl(category: String, locale: String) = publishControl.document("v1").collection(category).document(locale)
+    private fun getPublishControlDoc() = publishControl.document("v1")
 
 
     fun queryPublish(contentRepoQuery: ContentRepoQuery): List<PublishDoc> {
@@ -145,23 +158,22 @@ class ContentRepository @Inject constructor(private var storage: Storage,
         }
     }
     /**
-         publish/{publishID}/
-                  schema_version{v1,v2}
-                  type{coupon/deals}
-                  locale{id-ID/en-IN}
-                  data:
-                  /*JSON for client*/
-         publishHistory/{historyId}
-                  publishDocId
-                  publish Date
-                  editorUid
-         publishControl       // only one document.
-                  v1/content_shopping/
-    */
+    publish/{publishID}/
+    schema_version{v1,v2}
+    type{coupon/deals}
+    locale{id-ID/en-IN}
+    data:
+    /*JSON for client*/
+    publishHistory/{historyId}
+    publishDocId
+    publish Date
+    editorUid
+    publishControl       // only one document.
+    v1/content_shopping/
+     */
 }
 
 class AddContentRequest(
-        val schemaVersion: Int,
         val tag: String,
         val category: String,
         val locale: String,
@@ -173,11 +185,15 @@ class PublishDoc(
         var category: String? = null,
         var locale: String? = null,
         var created_timestamp: Long? = null,
-        var data: ContentResponse? = null
+        var data: Category? = null
+)
+
+class PublishControlDoc(
+        var version: Int = 0
 )
 
 sealed class ContentRepoResult {
-    class Success(val result: ContentResponse) : ContentRepoResult()
+    class Success(val category: Category) : ContentRepoResult()
     class Fail(val message: String) : ContentRepoResult()
 }
 

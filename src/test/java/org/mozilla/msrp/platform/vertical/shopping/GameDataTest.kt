@@ -15,7 +15,7 @@ class ShoppingDataTest {
         val f1 = File(classLoader.getResource(file1)!!.file)
         val f2 = File(classLoader.getResource(file2)!!.file)
 
-        val response = parseContent(1, f1.readBytes(), f2.readBytes())
+        val response = parseContent(f1.readBytes(), f2.readBytes())
 
         var sumItems = 0
         for (subcategory in response.subcategories) {
