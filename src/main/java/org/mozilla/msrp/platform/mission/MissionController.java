@@ -1,6 +1,7 @@
 package org.mozilla.msrp.platform.mission;
 
 import lombok.extern.log4j.Log4j2;
+import org.mozilla.msrp.platform.common.auth.Auth;
 import org.mozilla.msrp.platform.common.auth.JwtHelper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,24 +25,24 @@ public class MissionController {
 
     /**
      * Fetch user requested missions, and aggregate data that is needed by client
-     *
+     * <p>
      * Request
      * GET /group/{groupId}/missions
-     *
+     * <p>
      * Response
      * [
-     *  {
-     *      "mid": "wsF1OHt3CrtrGbAyT8xo",
-     *      "title": "...",
-     *      "description": "...",
-     *      "endpoint": "/mission_daily/wsF1OHt3CrtrGbAyT8xo"
-     *  },
-     *  {
-     *      "mid": "5quMPsVLh0wims22pstL",
-     *      "title": "...",
-     *      "description": "...",
-     *      "endpoint": "/mission_one_shot/wsF1OHt3CrtrGbAyT8xo"
-     *  },
+     * {
+     * "mid": "wsF1OHt3CrtrGbAyT8xo",
+     * "title": "...",
+     * "description": "...",
+     * "endpoint": "/mission_daily/wsF1OHt3CrtrGbAyT8xo"
+     * },
+     * {
+     * "mid": "5quMPsVLh0wims22pstL",
+     * "title": "...",
+     * "description": "...",
+     * "endpoint": "/mission_one_shot/wsF1OHt3CrtrGbAyT8xo"
+     * },
      * ]
      *
      * @param groupId id for audience group
@@ -66,37 +67,37 @@ public class MissionController {
 
     /**
      * Create missions
-     *
+     * <p>
      * Request body
      * {
-     *  "missions": [
-     *      {
-     *          "mid": "wsF1OHt3CrtrGbAyT8xo",
-     *          "title": "...",
-     *          "description": "...",
-     *          "endpoint": "/mission_daily/wsF1OHt3CrtrGbAyT8xo"
-     *      },
-     *      {
-     *          "mid": "5quMPsVLh0wims22pstL",
-     *          "title": "...",
-     *          "description": "...",
-     *          "endpoint": "/mission_one_shot/wsF1OHt3CrtrGbAyT8xo"
-     *      }
-     *  ]
+     * "missions": [
+     * {
+     * "mid": "wsF1OHt3CrtrGbAyT8xo",
+     * "title": "...",
+     * "description": "...",
+     * "endpoint": "/mission_daily/wsF1OHt3CrtrGbAyT8xo"
+     * },
+     * {
+     * "mid": "5quMPsVLh0wims22pstL",
+     * "title": "...",
+     * "description": "...",
+     * "endpoint": "/mission_one_shot/wsF1OHt3CrtrGbAyT8xo"
      * }
-     *
+     * ]
+     * }
+     * <p>
      * Response
      * [
-     *  {
-     *      "mid": "wsF1OHt3CrtrGbAyT8xo",
-     *      "name": "...",
-     *      "description": "..."
-     *  },
-     *  {
-     *      "mid": "5quMPsVLh0wims22pstL",
-     *      "name": "...",
-     *      "description": "..."
-     *  }
+     * {
+     * "mid": "wsF1OHt3CrtrGbAyT8xo",
+     * "name": "...",
+     * "description": "..."
+     * },
+     * {
+     * "mid": "5quMPsVLh0wims22pstL",
+     * "name": "...",
+     * "description": "..."
+     * }
      * ]
      *
      * @param request data needed to create mission
@@ -136,7 +137,8 @@ public class MissionController {
             @RequestParam String pings,
             @RequestParam int minVersion) {
 
-        if (!JwtHelper.ROLE_MSRP_ADMIN.equals(JwtHelper.verify(token))) {
+        Auth verify = JwtHelper.verify(token);
+        if (verify != null && !JwtHelper.ROLE_MSRP_ADMIN.equals(verify.getRole())) {
             return new ResponseEntity("No Permission", HttpStatus.UNAUTHORIZED);
         }
         MissionCreateRequest request = new MissionCreateRequest();
@@ -168,27 +170,27 @@ public class MissionController {
 
     /**
      * Create missions
-     *
+     * <p>
      * Request body
      * {
-     *  "missions": [
-     *     {
-     *         "endpoint": "/mission_daily/ooKv67x8MFzsIr44PfBz"
-     *     },
-     *     {
-     *         "endpoint": "/mission_one_shot/VjTcDnJBHEqlzVjkj8zb"
-     *     }
-     *  ]
+     * "missions": [
+     * {
+     * "endpoint": "/mission_daily/ooKv67x8MFzsIr44PfBz"
+     * },
+     * {
+     * "endpoint": "/mission_one_shot/VjTcDnJBHEqlzVjkj8zb"
      * }
-     *
+     * ]
+     * }
+     * <p>
      * Response
      * [
-     *  {
-     *      "endpoint": "/mission_daily/ooKv67x8MFzsIr44PfBz"
-     *  },
-     *  {
-     *      "endpoint": "/mission_one_shot/VjTcDnJBHEqlzVjkj8zb"
-     *  }
+     * {
+     * "endpoint": "/mission_daily/ooKv67x8MFzsIr44PfBz"
+     * },
+     * {
+     * "endpoint": "/mission_one_shot/VjTcDnJBHEqlzVjkj8zb"
+     * }
      * ]
      *
      * @param groupId group id
@@ -204,15 +206,15 @@ public class MissionController {
 
     /**
      * Join mission
-     *
+     * <p>
      * Response
      * {
-     *      "mid": "",
-     *      "status": "join"
+     * "mid": "",
+     * "status": "join"
      * }
      *
      * @param missionType mission type, which is also the name of the mission collection
-     * @param mid mission id
+     * @param mid         mission id
      * @return response indicating mission id and it's new join status
      */
     @RequestMapping(value = "/api/v1/missions/{missionType}/{mid}", method = POST)
@@ -250,15 +252,15 @@ public class MissionController {
 
     /**
      * Check-in missions that are interest in the give ping
-     *
+     * <p>
      * Response (daily mission as example) // same as /api/v1/group/{groupId}/missions
-     *
+     * <p>
      * Invalid timezone
      * {
-     *     "error": "unsupported timezone"
+     * "error": "unsupported timezone"
      * }
      *
-     * @param ping ping used in Firebase Analytics
+     * @param ping     ping used in Firebase Analytics
      * @param timezone user's timezone in
      */
     @RequestMapping(value = "/api/v1/ping/{ping}", method = PUT)

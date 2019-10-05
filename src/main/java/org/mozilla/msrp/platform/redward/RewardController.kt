@@ -84,7 +84,7 @@ class RedeemController @Inject constructor(val rewardRepository: RewardRepositor
                                @RequestParam("missionType") missionType: String,
                                @RequestParam("mid") mid: String,
                                @RequestParam(required = false) clear: Boolean = false): ResponseEntity<CouponUploadResponse> {
-        if (JwtHelper.verify(token) != JwtHelper.ROLE_MSRP_ADMIN) {
+        if (JwtHelper.verify(token)?.role != JwtHelper.ROLE_MSRP_ADMIN) {
             logger.warn("[Reward][uploadCoupons] Role violation: token[$token] couponName[$couponName] missionType[$missionType] mid[$mid]")
             return ResponseEntity(CouponUploadResponse.Fail("No Permission"), HttpStatus.UNAUTHORIZED)
         }
