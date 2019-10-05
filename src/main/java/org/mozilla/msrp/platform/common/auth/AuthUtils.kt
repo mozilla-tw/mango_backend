@@ -16,7 +16,7 @@ object JwtHelper {
     private const val ISSUER = "org.mozilla.msrp"
     private const val ROLE = "role"
     private const val EMAIL = "email"
-    private const val EXPIRATION = 5 * 60 * 1000  // expired in 5 minutes
+    private const val EXPIRATION = 30 * 60 * 1000  // expired in 50 minutes
 
     private val SECRET = UUID.randomUUID().toString()   // the secret is different every time the server starts
     private val algorithm = Algorithm.HMAC256(SECRET)
