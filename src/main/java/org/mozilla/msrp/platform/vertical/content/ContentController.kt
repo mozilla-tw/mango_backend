@@ -38,15 +38,16 @@ class ContentController @Inject constructor(private val contentService: ContentS
     @GetMapping("/api/v1/content/publish")
     fun publishContent(
             @RequestParam token: String,
-            @RequestParam(value = "category") category: String,
-            @RequestParam(value = "locale") locale: String,
-            @RequestParam(value = "publishDocId") publishDocId: String,
-            @RequestParam(value = "editorUid", required = false) editorUid: String = "admin"
+            @RequestParam category: String,
+            @RequestParam locale: String,
+            @RequestParam publishDocId: String,
+            @RequestParam editorUid: String,
+            @RequestParam(required = false) schedule: String = ""
     ): ResponseEntity<String> {
         if (JwtHelper.verify(token)?.role != JwtHelper.ROLE_PUBLISH_ADMIN) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No Permission")
         }
-        return when (val result = contentService.publish(category, locale, publishDocId, editorUid)) {
+        return when (val result = contentService.publish(category, locale, publishDocId, editorUid, schedule)) {
             ContentServicePublishResult.Done -> ResponseEntity.status(HttpStatus.OK).body("<a href='../content?category=$category&locale=$locale'>preview</a>")
             is ContentServicePublishResult.InvalidParam -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result.message)
         }
@@ -73,7 +74,11 @@ class ContentController @Inject constructor(private val contentService: ContentS
                 val publish = "/api/v1/content/publish?token=$token&category=$category&locale=$locale&publishDocId=${result.publishDocId}&editorUid=${verify.email}"
                 ResponseEntity.status(HttpStatus.OK).body("" +
                         "<a href='$preview'>Preview</a> <BR> " +
-                        "<a href='$publish'>Publish Now</a>")
+                        "<a href='$publish'>Publish Now</a><BR> " +
+                        "<form action=$publish>" +
+                        "<input type='date' name='schedule'>" +
+                        "<input type='submit' value='Schedule Publish'>" +
+                        "</form>")
             }
             is ContentServiceUploadResult.InvalidParam -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result.message)
             is ContentServiceUploadResult.Fail -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result.message)

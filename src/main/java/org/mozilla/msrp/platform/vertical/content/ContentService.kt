@@ -54,14 +54,14 @@ class ContentService @Inject constructor(private val contentRepository: ContentR
         }
     }
 
-    fun publish(category: String, locale: String, publishDocId: String, editorUid: String): ContentServicePublishResult {
+    fun publish(category: String, locale: String, publishDocId: String, editorUid: String, schedule: String): ContentServicePublishResult {
         val safeCategory = safeCategory(category, locale)
         if (safeCategory == null) {
             val message = "Not supported parameters for shopping: $category/$locale"
             log.warn("[ContentService][publish]====$message")
             return ContentServicePublishResult.InvalidParam(message)
         }
-        contentRepository.publish(safeCategory, locale, publishDocId, editorUid)
+        contentRepository.publish(safeCategory, locale, publishDocId, editorUid, schedule)
         return ContentServicePublishResult.Done
     }
 

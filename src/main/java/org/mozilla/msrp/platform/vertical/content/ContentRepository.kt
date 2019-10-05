@@ -15,9 +15,11 @@ import org.mozilla.msrp.platform.vertical.content.data.Category
 import org.mozilla.msrp.platform.vertical.content.db.PublishControlDoc
 import org.mozilla.msrp.platform.vertical.content.db.PublishDoc
 import org.springframework.stereotype.Repository
+import org.threeten.bp.LocalDateTime
 import java.lang.Exception
 import java.nio.charset.StandardCharsets.UTF_8
 import java.time.Clock
+import java.time.Instant
 import javax.inject.Inject
 
 @Repository
@@ -118,24 +120,31 @@ class ContentRepository @Inject constructor(private var storage: Storage,
         }
     }
 
-    fun publish(category: String, locale: String, publishDocId: String, editorUid: String) {
+    fun publish(category: String, locale: String, publishDocId: String, editorUid: String, schedule: String) {
         try {
             // TODO: make it a transaction
             pickPublishControl(category, locale).set(
                     mapOf("publishDocId" to publishDocId), SetOptions.merge()).getUnchecked()
 
-            updatePublishHistory(publishDocId, editorUid)
+            updatePublishHistory(publishDocId, editorUid, schedule)
 
         } catch (e: Exception) {
             log.error("[Content][error]====publish====$e")
         }
     }
 
-    private fun updatePublishHistory(publishDocId: String, editorUid: String) {
+    private fun updatePublishHistory(publishDocId: String, editorUid: String, schedule: String) {
+        val now = if (schedule.isEmpty()){
+            Instant.now()
+        } else {
+            Instant.parse(schedule)
+        }
+
         publishHistory.document().set(
                 mapOf("publishDocId" to publishDocId,
                         "created_timestamp" to clock.millis(),
-                        "editorUid" to editorUid
+                        "editorUid" to editorUid,
+                        "schedule" to now
                 )).getUnchecked()
     }
 
@@ -185,8 +194,6 @@ class AddContentRequest(
         val locale: String,
         val data: String
 )
-
-
 
 
 sealed class ContentRepoResult {
