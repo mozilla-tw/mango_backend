@@ -1,10 +1,8 @@
 package org.mozilla.msrp.platform.vertical.content
 
-import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.mozilla.msrp.platform.common.auth.JwtHelper
 import org.mozilla.msrp.platform.util.logger
-import org.mozilla.msrp.platform.vertical.content.data.parseContent
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RequestMapping
@@ -12,61 +10,47 @@ import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
-import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
 import javax.inject.Inject
 
 
 @RestController
-class ContentController @Inject constructor(private val contentRepository: ContentRepository) {
+class ContentController @Inject constructor(private val contentService: ContentService) {
 
     private val log = logger()
     @Inject
     lateinit var mapper: ObjectMapper
-
-    private val categoryMapping = hashMapOf(
-            "apkGame" to "game_apk",
-            "html5Game" to "game_html5",
-            "shoppingDeal" to "shopping_deal",
-            "shoppingCoupon" to "shopping_coupon")
-    private val supportLocale = listOf("id-ID", "en-IN", "all")
-
-    // TODO: Make this another endpoint
-    // @RequestMapping("/api/v1/content/publish")
-    fun publishContent(@RequestParam(value = "category") category: String,
-                       @RequestParam(value = "locale") locale: String,
-                       @RequestParam(value = "publishDocId") publishDocId: String,
-                       @RequestParam(value = "editorUid", required = false) editorUid: String = "admin"
-    ): ResponseEntity<String> {
-        val safeCategory = safeCategory(category, locale)
-        if (safeCategory == null) {
-            val message = "Not supported parameters for content: $category/$locale"
-            log.warn("[Shopping][uploadCoupons]====$message")
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message)
-        }
-        contentRepository.publish(safeCategory, locale, publishDocId, editorUid)
-        return ResponseEntity.ok("<a href='../content?category=$category&locale=$locale'>preview</a>")
-    }
 
     @RequestMapping("/api/v1/content")
     fun getContent(
             @RequestParam(value = "category") category: String,
             @RequestParam(value = "locale") locale: String
     ): ResponseEntity<Any> {
-        val safeCategory = safeCategory(category, locale)
-        if (safeCategory == null) {
-            val message = "Not supported parameters for shopping: $category/$locale"
-            log.warn("[Shopping][uploadCoupons]====$message")
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message)
+        return when (val result = contentService.getContent(category, locale)) {
+            is ContentServiceQueryResult.InvalidParam -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result.message)
+            is ContentServiceQueryResult.Success -> ResponseEntity.status(HttpStatus.OK).body(result.category)
+            is ContentServiceQueryResult.Fail -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result.message)
         }
-        val result = contentRepository.getContentFromDB(ContentRepoQuery(safeCategory, locale))
-        if (result is ContentRepoResult.Fail) {
-            log.warn("[Content]====getContent===${result.message}")
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("listPublish fail")
-        }
-        return ResponseEntity.ok(result)
     }
+
+    // ======================== ADMIN ======================== START
+    // TODO: Make this another endpoint
+    @RequestMapping("/api/v1/content/publish")
+    fun publishContent(
+            @RequestParam token: String,
+            @RequestParam(value = "category") category: String,
+            @RequestParam(value = "locale") locale: String,
+            @RequestParam(value = "publishDocId") publishDocId: String,
+            @RequestParam(value = "editorUid", required = false) editorUid: String = "admin"
+    ): ResponseEntity<String> {
+        if (JwtHelper.verify(token) != JwtHelper.ROLE_PUBLISH_ADMIN) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No Permission")
+        }
+        return when (val result = contentService.publish(category, locale, publishDocId, editorUid)) {
+            ContentServicePublishResult.Done -> ResponseEntity.status(HttpStatus.OK).body("<a href='../content?category=$category&locale=$locale'>preview</a>")
+            is ContentServicePublishResult.InvalidParam -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result.message)
+        }
+    }
+
 
     @RequestMapping(value = ["/api/v1/admin/content"], method = [RequestMethod.POST])
     internal fun uploadContent(
@@ -80,59 +64,19 @@ class ContentController @Inject constructor(private val contentRepository: Conte
         if (JwtHelper.verify(token) != JwtHelper.ROLE_PUBLISH_ADMIN) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No Permission")
         }
-        val safeCategory = safeCategory(category, locale)
-        if (safeCategory == null) {
-            val message = "Not supported parameters for shopping: $category/$locale"
-            log.warn("[Shopping][uploadCoupons]====$message")
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message)
-        }
-
-        try {
-            var bannerBytes: ByteArray? = null
-            val listItemBytes = other.bytes
-            if (banner != null && !banner.isEmpty) {
-                bannerBytes = banner.bytes
+        return when (val result = contentService.uploadContent(category, locale, other, banner, tag)) {
+            is ContentServiceUploadResult.Success ->{
+                // todo:redirect to a preview page , then publish there
+                ResponseEntity.status(HttpStatus.OK).body("<a href='../content?category=$category&locale=$locale'>preview</a>")
             }
-            val parseContent = parseContent(SHOPPING_SCHEMA_VERSION, bannerBytes, listItemBytes)
-            val data = mapper.writeValueAsString(parseContent)
-            val publishDocId = contentRepository.addContent(AddContentRequest(SHOPPING_SCHEMA_VERSION, tag, safeCategory, locale, data))
-            if (publishDocId == null) {
-                log.warn("[Content]====uploadContent==fail")
-                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Publish failed.")
-            }
-            // TODO: We now publish immediately. We may want to publish later in the future.
-            return publishContent(category, locale, publishDocId)
-
-        } catch (iOException: IOException) {
-            val message = "[Shopping][IOException]==== uploading file: ${other.originalFilename}"
-            log.error("$message====$iOException")
-            return ResponseEntity.badRequest().body(message)
-
-        } catch (jsonProcessingException: JsonProcessingException) {
-            val message = "[Shopping][jsonProcessingException]==== uploading file: ${other.originalFilename}"
-            log.error("$message====$jsonProcessingException")
-            return ResponseEntity.badRequest().body(message)
+            is ContentServiceUploadResult.InvalidParam -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result.message)
+            is ContentServiceUploadResult.Fail -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result.message)
         }
     }
 
-    // check category and locale. If they are valid, return the safe category. (keep locale as is)
-    private fun safeCategory(category: String, locale: String): String? {
-        val safeCategory = categoryMapping[category]
-        if (safeCategory == null || !supportLocale.contains(locale)) {
-            return null
-        }
-        return safeCategory
-    }
 
-    // find a way to use input stream instead of File to parse CSV. So we don't have to save the file at local
-    @Throws(IOException::class)
-    private fun convertMultiPartToFile(file: MultipartFile): File {
-        val convFile = File(file.originalFilename)
-        val fos = FileOutputStream(convFile)
-        fos.write(file.bytes)
-        fos.close()
-        return convFile
-    }
+
+    // ======================== ADMIN ======================== END
 
     companion object {
         private const val SHOPPING_SCHEMA_VERSION = 1

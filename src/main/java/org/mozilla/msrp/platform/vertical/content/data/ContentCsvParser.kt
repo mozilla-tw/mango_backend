@@ -10,7 +10,7 @@ object CsvParserConfig {
     const val BANNER_SUBCATEGORY_ID = 4
 }
 
-fun parseContent(version: Int, bannerBytes: ByteArray?, listItemBytes: ByteArray): ContentResponse {
+fun parseContent(bannerBytes: ByteArray?, listItemBytes: ByteArray): Category {
 
     val subCategories = mutableListOf<ContentSubcategory>()
 
@@ -26,7 +26,7 @@ fun parseContent(version: Int, bannerBytes: ByteArray?, listItemBytes: ByteArray
 
     subCategories.addAll(otherSubcategory)
 
-    return ContentResponse(version, subCategories)
+    return Category(subCategories)
 }
 
 private fun parseOthers(bytes: ByteArray): List<ContentSubcategory> {

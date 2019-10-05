@@ -51,7 +51,7 @@ class GameController @Inject constructor(private val contentRepository: ContentR
         try {
             return when (val result = cacheGames.get(ContentRepoQuery(safeCategory, language))) {
                 is ContentRepoResult.Success -> {
-                    ResponseEntity.ok(result.result)
+                    ResponseEntity.ok(result.category)
                 }
                 is ContentRepoResult.Fail -> {
                     val message = "Can't find games for $category/$language/$country"

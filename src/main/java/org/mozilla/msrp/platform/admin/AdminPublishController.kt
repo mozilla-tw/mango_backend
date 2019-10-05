@@ -4,6 +4,8 @@ import org.mozilla.msrp.platform.common.auth.JwtHelper
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
 
 
@@ -18,5 +20,15 @@ class AdminPublishController {
             return "publish"
         }
         return "401"
+    }
+
+    @GetMapping("/api/v1/admin/publish/preview")
+    internal fun previewContent(
+            @RequestParam token: String,
+            @RequestParam(value = "category") category: String,
+            @RequestParam(value = "locale") locale: String
+    ): String {
+        return "401"
+
     }
 }

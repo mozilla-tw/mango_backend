@@ -54,7 +54,7 @@ class ShoppingController @Inject constructor(private val contentRepository: Cont
             }
             return when (val result = cacheShopping.get(ContentRepoQuery(safeCategory, locale))) {
                 is ContentRepoResult.Success -> {
-                    ResponseEntity.ok(result.result)
+                    ResponseEntity.ok(result.category)
                 }
                 is ContentRepoResult.Fail -> {
                     val message = "Can't find shopping for $category/$locale"
