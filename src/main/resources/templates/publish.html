@@ -2,36 +2,62 @@
 <html xmlns:th="http://www.w3.org/1999/xhtml">
 <body>
 
-<h1>Uploading</h1>
+<h1>Content Upload</h1>
+Currently the upload content will be published immediately
 <hr>
 <form th:action="${'/api/v1/admin/content?token=' + token}" method="post" enctype="multipart/form-data">
 
+    <table border="1" cellspacing="1" cellpadding="5">
+        <tr>
+            <td>category</td>
+            <td>
+                <select name="category">
+                    <option value="apkGame">apk Game</option>
+                    <option value="html5Game">html5 Game</option>
+                    <option value="shoppingDeal">shopping Deal</option>
+                    <option value="shoppingCoupon">shopping Coupon</option>
+                </select><br>
+            </td>
+        </tr>
+        <tr>
+            <td>locale</td>
+            <td>
+                <select name="locale">
+                    <option value="all">[ALL] ONLY for games</option>
+                    <option value="en-IN">[en-IN] ONLY for shopping</option>
+                    <option value="id-ID">[id-ID] ONLY for shopping</option>
+                </select><br>
 
-    category
-    <select name="category">
-        <option value="apkGame">apk Game</option>
-        <option value="html5Game">html5 Game</option>
-        <option value="shoppingDeal">shopping Deal</option>
-        <option value="shoppingCoupon">shopping Coupon</option>
-    </select><br>
+            </td>
+        </tr>
+        <tr>
+            <td>tag</td>
+            <td>
+                <input type="text" name="tag"> could be any string
 
-    locale
-    <select name="locale">
-        <option value="all">all</option>
-        <option value="en-IN">en-IN</option>
-        <option value="id-ID">id-ID</option>
-    </select><br>
+            </td>
+        </tr>
+        <tr>
+            <td>Banner</td>
+            <td>
+                <input type="file" name="banner"><br>
 
-    tag
-    <input type="text" name="tag"><br>
+            </td>
+        </tr>
+        <tr>
+            <td>Other</td>
+            <td>
+                <input type="file" name="other"><br>
 
-    Banner
-    <input type="file" name="banner"><br>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <input type="submit" value="Upload coupons" name="submit">
+            </td>
+        </tr>
 
-    Other
-    <input type="file" name="other"><br>
-    <input type="submit" value="Upload coupons" name="submit">
+    </table>
 </form>
-
 
 </body>
