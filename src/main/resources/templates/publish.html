@@ -5,7 +5,8 @@
 <h1>Content Upload</h1>
 Currently the upload content will be published immediately
 <hr>
-<form th:action="${'/api/v1/admin/content?token=' + token}" method="post" enctype="multipart/form-data">
+<form action="/api/v1/admin/content" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="token" th:value="${token}">
 
     <table border="1" cellspacing="1" cellpadding="5">
         <tr>
