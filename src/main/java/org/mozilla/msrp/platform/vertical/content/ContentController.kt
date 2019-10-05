@@ -5,6 +5,7 @@ import org.mozilla.msrp.platform.common.auth.JwtHelper
 import org.mozilla.msrp.platform.util.logger
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
@@ -34,7 +35,7 @@ class ContentController @Inject constructor(private val contentService: ContentS
     }
 
     // ======================== ADMIN ======================== START
-    @RequestMapping("/api/v1/content/publish")
+    @GetMapping("/api/v1/content/publish")
     fun publishContent(
             @RequestParam token: String,
             @RequestParam(value = "category") category: String,
@@ -69,7 +70,7 @@ class ContentController @Inject constructor(private val contentService: ContentS
         return when (val result = contentService.uploadContent(category, locale, other, banner, tag)) {
             is ContentServiceUploadResult.Success -> {
                 val preview = "/api/v1/admin/publish/preview?token=$token&publishDocId=${result.publishDocId}"
-                val publish = "/api/v1/content/publish?token=$token&category=$category&locale=$locale&publishDocId=${result.publishDocId}?editorUid=${verify.email}"
+                val publish = "/api/v1/content/publish?token=$token&category=$category&locale=$locale&publishDocId=${result.publishDocId}&editorUid=${verify.email}"
                 ResponseEntity.status(HttpStatus.OK).body("" +
                         "<a href='$preview'>Preview</a> <BR> " +
                         "<a href='$publish'>Publish Now</a>")
