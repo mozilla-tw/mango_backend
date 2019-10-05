@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.mozilla.msrp.platform.util.logger
 import org.mozilla.msrp.platform.vertical.content.data.Category
 import org.mozilla.msrp.platform.vertical.content.data.parseContent
+import org.mozilla.msrp.platform.vertical.content.db.PublishDoc
 import org.springframework.web.multipart.MultipartFile
 import java.io.IOException
 import javax.inject.Inject
@@ -99,6 +100,10 @@ class ContentService @Inject constructor(private val contentRepository: ContentR
             log.error("$message====$jsonProcessingException")
             return ContentServiceUploadResult.Fail(message)
         }
+    }
+
+    fun getPublish(publishDocId: String): PublishDoc? {
+        return contentRepository.getContentByPublishDocId(publishDocId)
     }
 
 
