@@ -68,14 +68,14 @@ public class UserController {
             }
 
             if (ROLE_PUBLISH_ADMIN.equals(state) && userRepository.isPublishAdmin(fxEmail)) {
-                String token = JwtHelper.createToken(ROLE_PUBLISH_ADMIN);
+                String token = JwtHelper.createToken(ROLE_PUBLISH_ADMIN, fxEmail);
                 log.info("[login][" + state + "] ROLE_PUBLISH_ADMIN");
                 httpResponse.sendRedirect("/api/v1/admin/publish?token=" + token);
                 return;
             }
 
             if (ROLE_MSRP_ADMIN.equals(state) && userRepository.isMsrpAdmin(fxEmail)) {
-                String token = JwtHelper.createToken(ROLE_MSRP_ADMIN);
+                String token = JwtHelper.createToken(ROLE_MSRP_ADMIN, fxEmail);
                 log.info("[login][" + state + "] ROLE_PUBLISH_ADMIN");
                 httpResponse.sendRedirect("/api/v1/admin/msrp?token=" + token);
                 return;

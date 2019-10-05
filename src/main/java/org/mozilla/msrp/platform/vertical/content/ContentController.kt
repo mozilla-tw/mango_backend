@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
 import javax.inject.Inject
+import javax.servlet.http.HttpServletResponse
 
 
 @RestController
@@ -33,7 +34,6 @@ class ContentController @Inject constructor(private val contentService: ContentS
     }
 
     // ======================== ADMIN ======================== START
-    // TODO: Make this another endpoint
     @RequestMapping("/api/v1/content/publish")
     fun publishContent(
             @RequestParam token: String,
@@ -42,7 +42,7 @@ class ContentController @Inject constructor(private val contentService: ContentS
             @RequestParam(value = "publishDocId") publishDocId: String,
             @RequestParam(value = "editorUid", required = false) editorUid: String = "admin"
     ): ResponseEntity<String> {
-        if (JwtHelper.verify(token) != JwtHelper.ROLE_PUBLISH_ADMIN) {
+        if (JwtHelper.verify(token)?.role != JwtHelper.ROLE_PUBLISH_ADMIN) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No Permission")
         }
         return when (val result = contentService.publish(category, locale, publishDocId, editorUid)) {
@@ -59,21 +59,25 @@ class ContentController @Inject constructor(private val contentService: ContentS
             @RequestParam(value = "locale") locale: String,
             @RequestParam(value = "tag") tag: String,
             @RequestParam(value = "banner", required = false) banner: MultipartFile?,
-            @RequestParam(value = "other") other: MultipartFile
+            @RequestParam(value = "other") other: MultipartFile,
+            response: HttpServletResponse  // need HttpServletResponse to redirect
     ): ResponseEntity<String> {
-        if (JwtHelper.verify(token) != JwtHelper.ROLE_PUBLISH_ADMIN) {
+        val verify = JwtHelper.verify(token)
+        if (verify?.role != JwtHelper.ROLE_PUBLISH_ADMIN) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No Permission")
         }
         return when (val result = contentService.uploadContent(category, locale, other, banner, tag)) {
-            is ContentServiceUploadResult.Success ->{
-                // todo:redirect to a preview page , then publish there
-                ResponseEntity.status(HttpStatus.OK).body("<a href='../content?category=$category&locale=$locale'>preview</a>")
+            is ContentServiceUploadResult.Success -> {
+                val preview = "/api/v1/admin/publish/preview?token=$token&publishDocId=${result.publishDocId}"
+                val publish = "/api/v1/content/publish?token=$token&category=$category&locale=$locale&publishDocId=${result.publishDocId}?editorUid=${verify.email}"
+                ResponseEntity.status(HttpStatus.OK).body("" +
+                        "<a href='$preview'>Preview</a> <BR> " +
+                        "<a href='$publish'>Publish Now</a>")
             }
             is ContentServiceUploadResult.InvalidParam -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result.message)
             is ContentServiceUploadResult.Fail -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result.message)
         }
     }
-
 
 
     // ======================== ADMIN ======================== END

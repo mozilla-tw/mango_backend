@@ -18,7 +18,7 @@ class AdminPublishController @Inject constructor(val conteService: ContentServic
     fun adminPublish(
             @RequestParam token: String,
             model: Model): String {
-        val role = JwtHelper.verify(token)
+        val role = JwtHelper.verify(token)?.role
         if (role == JwtHelper.ROLE_PUBLISH_ADMIN) {
             model.addAttribute("token", token)
             return "publish"
@@ -32,7 +32,7 @@ class AdminPublishController @Inject constructor(val conteService: ContentServic
             @RequestParam publishDocId: String,
             model: Model
     ): String {
-        val role = JwtHelper.verify(token)
+        val role = JwtHelper.verify(token)?.role
         if (role == JwtHelper.ROLE_PUBLISH_ADMIN) {
             model.addAttribute("token", token)
             val publishDoc = conteService.getPublish(publishDocId)
