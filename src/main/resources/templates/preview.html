@@ -52,8 +52,12 @@
             <td th:text="${item.component_type_name}"> -</td>
             <td th:text="${item.component_type_id}"> -</td>
             <td th:text="${item.image_type}"> -</td>
-            <td><img th:src="${item.image}"> -</td>
-            <td th:text="${item.destination}"> -</td>
+            <td>
+                <a th:href="${item.image}" target="_blank"><img th:src="${item.image}" width="50" height="50"> -</a>
+            </td>
+            <td>
+                <a th:href="${item.destination}" target="_blank">LINK</a>
+            </td>
             <td th:text="${item.title}"> -</td>
             <td th:text="${item.description}"> -</td>
             <td th:text="${item.score}"> -</td>
