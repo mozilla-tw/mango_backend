@@ -27,7 +27,7 @@ class ContentService @Inject constructor(private val contentRepository: ContentR
     private val supportLocale = listOf("id-ID", "en-IN", "all")
 
     // check category and locale. If they are valid, return the safe category. (keep locale as is)
-    fun safeCategory(category: String, locale: String): String? {
+    private fun safeCategory(category: String, locale: String): String? {
         val safeCategory = categoryMapping[category]
         if (safeCategory == null || !supportLocale.contains(locale)) {
             return null
@@ -48,21 +48,22 @@ class ContentService @Inject constructor(private val contentRepository: ContentR
                 ContentServiceQueryResult.Fail(result.message)
             }
             is ContentRepoResult.Success -> {
-                log.info("[Content]====getContent===${result.category}")
-                ContentServiceQueryResult.Success(result.category)
+                log.info("[Content]====getContent===${result.version}")
+                ContentServiceQueryResult.Success(result.version, result.tag, result.data)
             }
         }
     }
 
-    fun publish(category: String, locale: String, publishDocId: String, editorUid: String, schedule: String): ContentServicePublishResult {
-        val safeCategory = safeCategory(category, locale)
-        if (safeCategory == null) {
-            val message = "Not supported parameters for shopping: $category/$locale"
-            log.warn("[ContentService][publish]====$message")
-            return ContentServicePublishResult.InvalidParam(message)
+    fun publish(publishDocId: String, editor: String, schedule: String?): ContentServicePublishResult {
+        val publish = contentRepository.publish(publishDocId, editor, schedule)
+        return when (publish) {
+            is ContentRepositoryPublishResult.Success -> {
+                return categoryMapping.filter { it.value == publish.category }.map {
+                    return@map ContentServicePublishResult.Success(it.key, publish.locale)
+                }.firstOrNull() ?: ContentServicePublishResult.Fail("Data error")
+            }
+            is ContentRepositoryPublishResult.Fail -> ContentServicePublishResult.Fail(publish.message)
         }
-        contentRepository.publish(publishDocId, editorUid, schedule)
-        return ContentServicePublishResult.Done
     }
 
 
@@ -106,21 +107,20 @@ class ContentService @Inject constructor(private val contentRepository: ContentR
         return contentRepository.getContentByPublishDocId(publishDocId)
     }
 
-
 }
 
-sealed class ContentServiceQueryResult() {
-    class Success(val category: Category) : ContentServiceQueryResult()
+sealed class ContentServiceQueryResult {
+    class Success(val version: Long, val tag: String, val data: Category) : ContentServiceQueryResult()
     class InvalidParam(val message: String) : ContentServiceQueryResult()
     class Fail(val message: String) : ContentServiceQueryResult()
 }
 
-sealed class ContentServicePublishResult() {
-    object Done : ContentServicePublishResult()
-    class InvalidParam(val message: String) : ContentServicePublishResult()
+sealed class ContentServicePublishResult {
+    class Success(val category: String, val locale: String) : ContentServicePublishResult()
+    class Fail(val message: String) : ContentServicePublishResult()
 }
 
-sealed class ContentServiceUploadResult() {
+sealed class ContentServiceUploadResult {
     class Success(val publishDocId: String) : ContentServiceUploadResult()
     class InvalidParam(val message: String) : ContentServiceUploadResult()
     class Fail(val message: String) : ContentServiceUploadResult()

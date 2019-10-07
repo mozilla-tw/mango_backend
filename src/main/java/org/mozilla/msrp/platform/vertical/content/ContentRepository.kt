@@ -1,12 +1,12 @@
 package org.mozilla.msrp.platform.vertical.content
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.api.core.ApiFuture
 import com.google.cloud.firestore.CollectionReference
+import com.google.cloud.firestore.DocumentSnapshot
 import com.google.cloud.firestore.Firestore
 import com.google.cloud.firestore.Query
 import com.google.cloud.firestore.QueryDocumentSnapshot
-import com.google.cloud.firestore.SetOptions
-import com.google.cloud.storage.BlobId
 import com.google.cloud.storage.Storage
 import com.google.cloud.storage.StorageException
 import org.mozilla.msrp.platform.firestore.getResultsUnchecked
@@ -14,12 +14,9 @@ import org.mozilla.msrp.platform.firestore.getUnchecked
 import org.mozilla.msrp.platform.firestore.toObject
 import org.mozilla.msrp.platform.util.logger
 import org.mozilla.msrp.platform.vertical.content.data.Category
-import org.mozilla.msrp.platform.vertical.content.db.PublishControlDoc
 import org.mozilla.msrp.platform.vertical.content.db.PublishDoc
 import org.springframework.stereotype.Repository
-import org.threeten.bp.LocalDateTime
 import java.lang.Exception
-import java.nio.charset.StandardCharsets.UTF_8
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.time.Clock
@@ -55,39 +52,26 @@ class ContentRepository @Inject constructor(private var storage: Storage,
         publishHistory = firestore.collection(COLLECTION_PUBLISH_HISTORY)
     }
 
-    fun getContent(contentRepoQuery: ContentRepoQuery): ContentRepoResult {
-        return try {
-            val path = "v1/${contentRepoQuery.category}/${contentRepoQuery.locale}/"
-            val blobId = BlobId.of("rocket-admin-dev", "${path}data.json")
-            val bytes = storage.readAllBytes(blobId)
-            val str = String(bytes, UTF_8)
-
-            ContentRepoResult.Success(mapper.readValue(str, Category::class.java))
-        } catch (e: StorageException) {
-            val message = "error loading games"
-            log.error("[Games]====$message====$e")
-            ContentRepoResult.Fail(message)
-        }
-    }
-
     // This version of getContent gets content from Firestore, not Cloud Storage
     fun getContentFromDB(contentRepoQuery: ContentRepoQuery): ContentRepoResult {
         return try {
 
-            val publishDocId: QueryDocumentSnapshot? = pickPublishControl(contentRepoQuery.category, contentRepoQuery.locale)
+            val publishDocId: QueryDocumentSnapshot? = getLatestPublish(contentRepoQuery.category, contentRepoQuery.locale)
             if (publishDocId == null) {
                 val message = "[Content][getContentFromDB]====No result for :$contentRepoQuery"
                 log.warn(message)
                 return ContentRepoResult.Fail(message)
             }
             val publishDoc = publishDocId.toObject(PublishDoc::class.java)
-            val data = publishDoc?.data
-            if (data == null) {
+            val publishTimestamp = publishDoc.publish_timestamp
+            val data = publishDoc.data
+            val tag = publishDoc.tag
+            if (data == null || publishTimestamp == null || tag == null) {
                 val message = "[Content]====getContentFromDB====No such Document===="
                 log.error("$message$publishDocId")
                 ContentRepoResult.Fail(message)
             } else {
-                ContentRepoResult.Success(data)
+                ContentRepoResult.Success(publishTimestamp, tag, data)
             }
         } catch (e: StorageException) {
             val message = "error loading games"
@@ -97,23 +81,12 @@ class ContentRepository @Inject constructor(private var storage: Storage,
     }
 
     fun addContent(request: AddContentRequest): String? {
-        // todo: consider make it a transaction
         try {
-//            val publishControlDoc: PublishControlDoc? = getPublishControlDoc().getUnchecked().toObject(PublishControlDoc::class.java)
-//            if (publishControlDoc == null) {
-//                log.error("[ContentRepository][addContent]====Can't get PublishControlDoc document")
-//                return null
-//
-//            }
-//            // this is slow. But we don't have too much write for now so we don't use distributed counter
-//            val newVersion = publishControlDoc.version++
-//            // write the new version first in case the next operation fails
-//            getPublishControlDoc().set(publishControlDoc, SetOptions.merge())
-
             val publishDoc = PublishDoc(
                     null,
                     request.category,
                     request.locale,
+                    request.tag,
                     clock.millis(),
                     mapper.readValue(request.data, Category::class.java))
             val document = publish.document()
@@ -125,44 +98,60 @@ class ContentRepository @Inject constructor(private var storage: Storage,
         }
     }
 
-    fun publish(publishDocId: String, editorUid: String, schedule: String) {
+    fun publish(publishDocId: String, editor: String, schedule: String?): ContentRepositoryPublishResult {
+        var errorMessage: String
         try {
 
-            val timestamp = if (schedule.isEmpty()) {
+            val timestamp = if (schedule == null || schedule.isEmpty()) {
                 Instant.now().toEpochMilli()
             } else {
                 simpleDateFormat.parse(schedule).time
             }
 
             val docRef = publish.document(publishDocId)
-
+            var snapshot: ApiFuture<DocumentSnapshot>? = null
+            var publishDoc: PublishDoc? = null
             firestore.runTransaction { transaction ->
-                val snapshot = transaction.get(docRef)
+                snapshot = transaction.get(docRef)
+                publishDoc = snapshot?.getUnchecked()?.toObject(PublishDoc::class.java)
+
                 transaction.update(docRef, "publish_timestamp", timestamp)
+            }.getUnchecked()
+
+            if (publishDoc == null) {
+                log.error("[Content][publish]====$publishDocId/$editor/$schedule")
+                return ContentRepositoryPublishResult.Fail("No content found")
             }
+            if (publishDoc?.isValid() != true) {
+                log.error("[Content][publish]====$publishDocId/$editor/$schedule")
+                return ContentRepositoryPublishResult.Fail("Content is not valid")
+            }
+            updatePublishHistory(publishDocId, editor)
 
-            updatePublishHistory(publishDocId, editorUid)
-
+            return ContentRepositoryPublishResult.Success(publishDoc?.category ?: "", publishDoc?.locale
+                    ?: "") // already checked
         } catch (e: ParseException) {
-            log.error("[Content][error]====publish====$e")
+            errorMessage = "[Content][publish]====$publishDocId/$editor/$schedule/ParseException:$e"
 
         } catch (e: Exception) {
-            log.error("[Content][error]====publish====$e")
+            errorMessage = "[Content][publish]====$publishDocId/$editor/$schedule/exception:$e"
         }
+        log.error(errorMessage)
+        return ContentRepositoryPublishResult.Fail(errorMessage)
     }
 
-    private fun updatePublishHistory(publishDocId: String, editorUid: String) {
+    private fun updatePublishHistory(publishDocId: String, editor: String) {
         publishHistory.document().set(
                 mapOf("publishDocId" to publishDocId,
                         "created_timestamp" to clock.millis(),
-                        "editorUid" to editorUid
+                        "editor" to editor
                 )).getUnchecked()
     }
 
-    private fun pickPublishControl(category: String, locale: String): QueryDocumentSnapshot? {
+    private fun getLatestPublish(category: String, locale: String): QueryDocumentSnapshot? {
         return publish.whereEqualTo("category", category)
                 .whereEqualTo("locale", locale)
-                .whereGreaterThan("publish_timestamp", Instant.now().toEpochMilli())
+                .whereLessThan("publish_timestamp", Instant.now().toEpochMilli())
                 .orderBy("publish_timestamp", Query.Direction.DESCENDING)
                 .limit(1).getResultsUnchecked().firstOrNull()
     }
@@ -197,7 +186,7 @@ class ContentRepository @Inject constructor(private var storage: Storage,
     publishHistory/{historyId}
     publishDocId
     publish Date
-    editorUid
+    editor
     publishControl       // only one document.
     v1/content_shopping/
      */
@@ -213,7 +202,7 @@ class AddContentRequest(
 
 
 sealed class ContentRepoResult {
-    class Success(val category: Category) : ContentRepoResult()
+    class Success(val version: Long, val tag: String, val data: Category) : ContentRepoResult()
     class Fail(val message: String) : ContentRepoResult()
 }
 
@@ -222,3 +211,8 @@ data class ContentRepoQuery(
         val locale: String,
         var tag: String? = null
 )
+
+sealed class ContentRepositoryPublishResult {
+    class Success(val category: String, val locale: String) : ContentRepositoryPublishResult()
+    class Fail(val message: String) : ContentRepositoryPublishResult()
+}
