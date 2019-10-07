@@ -76,6 +76,12 @@ class ContentController @Inject constructor(private val contentService: ContentS
                         "<a href='$preview'>Preview</a> <BR> " +
                         "<a href='$publish'>Publish Now</a><BR> " +
                         "<form action=$publish>" +
+                        "<input type='hidden' name='token' value='$token'>" +
+                        "<input type='hidden' name='category' value='$category'>" +
+                        "<input type='hidden' name='locale' value='$locale'>" +
+                        "<input type='hidden' name='publishDocId' value='${result.publishDocId}'>" +
+                        "<input type='hidden' name='editorUid' value='${verify.email}'>" +
+
                         "<input type='date' name='schedule'>" +
                         "<input type='submit' value='Schedule Publish'>" +
                         "</form>")
@@ -88,7 +94,4 @@ class ContentController @Inject constructor(private val contentService: ContentS
 
     // ======================== ADMIN ======================== END
 
-    companion object {
-        private const val SHOPPING_SCHEMA_VERSION = 1
-    }
 }
