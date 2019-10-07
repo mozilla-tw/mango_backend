@@ -61,7 +61,7 @@ class ContentService @Inject constructor(private val contentRepository: ContentR
             log.warn("[ContentService][publish]====$message")
             return ContentServicePublishResult.InvalidParam(message)
         }
-        contentRepository.publish(safeCategory, locale, publishDocId, editorUid, schedule)
+        contentRepository.publish(publishDocId, editorUid, schedule)
         return ContentServicePublishResult.Done
     }
 
