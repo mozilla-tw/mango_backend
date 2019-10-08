@@ -2,4 +2,7 @@
   <version>1</version>
   <threadsafe>true</threadsafe>
   <runtime>java8</runtime>
+  <system-properties>
+    @SPRING_PROFILES_ACTIVE@
+  </system-properties>
 </appengine-web-app>
