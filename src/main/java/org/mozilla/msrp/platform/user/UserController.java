@@ -4,9 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import org.json.JSONException;
 import org.mozilla.msrp.platform.common.auth.JwtHelper;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
@@ -45,16 +43,16 @@ public class UserController {
             FxaTokenRequest fxaTokenRequest = firefoxAccountService.genFxaTokenRequest(code);
             String fxaAccessToken = firefoxAccountService.token(fxaTokenRequest);
             if (fxaAccessToken == null) {
-                log.error("[login][" + state + "] Fxa token api");
-                httpResponse.sendRedirect("/api/v1/done?login_success=false");
+                log.error("[login][" + state + "] Fxa token api error");
+                httpResponse.sendRedirect("/api/v1/done?login_success=false&msg=fxa_token_api");
                 return;
             }
 
             FxaProfileResponse profileResponse = firefoxAccountService.profile("Bearer " + fxaAccessToken);
 
             if (profileResponse == null) {
-                log.error("[login][" + state + "] Fxa profile api");
-                httpResponse.sendRedirect("/api/v1/done?login_success=false");
+                log.error("[login][" + state + "] Fxa profile api error");
+                httpResponse.sendRedirect("/api/v1/done?login_success=false&msg=fxa_profile_api");
                 return;
             }
 
@@ -62,8 +60,8 @@ public class UserController {
             String fxEmail = profileResponse.getEmail();
 
             if (fxUid == null || fxEmail == null) {
-                log.error("[login][" + state + "] Fxa profile api");
-                httpResponse.sendRedirect("/api/v1/done?login_success=false");
+                log.error("[login][" + state + "] No such user in fxa");
+                httpResponse.sendRedirect("/api/v1/done?login_success=false&msg=no_Fxa_user");
                 return;
             }
 
@@ -94,7 +92,7 @@ public class UserController {
                 httpResponse.sendRedirect("/api/v1/done?jwt=" + customToken + "&login_success=true&disabled=false&times=2");
             } else if (loginResponse instanceof LoginResponse.UserSuspended) {
                 httpResponse.sendRedirect("/api/v1/done?jwt=" + customToken + "&login_success=true&disabled=true&times=3");
-            } else {
+            } else if (loginResponse instanceof LoginResponse.Fail) {
                 httpResponse.sendRedirect("/api/v1/done?login_success=false");
             }
 
