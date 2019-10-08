@@ -1,6 +1,5 @@
 package org.mozilla.msrp.platform.redward
 
-import com.sun.org.apache.xpath.internal.operations.Bool
 import org.mozilla.msrp.platform.common.auth.JwtHelper
 import org.mozilla.msrp.platform.util.logger
 import org.springframework.http.HttpStatus

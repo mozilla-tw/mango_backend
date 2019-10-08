@@ -1,10 +1,13 @@
 package org.mozilla.msrp.platform.user
 
-import com.google.cloud.firestore.*
+import com.google.cloud.firestore.CollectionReference
+import com.google.cloud.firestore.Firestore
+import com.google.cloud.firestore.QueryDocumentSnapshot
+import com.google.cloud.firestore.SetOptions
 import com.google.firebase.auth.FirebaseAuth
-import org.mozilla.msrp.platform.user.data.UserActivityDoc
 import org.mozilla.msrp.platform.firestore.getResultsUnchecked
 import org.mozilla.msrp.platform.firestore.getUnchecked
+import org.mozilla.msrp.platform.user.data.UserActivityDoc
 import org.mozilla.msrp.platform.user.data.UserDoc
 import org.mozilla.msrp.platform.util.logger
 import org.springframework.stereotype.Repository
@@ -49,7 +52,10 @@ class UserRepository @Inject constructor(firestore: Firestore) {
     fun signInAndUpdateUserDocument(oldFbUid: String, fxUid: String, email: String): LoginResponse {
 
         val userDocIdFb = findUserDocumentIdByFbUid(oldFbUid)
-                ?: return LoginResponse.Fail("No such user oldFbUid[$oldFbUid]")
+        if ((userDocIdFb == null)) {
+            logger.error("No such user $oldFbUid in User Document")
+            return LoginResponse.Fail("No such user $oldFbUid")
+        }
 
         val userDocIdFxA = findUserDocumentIdByFxUid(fxUid)
         logger.info("signInAndUpdateUserDocument=== userDocIdFb[$userDocIdFb]====userDocIdFxA[$userDocIdFxA]")
@@ -229,5 +235,4 @@ sealed class LoginResponse {
     class SuspiciousWarning(val message: String) : LoginResponse() // a special version of failure
     class UserSuspended(val message: String) : LoginResponse()  // a special version of failure
     class Fail(val message: String) : LoginResponse() // Business logic
-    class Error(val message: String) : LoginResponse() // server error
 }
