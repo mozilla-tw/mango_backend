@@ -13,7 +13,7 @@ import javax.inject.Named
 
 
 @Named
-class DailyMissionQualifier(val clock: Clock = Clock.systemUTC()) {
+class DailyMissionQualifier(private val clock: Clock = Clock.systemUTC()) {
 
     private val log = logger()
 
@@ -80,7 +80,7 @@ class DailyMissionQualifier(val clock: Clock = Clock.systemUTC()) {
                 uid = uid,
                 mid = mid,
                 joinDate = now,
-                timestamp = 0,
+                timestamp = now,
                 missionType = MissionType.DailyMission.identifier,
                 currentDayCount = 0,
                 totalDays = totalDays
