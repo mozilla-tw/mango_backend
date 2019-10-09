@@ -99,7 +99,7 @@ def gaeVersions = [
 
 ext.getDeployConfig = { ->
 
-    def mode = project.hasProperty('mode') ? project.property('mode') : "staging"
+    def mode = project.hasProperty('mode') ? project.property('mode') : "dev"   // default it's dev
     def deployConfig = [mode: mode]
 
     if (mode == 'dev') {
@@ -122,12 +122,6 @@ ext.getDeployConfig = { ->
         deployConfig.stopPreviousVersion = false
         deployConfig.promote = false
         deployConfig.version = gaeVersions.prod
-    } else {
-        // use dev setting as default
-        deployConfig.gaeProjId = "msrp-dev01"
-        deployConfig.stopPreviousVersion = true
-        deployConfig.promote = true
-        deployConfig.version = gaeVersions.dev
     }
 
     return deployConfig
@@ -174,11 +168,7 @@ ext.getGaeWebXmlConfig = {
         springProfilesActive = ''' 
             <property name="spring.profiles.active" value="prod" />
         '''
-    } else {
-        // use dev setting as default
-        springProfilesActive = ''' 
-            <property name="spring.profiles.active" value="dev" />
-        '''    }
+    }
 
     def props = [
             SPRING_PROFILES_ACTIVE: springProfilesActive
@@ -193,3 +183,5 @@ explodeWar {
         filter(ReplaceTokens, tokens: getGaeWebXmlConfig())
     }
 }
+
+processResources.dependsOn(clean)
