@@ -1,0 +1,38 @@
+name: CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v1
+    - name: Run a one-line script
+      run: echo Hello, world!
+    - name: Run a multi-line script
+      run: |
+        echo Add other actions to build,
+        echo test, and deploy your project.
+
+    - uses: exelban/gcloud@master
+    - name: setup gcloud permission      
+      env:
+        PROJECT_ID: ${{ secrets.project_id }}
+        APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+      with:
+        args: info
+    
+    - uses: MrRamych/gradle-actions/openjdk-11@3.0
+    - name: clean before release
+      with:
+        args: clean 
+              
+      
+    - uses: MrRamych/gradle-actions/openjdk-11@3.0
+    - name: deploy
+      with:
+        args: appengineDeploy -Pmode=dev
+        key: -Pmode=dev
+
