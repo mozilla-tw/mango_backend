@@ -11,7 +11,9 @@ import org.springframework.context.MessageSource
 import org.springframework.context.NoSuchMessageException
 import org.springframework.http.HttpStatus
 import java.time.Clock
+import java.time.Instant
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeParseException
 import java.util.*
 import javax.inject.Inject
@@ -155,8 +157,15 @@ class MissionService @Inject constructor(
 
         val important = missionRepository.isImportantMission(missionDoc.missionType, missionDoc.mid)
 
-        val expiredInstant = stringToLocalDateTime(missionDoc.expiredDate).atZone(zone).toInstant()
-        val joinEndInstant = stringToLocalDateTime(missionDoc.joinEndDate).atZone(zone).toInstant()
+        val expiredInstant: Instant
+        val joinEndInstant: Instant
+        if (missionDoc.isUtcBasedMission()) {
+            expiredInstant = stringToLocalDateTime(missionDoc.expiredDate).toInstant(ZoneOffset.UTC)
+            joinEndInstant = stringToLocalDateTime(missionDoc.joinEndDate).toInstant(ZoneOffset.UTC)
+        } else {
+            expiredInstant = stringToLocalDateTime(missionDoc.expiredDate).atZone(zone).toInstant()
+            joinEndInstant = stringToLocalDateTime(missionDoc.joinEndDate).atZone(zone).toInstant()
+        }
 
         val redeemResult = rewardRepository.redeem(missionDoc.missionType, missionDoc.mid, uid, zone)
         val redeemedDate = if (joinStatus == JoinStatus.Redeemed && redeemResult is RedeemResult.Success) {

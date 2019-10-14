@@ -83,10 +83,7 @@ val MissionDoc.missionTypeEnum: MissionType
 fun MissionDoc.isExpired(clock: Clock, zone: ZoneId): Boolean {
     val expiredDate = stringToLocalDateTime(expiredDate)
 
-    // Current we only support missions that start/expired at a specific utc time.
-    val isUtcBasedMission = true
-
-    return if (isUtcBasedMission) {
+    return if (isUtcBasedMission()) {
         val currentServer = clock.instant()
         val expiredUtc = expiredDate.toInstant(ZoneOffset.UTC)
         val isExpired = currentServer == expiredUtc || currentServer.isAfter(expiredUtc)
@@ -102,11 +99,8 @@ fun MissionDoc.isExpired(clock: Clock, zone: ZoneId): Boolean {
 fun MissionDoc.isBeforeJoinPeriod(clock: Clock, zone: ZoneId): Boolean {
     val startDate = stringToLocalDateTime(joinStartDate)
 
-    // Current we only support missions that start/expired at a specific utc time.
-    val isUtcBasedMission = true
-
     val isBeforeJoinStart: Boolean
-    if (isUtcBasedMission) {
+    if (isUtcBasedMission()) {
         val currentServer = clock.instant()
         val startUtc = startDate.toInstant(ZoneOffset.UTC)
         isBeforeJoinStart = currentServer.isBefore(startUtc)
@@ -125,11 +119,8 @@ fun MissionDoc.isBeforeJoinPeriod(clock: Clock, zone: ZoneId): Boolean {
 fun MissionDoc.isAfterJoinPeriod(clock: Clock, zone: ZoneId): Boolean {
     val endDate = stringToLocalDateTime(joinEndDate)
 
-    // Current we only support missions that start/expired at a specific utc time.
-    val isUtcBasedMission = true
-
     val isAfterJoinEnd: Boolean
-    if (isUtcBasedMission) {
+    if (isUtcBasedMission()) {
         val currentServer = clock.instant()
         val endUtc = endDate.toInstant(ZoneOffset.UTC)
         isAfterJoinEnd = currentServer == endUtc || currentServer.isAfter(endUtc)
@@ -149,12 +140,9 @@ fun MissionDoc.isJoinPeriod(clock: Clock, zone: ZoneId): Boolean {
     val startDate = stringToLocalDateTime(joinStartDate)
     val endDate = stringToLocalDateTime(joinEndDate)
 
-    // Current we only support missions that start/expired at a specific utc time.
-    val isUtcBasedMission = true
-
     val isAfterJoinStart: Boolean
     val isBeforeJoinEnd: Boolean
-    return if (isUtcBasedMission) {
+    return if (isUtcBasedMission()) {
         val currentServer = clock.instant()
         val startUtc = startDate.toInstant(ZoneOffset.UTC)
         val endUtc = endDate.toInstant(ZoneOffset.UTC)
@@ -170,4 +158,9 @@ fun MissionDoc.isJoinPeriod(clock: Clock, zone: ZoneId): Boolean {
         isBeforeJoinEnd = currentClient.isBefore(endDate)
         isAfterJoinStart && isBeforeJoinEnd
     }
+}
+
+// Current we only support missions that start/expired at a specific utc time.
+fun MissionDoc.isUtcBasedMission(): Boolean {
+    return true
 }
