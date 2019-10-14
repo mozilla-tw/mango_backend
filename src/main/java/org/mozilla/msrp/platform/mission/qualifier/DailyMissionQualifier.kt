@@ -26,6 +26,9 @@ class DailyMissionQualifier(private val clock: Clock = Clock.systemUTC()) {
     @Inject
     lateinit var locale: Locale
 
+    @Inject
+    lateinit var missionProperties: DailyMissionProperties
+
     fun updateProgress(uid: String, mid: String, zone: ZoneId): MissionProgressDoc {
         val params = missionRepository.getDailyMissionParams(mid)
 
@@ -98,20 +101,16 @@ class DailyMissionQualifier(private val clock: Clock = Clock.systemUTC()) {
         val lastCheckInDate = Instant.ofEpochMilli(progress.timestamp).atZone(zone)
         val now = clock.instant().atZone(zone)
 
-        val diffDays = getDifferenceInDays(lastCheckInDate, now)
-
-        log.info("now: $now, last: $lastCheckInDate, diff=$diffDays")
+        val diffSeconds = getDateDifference(lastCheckInDate, now, ChronoUnit.SECONDS)
+        val interval = missionProperties.checkInIntervalSeconds
+        log.info("now: $now, last: $lastCheckInDate, diff=$diffSeconds, interval=$interval")
 
         return when {
-            diffDays >= 2L -> restartProgress(progress)
-            diffDays >= 1L -> advanceProgress(progress)
-            diffDays >= 0L -> noProgress(progress)
+            diffSeconds >= 2 * interval -> restartProgress(progress)
+            diffSeconds >= 1 * interval -> advanceProgress(progress)
+            diffSeconds >= 0L -> noProgress(progress)
             else -> illegalProgress(progress)
         }
-    }
-
-    private fun getDifferenceInDays(dateStart: ZonedDateTime, dateEnd: ZonedDateTime): Long {
-        return getDateDifference(dateStart, dateEnd, ChronoUnit.DAYS)
     }
 
     private fun getDateDifference(
