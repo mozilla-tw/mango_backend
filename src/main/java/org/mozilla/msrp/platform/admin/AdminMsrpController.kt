@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam
 class AdminMsrpController {
 
     @GetMapping("/api/v1/admin/msrp")
-    fun adminPublish(@RequestParam token: String, model: Model): String {
+    fun adminMSRP(@RequestParam token: String, model: Model): String {
         val role = JwtHelper.verify(token)?.role
         if (role == JwtHelper.ROLE_MSRP_ADMIN) {
             model.addAttribute("token", token)
