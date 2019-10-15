@@ -1,5 +1,7 @@
 package org.mozilla.msrp.platform.user
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+
 
 class FxaTokenResponse(
     val access_token: String? = null,
@@ -16,12 +18,9 @@ class FxaTokenRequest(
     val grant_type: String = "authorization_code",
     val ttl: Int = 3600)
 
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 class FxaProfileResponse(
     val email: String? = null,
-    val locale: String? = null,
-    val amrValues: List<String>? = null,
-    val twoFactorAuthentication: Boolean? = null,
-    val uid: String? = null,
-    val avatar: String? = null,
-    val avatarDefault: Boolean? = null
+    val uid: String? = null
 )
