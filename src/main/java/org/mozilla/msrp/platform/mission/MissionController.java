@@ -140,7 +140,7 @@ public class MissionController {
             @RequestParam int minVersion) {
 
         Auth verify = JwtHelper.verify(token);
-        if (verify != null && !JwtHelper.ROLE_MSRP_ADMIN.equals(verify.getRole())) {
+        if (verify == null || !JwtHelper.ROLE_MSRP_ADMIN.equals(verify.getRole())) {
             return new ResponseEntity("No Permission", HttpStatus.UNAUTHORIZED);
         }
         MissionCreateRequest request = new MissionCreateRequest();
