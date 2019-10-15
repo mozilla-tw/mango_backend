@@ -47,13 +47,21 @@ public class FirebaseAuthInterceptor implements HandlerInterceptor {
                 FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(jwt);
 
                 if (decodedToken.getUid().isEmpty()) {
+                    log.warn("preHandle: decodedToken.getUid().isEmpty()");
 
                     handleThrowable(response, HttpStatus.UNAUTHORIZED, "No such user");
 
                     return false;
 
                 } else {
-                    request.setAttribute("uid", getUserId(decodedToken));
+                    final String userId = getUserId(decodedToken);
+                    if (userId == null) {
+                        log.error("preHandle: GetUserIdwithdecodedToken:" + userId + " return " + userId);
+                        handleThrowable(response, HttpStatus.INTERNAL_SERVER_ERROR, "Please login again");
+                        return false;
+                    }
+                    log.info("preHandle: success:" + userId);
+                    request.setAttribute("uid", userId);
                     return true;
                 }
 
