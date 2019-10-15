@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.time.DateTimeException;
@@ -135,6 +136,7 @@ public class MissionController {
             @RequestParam String joinEndDate,
             @RequestParam String expiredDate,
             @RequestParam String pings,
+            @RequestParam(value = "messages[]") String[] messages,
             @RequestParam int minVersion) {
 
         Auth verify = JwtHelper.verify(token);
@@ -146,6 +148,7 @@ public class MissionController {
         ArrayList<String> pingList = new ArrayList<>();
         HashMap<String, Object> params = new HashMap<>();
         params.put("totalDays", totalDays);
+        params.put("message", Arrays.asList(messages));
         pingList.add(pings);
         MissionCreateData mCreated = new MissionCreateData(
                 missionName,
