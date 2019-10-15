@@ -14,8 +14,6 @@ platform:
 news:
   cache-size: 100
   cache-ttl: 15
-mission.daily:
-  checkInIntervalSeconds: 60
 ---
 # Configuration to be enabled when the "dev" profile is active
 spring:
@@ -28,8 +26,6 @@ platform:
 news:
   cache-size: 100
   cache-ttl: 15
-mission.daily:
-  checkInIntervalSeconds: 60
 ---
 # Configuration to be enabled when the "dev" profile is active
 spring:
@@ -42,8 +38,6 @@ platform:
 news:
   cache-size: 100
   cache-ttl: 15
-mission.daily:
-  checkInIntervalSeconds: 60
 ---
 
 # Configuration to be enabled when the "prod" profile is active
@@ -58,5 +52,3 @@ platform:
 news:
   cache-size: 100
   cache-ttl: 15
-mission.daily:
-  checkInIntervalSeconds: 86400
