@@ -1,11 +1,12 @@
 spring:
   profiles.active: dev # Default profile
-  output.ansi.enabled: always # Coloring application output
+  output.ansi.enabled: never # Coloring application output
 
 ---
 # Configuration to be enabled when the "dev" profile is active
 spring:
   profiles: dev
+  output.ansi.enabled: always
 logging.level:
   root: INFO
   org.mozilla.msrp: DEBUG
