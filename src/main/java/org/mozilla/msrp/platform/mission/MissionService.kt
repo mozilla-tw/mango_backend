@@ -1,5 +1,6 @@
 package org.mozilla.msrp.platform.mission
 
+import org.mozilla.msrp.platform.common.isProd
 import org.mozilla.msrp.platform.firestore.stringToLocalDateTime
 import org.mozilla.msrp.platform.mission.qualifier.MissionProgressDoc
 import org.mozilla.msrp.platform.mission.qualifier.MissionQualifier
@@ -9,6 +10,7 @@ import org.mozilla.msrp.platform.util.logger
 import org.slf4j.Logger
 import org.springframework.context.MessageSource
 import org.springframework.context.NoSuchMessageException
+import org.springframework.core.env.Environment
 import org.springframework.http.HttpStatus
 import java.time.Clock
 import java.time.Instant
@@ -40,6 +42,9 @@ class MissionService @Inject constructor(
 
     @Inject
     lateinit var clock: Clock
+
+    @Inject
+    lateinit var environment: Environment
 
     private val log: Logger = logger()
 
@@ -139,8 +144,17 @@ class MissionService @Inject constructor(
         }
     }
 
+    private fun getMissionTitle(mission: MissionDoc): String {
+        val title = getStringById(mission.titleId, locale)
+        return if (environment.isProd) {
+            title
+        } else {
+            "$title (${mission.missionName}, id=${mission.mid.substring(0, 4)}***)"
+        }
+    }
+
     private fun aggregateMissionListItem(uid: String, missionDoc: MissionDoc, zone: ZoneId): MissionListItem {
-        val name = getStringById(missionDoc.titleId, locale)
+        val name = getMissionTitle(missionDoc)
         val description = getStringById(missionDoc.descriptionId, locale)
 
         val joinStatus = missionRepository.getJoinStatus(

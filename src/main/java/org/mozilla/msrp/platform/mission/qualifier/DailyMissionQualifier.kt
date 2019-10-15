@@ -1,5 +1,6 @@
 package org.mozilla.msrp.platform.mission.qualifier
 
+import org.mozilla.msrp.platform.common.isProd
 import org.mozilla.msrp.platform.mission.JoinStatus
 import org.mozilla.msrp.platform.mission.MissionRepository
 import org.mozilla.msrp.platform.mission.MissionType
@@ -147,7 +148,7 @@ class DailyMissionQualifier(private val clock: Clock = Clock.systemUTC()) {
     }
 
     private fun actionResolver(): ProgressActionResolver {
-        return if (environment.activeProfiles.any { it.contains("prod", true) }) {
+        return if (environment.isProd) {
             ProductionResolver()
         } else {
             NightlyResolver()
