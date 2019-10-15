@@ -54,11 +54,12 @@ public class FirebaseAuthInterceptor implements HandlerInterceptor {
                     return false;
 
                 } else {
-                    final String userId = getUserId(decodedToken);
+                    String userId = getUserId(decodedToken);
                     if (userId == null) {
-                        log.error("preHandle: GetUserIdwithdecodedToken:" + userId + " return " + userId);
-                        handleThrowable(response, HttpStatus.INTERNAL_SERVER_ERROR, "Please login again");
-                        return false;
+                        log.info("preHandle: createAnoymousUser");
+                        // the user document is not ready. Let's create it now.
+                        userId = userRepository.createAnoymousUser(decodedToken.getUid());
+                        log.info("preHandle: createAnoymousUser done:" + userId);
                     }
                     log.info("preHandle: success:" + userId);
                     request.setAttribute("uid", userId);
