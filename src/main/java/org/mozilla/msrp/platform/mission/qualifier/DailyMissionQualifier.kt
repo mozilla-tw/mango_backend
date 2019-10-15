@@ -3,10 +3,12 @@ package org.mozilla.msrp.platform.mission.qualifier
 import org.mozilla.msrp.platform.mission.JoinStatus
 import org.mozilla.msrp.platform.mission.MissionRepository
 import org.mozilla.msrp.platform.mission.MissionType
+import org.mozilla.msrp.platform.util.getDayDifference
+import org.mozilla.msrp.platform.util.getMinuteOfDayDifference
 import org.mozilla.msrp.platform.util.logger
 import org.springframework.context.MessageSource
+import org.springframework.core.env.Environment
 import java.time.*
-import java.time.temporal.ChronoUnit
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Named
@@ -27,7 +29,7 @@ class DailyMissionQualifier(private val clock: Clock = Clock.systemUTC()) {
     lateinit var locale: Locale
 
     @Inject
-    lateinit var missionProperties: DailyMissionProperties
+    lateinit var environment: Environment
 
     fun updateProgress(uid: String, mid: String, zone: ZoneId): MissionProgressDoc {
         val params = missionRepository.getDailyMissionParams(mid)
@@ -98,27 +100,19 @@ class DailyMissionQualifier(private val clock: Clock = Clock.systemUTC()) {
             return noProgress(progress)
         }
 
+        if (progress.currentDayCount == 0) {
+            return advanceProgress(progress)
+        }
+
         val lastCheckInDate = Instant.ofEpochMilli(progress.timestamp).atZone(zone)
         val now = clock.instant().atZone(zone)
 
-        val diffSeconds = getDateDifference(lastCheckInDate, now, ChronoUnit.SECONDS)
-        val interval = missionProperties.checkInIntervalSeconds
-        log.info("now: $now, last: $lastCheckInDate, diff=$diffSeconds, interval=$interval")
-
-        return when {
-            diffSeconds >= 2 * interval -> restartProgress(progress)
-            diffSeconds >= 1 * interval -> advanceProgress(progress)
-            diffSeconds >= 0L -> noProgress(progress)
-            else -> illegalProgress(progress)
+        return when (actionResolver().resolve(lastCheckInDate, now)) {
+            Action.Restart -> restartProgress(progress)
+            Action.Advance -> advanceProgress(progress)
+            Action.NoAction -> noProgress(progress)
+            Action.Illegal -> illegalProgress(progress)
         }
-    }
-
-    private fun getDateDifference(
-            dateStart: ZonedDateTime,
-            dateEnd: ZonedDateTime,
-            @Suppress("SameParameterValue") unit: ChronoUnit
-    ): Long {
-        return unit.between(dateStart, dateEnd)
     }
 
     private fun restartProgress(progress: DailyMissionProgressDoc): DailyMissionProgressDoc {
@@ -150,5 +144,48 @@ class DailyMissionQualifier(private val clock: Clock = Clock.systemUTC()) {
 
     fun clearProgress(uid: String, mid: String) {
         missionRepository.clearDailyMissionProgress(uid, mid)
+    }
+
+    private fun actionResolver(): ProgressActionResolver {
+        return if (environment.activeProfiles.any { it.contains("prod", true) }) {
+            ProductionResolver()
+        } else {
+            NightlyResolver()
+        }
+    }
+
+    interface ProgressActionResolver {
+        fun resolve(start: ZonedDateTime, end: ZonedDateTime): Action
+    }
+
+    enum class Action {
+        Advance,
+        Restart,
+        NoAction,
+        Illegal
+    }
+
+    class ProductionResolver : ProgressActionResolver {
+        override fun resolve(start: ZonedDateTime, end: ZonedDateTime): Action {
+            val diffDays = getDayDifference(start, end)
+            return when {
+                diffDays >= 2 -> Action.Restart
+                diffDays >= 1 -> Action.Advance
+                diffDays >= 0 -> Action.NoAction
+                else -> Action.Illegal
+            }
+        }
+    }
+
+    class NightlyResolver : ProgressActionResolver {
+        override fun resolve(start: ZonedDateTime, end: ZonedDateTime): Action {
+            val diffMinutes = getMinuteOfDayDifference(start, end)
+            return when {
+                diffMinutes >= 2 -> Action.Restart
+                diffMinutes >= 1 -> Action.Advance
+                diffMinutes >= 0 -> Action.NoAction
+                else -> Action.Illegal
+            }
+        }
     }
 }
