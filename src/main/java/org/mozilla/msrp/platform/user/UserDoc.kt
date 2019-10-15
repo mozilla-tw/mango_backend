@@ -13,13 +13,13 @@ data class UserActivityDoc(
 }
 
 data class UserDoc(
-        var uid: String? = null,
-        var firebase_uid: String? = null,
-        var firefox_uid: String? = null,
-        var created_timestamp: Long? = null,
-        var updated_timestamp: Long? = null,
-        var status: String? = null,
-        var email: String? = null,
+        var uid: String = "",
+        var firebase_uid: String = "",
+        var firefox_uid: String = "",
+        var created_timestamp: Long = 0L,
+        var updated_timestamp: Long = 0L,
+        var status: String = "anonymous",
+        var email: String = "",
         val version: Int = 1
 ) {
 

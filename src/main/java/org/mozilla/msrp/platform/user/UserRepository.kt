@@ -7,6 +7,7 @@ import com.google.cloud.firestore.SetOptions
 import com.google.firebase.auth.FirebaseAuth
 import org.mozilla.msrp.platform.firestore.getResultsUnchecked
 import org.mozilla.msrp.platform.firestore.getUnchecked
+import org.mozilla.msrp.platform.firestore.setUnchecked
 import org.mozilla.msrp.platform.user.data.UserActivityDoc
 import org.mozilla.msrp.platform.user.data.UserDoc
 import org.mozilla.msrp.platform.util.logger
@@ -227,6 +228,15 @@ class UserRepository @Inject constructor(firestore: Firestore) {
     fun isFxaUser(uid: String): Boolean {
         val fxUid = users.whereEqualTo(UserDoc.KEY_UID, uid).getResultsUnchecked().firstOrNull()?.get(UserDoc.KEY_FIREFOX_UID) as? String?
         return fxUid?.isEmpty() ?: false
+    }
+
+    fun createAnoymousUser(firebaseUid: String): String {
+        val document = users.document()
+        val docId = document.id
+        val ts = clock.millis()
+        val userDoc = UserDoc(uid = docId, firebase_uid = firebaseUid, created_timestamp = ts, updated_timestamp = ts)
+        document.setUnchecked(userDoc)
+        return docId
     }
 }
 
