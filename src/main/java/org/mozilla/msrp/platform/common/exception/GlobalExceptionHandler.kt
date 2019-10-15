@@ -18,7 +18,7 @@ class GlobalExceptionHandler {
     @ExceptionHandler(value = [Exception::class])
     fun handleException(e: Exception): ResponseEntity<ErrorResponseMessage> {
         val msg = NestedExceptionUtils.buildMessage("", e)
-        log.info("global uncaught exception: {}", msg)
+        log.info("global uncaught exception: {}", e)
         return ResponseEntity(
                 ErrorResponseMessage("internal server error"),
                 HttpStatus.INTERNAL_SERVER_ERROR
