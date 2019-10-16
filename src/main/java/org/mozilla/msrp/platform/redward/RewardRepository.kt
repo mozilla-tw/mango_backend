@@ -181,6 +181,7 @@ open class RewardRepository @Inject constructor(
     fun uploadCoupons(
             coupons: List<String>,
             couponName: String,
+            expiredDate: String,
             missionType: String,
             mid: String,
             clear: Boolean
@@ -197,7 +198,15 @@ open class RewardRepository @Inject constructor(
 
         clearCollection(collection)
 
-        return coupons.mapByBatch { batchUpdateCoupons(it, collection, mission, createdTime) }.flatten()
+        return coupons.mapByBatch {
+            batchUpdateCoupons(
+                    coupons = it,
+                    expiredDate = expiredDate,
+                    collection = collection,
+                    mission = mission,
+                    createdTime = createdTime
+            )
+        }.flatten()
     }
 
     private fun clearCollection(collection: CollectionReference) {
@@ -212,6 +221,7 @@ open class RewardRepository @Inject constructor(
 
     private fun batchUpdateCoupons(
             coupons: List<String>,
+            expiredDate: String,
             collection: CollectionReference,
             mission: MissionDoc,
             createdTime: Long
@@ -223,7 +233,7 @@ open class RewardRepository @Inject constructor(
                         rid = docRef.id,
                         mid = mission.mid,
                         code = couponCode,
-                        expire_date = stringToLocalDateTime(mission.expiredDate)
+                        expire_date = stringToLocalDateTime(expiredDate)
                                 .toInstant(ZoneOffset.UTC)
                                 .toEpochMilli(),
                         created_timestamp = createdTime,
