@@ -56,11 +56,18 @@ public class FirebaseAuthInterceptor implements HandlerInterceptor {
                 } else {
                     String userId = getUserId(decodedToken);
                     if (userId == null) {
-                        log.info("preHandle: createAnoymousUser");
+                        log.info("preHandle: createAnonymousUser");
                         // the user document is not ready. Let's create it now.
-                        userId = userRepository.createAnoymousUser(decodedToken.getUid());
-                        log.info("preHandle: createAnoymousUser done:" + userId);
+                        userId = userRepository.createAnonymousUser(decodedToken.getUid());
+                        log.info("preHandle: createAnonymousUser done:" + userId);
                     }
+
+                    if (userRepository.isUserSuspended(userId)) {
+                        log.warn("preHandle: user suspended uid={}", userId);
+                        handleThrowable(response, HttpStatus.FORBIDDEN, "user suspended");
+                        return false;
+                    }
+
                     log.info("preHandle: success:" + userId);
                     request.setAttribute("uid", userId);
                     return true;
