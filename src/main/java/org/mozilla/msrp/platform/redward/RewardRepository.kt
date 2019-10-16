@@ -180,6 +180,7 @@ open class RewardRepository @Inject constructor(
 
     fun uploadCoupons(
             coupons: List<String>,
+            displayName: String,
             couponName: String,
             expiredDate: String,
             missionType: String,
@@ -200,6 +201,7 @@ open class RewardRepository @Inject constructor(
 
         return coupons.mapByBatch {
             batchUpdateCoupons(
+                    displayName = displayName,
                     coupons = it,
                     expiredDate = expiredDate,
                     collection = collection,
@@ -220,6 +222,7 @@ open class RewardRepository @Inject constructor(
     }
 
     private fun batchUpdateCoupons(
+            displayName: String,
             coupons: List<String>,
             expiredDate: String,
             collection: CollectionReference,
@@ -232,6 +235,7 @@ open class RewardRepository @Inject constructor(
                 val doc = RewardCouponDoc(
                         rid = docRef.id,
                         mid = mission.mid,
+                        display_name = displayName,
                         code = couponCode,
                         expire_date = stringToLocalDateTime(expiredDate)
                                 .toInstant(ZoneOffset.UTC)
