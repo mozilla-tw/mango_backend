@@ -230,13 +230,22 @@ class UserRepository @Inject constructor(firestore: Firestore) {
         return fxUid?.isEmpty() ?: false
     }
 
-    fun createAnoymousUser(firebaseUid: String): String {
+    fun createAnonymousUser(firebaseUid: String): String {
         val document = users.document()
         val docId = document.id
         val ts = clock.millis()
         val userDoc = UserDoc(uid = docId, firebase_uid = firebaseUid, created_timestamp = ts, updated_timestamp = ts)
         document.setUnchecked(userDoc)
         return docId
+    }
+
+    fun isUserSuspended(uid: String): Boolean {
+        val status = users.whereEqualTo(UserDoc.KEY_UID, uid)
+                .getResultsUnchecked()
+                .firstOrNull()
+                ?.get(UserDoc.KEY_STATUS) as? String?
+
+        return status == UserDoc.STATUS_SUSPEND
     }
 }
 
