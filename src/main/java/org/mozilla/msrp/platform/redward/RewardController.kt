@@ -79,6 +79,7 @@ class RedeemController @Inject constructor(val rewardRepository: RewardRepositor
     @RequestMapping(value = ["/api/v1/admin/coupon"], method = [RequestMethod.POST])
     internal fun uploadCoupons(@RequestParam token: String,
                                @RequestParam("couponName") couponName: String,
+                               @RequestParam displayName:String,
                                @RequestParam("file") file: MultipartFile,
                                @RequestParam("missionType") missionType: String,
                                @RequestParam("mid") mid: String,
@@ -104,6 +105,7 @@ class RedeemController @Inject constructor(val rewardRepository: RewardRepositor
 
         val couponDocs = rewardRepository.uploadCoupons(
                 coupons = coupons,
+                displayName = displayName,
                 couponName = couponName,
                 expiredDate = expiredDate,
                 missionType = missionType,
