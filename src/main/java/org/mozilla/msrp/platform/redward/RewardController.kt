@@ -82,6 +82,7 @@ class RedeemController @Inject constructor(val rewardRepository: RewardRepositor
                                @RequestParam("file") file: MultipartFile,
                                @RequestParam("missionType") missionType: String,
                                @RequestParam("mid") mid: String,
+                               @RequestParam("expiredDate") expiredDate: String,
                                @RequestParam(required = false) clear: Boolean = false): ResponseEntity<CouponUploadResponse> {
         if (JwtHelper.verify(token)?.role != JwtHelper.ROLE_MSRP_ADMIN) {
             logger.warn("[Reward][uploadCoupons] Role violation: token[$token] couponName[$couponName] missionType[$missionType] mid[$mid]")
@@ -101,7 +102,14 @@ class RedeemController @Inject constructor(val rewardRepository: RewardRepositor
                     "separate coupon codes into separated lines"))
         }
 
-        val couponDocs = rewardRepository.uploadCoupons(coupons, couponName, missionType, mid, clear)
+        val couponDocs = rewardRepository.uploadCoupons(
+                coupons = coupons,
+                couponName = couponName,
+                expiredDate = expiredDate,
+                missionType = missionType,
+                mid = mid,
+                clear = clear
+        )
 
         return ResponseEntity.ok(CouponUploadResponse.Success("${couponDocs.size} coupons uploaded"))
     }
