@@ -3,8 +3,6 @@ package org.mozilla.msrp.platform.mission
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.mockito.Mockito.mock
-import org.mozilla.msrp.platform.redward.RewardRepository
-import org.mozilla.msrp.platform.util.logger
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDateTime
@@ -28,8 +26,7 @@ class MissionJoinableTest {
     private val afterExpiredUtc = LocalDateTime.ofInstant(afterExpiredJakarta.atZone(zoneJakarta).toInstant(), zoneUtc)
 
     private val missionRepo = mock(MissionRepository::class.java)
-    private val rewardRepo = mock(RewardRepository::class.java)
-    private val service = MissionService(missionRepo, rewardRepo)
+    private val service = MissionService(missionRepo)
 
     @Test
     fun `test getMissionJoinState()`() {
