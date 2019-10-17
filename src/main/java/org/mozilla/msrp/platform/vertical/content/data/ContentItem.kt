@@ -24,7 +24,7 @@ class ContentItem(
         @field:CsvBindByName(required = false) var title: String? = "",
         @field:CsvBindByName(required = false) var description: String? = "",
         @field:CsvBindByName(required = false) var score: Double? = 0.0,
-        @field:CsvBindByName(required = false) var score_reviews: Int? = 0,
+        @field:CsvBindByName(required = false) var score_reviews: String? = "",
         @field:CsvBindByName(required = false) var price: String? = "",
         @field:CsvBindByName(required = false) var discount: String? = "",
         @field:CsvBindByName(required = false) var fresh: Boolean? = false,
