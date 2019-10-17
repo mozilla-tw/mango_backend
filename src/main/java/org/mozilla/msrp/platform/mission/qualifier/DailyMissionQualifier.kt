@@ -27,12 +27,9 @@ class DailyMissionQualifier(private val clock: Clock = Clock.systemUTC()) {
     lateinit var missionMessageSource: MessageSource
 
     @Inject
-    lateinit var locale: Locale
-
-    @Inject
     lateinit var environment: Environment
 
-    fun updateProgress(uid: String, mid: String, zone: ZoneId): MissionProgressDoc {
+    fun updateProgress(uid: String, mid: String, zone: ZoneId, locale: Locale): MissionProgressDoc {
         val params = missionRepository.getDailyMissionParams(mid)
 
         // DocumentSnapshot#toObject() will map numbers to Long if the target field is declared as Any
