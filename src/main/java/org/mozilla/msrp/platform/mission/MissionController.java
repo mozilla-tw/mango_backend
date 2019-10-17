@@ -135,6 +135,7 @@ public class MissionController {
             @RequestParam String joinStartDate,
             @RequestParam String joinEndDate,
             @RequestParam String expiredDate,
+            @RequestParam String redeemEndDate,
             @RequestParam String pings,
             @RequestParam(value = "messages[]") String[] messages,
             @RequestParam int minVersion) {
@@ -168,6 +169,7 @@ public class MissionController {
                 joinStartDate,
                 joinEndDate,
                 expiredDate,
+                redeemEndDate,
                 minVersion,
                 params,
                 rewardType,
