@@ -1,7 +1,6 @@
 package org.mozilla.msrp.platform.vertical.content.data
 
 import com.opencsv.bean.CsvBindByName
-import org.mozilla.msrp.platform.util.hash
 
 // TODO: set the required fields for each categories
 //  https://docs.google.com/spreadsheets/d/1s--x8TiIsEEISHl3YJA8ulAljxJt4FQUHZ0r5tCxHy0/edit#gid=1268475188
@@ -32,5 +31,5 @@ class ContentItem(
         @field:CsvBindByName(required = false) var start_date: Long? = 0L,
         @field:CsvBindByName(required = false) var end_date: Long? = 0L,
         @field:CsvBindByName(required = false) var additional: String = "",
-        var component_id: String = destination.hash()
+        var component_id: String = ""
 )

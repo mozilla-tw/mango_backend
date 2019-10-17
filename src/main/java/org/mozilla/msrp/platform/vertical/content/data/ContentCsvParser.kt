@@ -1,6 +1,7 @@
 package org.mozilla.msrp.platform.vertical.content.data
 
 import com.opencsv.bean.CsvToBeanBuilder
+import org.mozilla.msrp.platform.util.hash
 import java.io.ByteArrayInputStream
 import java.io.InputStreamReader
 
@@ -18,6 +19,9 @@ fun parseContent(bannerBytes: ByteArray?, listItemBytes: ByteArray): Category {
     // add banner Subcategory
     val bannerSubCategory = parseBanner(bannerBytes)
     if (bannerSubCategory != null) {
+        bannerSubCategory.items.map {
+            it.component_id = it.destination.hash()
+        }
         subCategories.add(bannerSubCategory)
     }
 
@@ -48,6 +52,7 @@ private fun parseOthers(bytes: ByteArray): List<ContentSubcategory> {
 
         for (content in csvEntryList) {
             if (content.subcategory_id == subcategory.subcategoryId) {
+                content.component_id = content.destination.hash()
                 otherItems.add(content)
             }
         }
