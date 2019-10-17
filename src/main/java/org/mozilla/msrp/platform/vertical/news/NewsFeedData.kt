@@ -101,7 +101,7 @@ class GoogleFeedItem @JvmOverloads constructor(
 
         @field:Path("media:content")
         @field:Attribute(name = "url", required = false)
-        override var image: String? = "",
+        override var image: String? = null,
 
         @field:Element(name = "source")
         override var source: String = ""

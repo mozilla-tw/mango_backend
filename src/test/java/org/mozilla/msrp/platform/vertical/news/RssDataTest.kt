@@ -14,7 +14,7 @@ class RssDataTest {
         val file = File(classLoader.getResource("./rssGoogle.xml")!!.file)
         val rss: GoogleRss = read(serializer, file)
         assert(rss.feedItems?.filter { it.title != "" }?.size == 70)
-        assert(rss.feedItems?.filter { it.image != "" }?.size == 36)
+        assert(rss.feedItems?.filter { it.image != null }?.size == 36)
         assert(rss.feedItems?.filter { it.source != "" }?.size == 70)
         assert(rss.feedItems?.filter { it.description != "" }?.size == 70)
         assert(rss.feedItems?.filter { it.pubDate != "" }?.size == 70)
