@@ -69,6 +69,7 @@ class MissionRepositoryFirestore @Inject internal constructor(
                 joinStartDate = createData.joinStartDate,
                 joinEndDate = createData.joinEndDate,
                 expiredDate = createData.expiredDate,
+                redeemEndDate = createData.redeemEndDate,
                 interestPings = createData.pings,
                 minVersion = createData.minVersion,
                 missionParams = createData.missionParams ?: emptyMap(),

@@ -13,6 +13,7 @@ data class MissionCreateResultItem(
         val joinStartDate: String,
         val joinEndDate: String,
         val expiredDate: String,
+        val redeemEndDate: String,
         val events: List<String>,
         val endpoint: String,
         val minVersion: Int,
