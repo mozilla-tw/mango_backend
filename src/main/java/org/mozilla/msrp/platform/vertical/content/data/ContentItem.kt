@@ -31,5 +31,6 @@ class ContentItem(
         @field:CsvBindByName(required = false) var fresh: Boolean? = false,
         @field:CsvBindByName(required = false) var start_date: Long? = 0L,
         @field:CsvBindByName(required = false) var end_date: Long? = 0L,
+        @field:CsvBindByName(required = false) var additional: String = "",
         var component_id: String = destination.hash()
 )
