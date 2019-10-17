@@ -8,10 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.time.DateTimeException;
 import java.time.ZoneId;
 
@@ -53,7 +50,8 @@ public class MissionController {
     public ResponseEntity<MissionListResponse> getMissionByGroupId(
             @PathVariable("groupId") String groupId,
             @RequestParam("tz") String timezone,
-            @RequestAttribute("uid") String uid) {
+            @RequestAttribute("uid") String uid,
+            @RequestAttribute("locale") Locale locale) {
 
         ZoneId zone = createZone(timezone);
         if (zone == null) {
@@ -61,7 +59,7 @@ public class MissionController {
                     .body(new MissionListResponse.Error("unsupported timezone"));
         }
 
-        List<MissionListItem> missions = missionService.getMissionsByGroupId(uid, groupId, zone);
+        List<MissionListItem> missions = missionService.getMissionsByGroupId(uid, groupId, zone, locale);
 
         return ResponseEntity.ok(new MissionListResponse.Success(missions));
     }
@@ -225,7 +223,8 @@ public class MissionController {
             @PathVariable("missionType") String missionType,
             @PathVariable("mid") String mid,
             @RequestParam("tz") String timezone,
-            @RequestAttribute("uid") String uid) {
+            @RequestAttribute("uid") String uid,
+            @RequestAttribute("locale") Locale locale) {
 
         ZoneId zone = createZone(timezone);
         if (zone == null) {
@@ -233,7 +232,7 @@ public class MissionController {
                     new MissionJoinResponse.Error("unsupported timezone"));
         }
 
-        MissionJoinResult result = missionService.joinMission(uid, missionType, mid, zone);
+        MissionJoinResult result = missionService.joinMission(uid, missionType, mid, zone, locale);
         if (result instanceof MissionJoinResult.Success) {
             MissionJoinResult.Success successResult = (MissionJoinResult.Success) result;
             return ResponseEntity.ok(new MissionJoinResponse.Success(successResult));
@@ -270,7 +269,8 @@ public class MissionController {
     public ResponseEntity<MissionCheckInResponse> checkInMissionsByPing(
             @PathVariable("ping") String ping,
             @RequestParam("tz") String timezone,
-            @RequestAttribute("uid") String uid) {
+            @RequestAttribute("uid") String uid,
+            @RequestAttribute("locale") Locale locale) {
 
         ZoneId zone = createZone(timezone);
         if (zone == null) {
@@ -280,7 +280,7 @@ public class MissionController {
 
         log.info("ping={}, timezone={}", ping, zone);
 
-        List<MissionListItem> results = missionService.checkInMissions(uid, ping, zone);
+        List<MissionListItem> results = missionService.checkInMissions(uid, ping, zone, locale);
 
         return ResponseEntity.ok(new MissionCheckInResponse.Success(results));
     }

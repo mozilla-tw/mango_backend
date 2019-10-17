@@ -38,9 +38,6 @@ class MissionService @Inject constructor(
     lateinit var missionMessageSource: MessageSource
 
     @Inject
-    lateinit var locale: Locale
-
-    @Inject
     lateinit var clock: Clock
 
     @Inject
@@ -48,7 +45,7 @@ class MissionService @Inject constructor(
 
     private val log: Logger = logger()
 
-    fun getMissionsByGroupId(uid: String, groupId: String, zone: ZoneId): List<MissionListItem> {
+    fun getMissionsByGroupId(uid: String, groupId: String, zone: ZoneId, locale: Locale): List<MissionListItem> {
         return if (isSuspiciousUser) {
             ArrayList()
 
@@ -60,7 +57,7 @@ class MissionService @Inject constructor(
                         val joinCount = missionRepository.getJoinCount(it.missionType, it.mid)
                         isMissionAvailableForShowing(uid, it, joinStatus, joinCount, clock, zone)
                     }
-                    .map { aggregateMissionListItem(uid, it, zone) }
+                    .map { aggregateMissionListItem(uid, it, zone, locale) }
         }
     }
 
@@ -144,7 +141,7 @@ class MissionService @Inject constructor(
         }
     }
 
-    private fun getMissionTitle(mission: MissionDoc): String {
+    private fun getMissionTitle(mission: MissionDoc, locale: Locale): String {
         val title = getStringById(mission.titleId, locale)
         return if (environment.isProd) {
             title
@@ -153,8 +150,8 @@ class MissionService @Inject constructor(
         }
     }
 
-    private fun aggregateMissionListItem(uid: String, missionDoc: MissionDoc, zone: ZoneId): MissionListItem {
-        val name = getMissionTitle(missionDoc)
+    private fun aggregateMissionListItem(uid: String, missionDoc: MissionDoc, zone: ZoneId, locale: Locale): MissionListItem {
+        val name = getMissionTitle(missionDoc, locale)
         val description = getStringById(missionDoc.descriptionId, locale)
 
         val joinStatus = missionRepository.getJoinStatus(
@@ -285,7 +282,8 @@ class MissionService @Inject constructor(
             uid: String,
             missionType: String,
             mid: String,
-            zone: ZoneId
+            zone: ZoneId,
+            locale: Locale
     ): MissionJoinResult {
         val logInfo = "joinMission: uid=$uid, type=$missionType, mid=$mid, zone=$zone"
 
@@ -325,7 +323,7 @@ class MissionService @Inject constructor(
 
             MissionJoinableState.Joinable -> {
                 val joinResult = missionRepository.joinMission(uid, missionType, mid)
-                missionQualifier.updateProgress(uid, mid, MissionType.from(missionType), zone)
+                missionQualifier.updateProgress(uid, mid, MissionType.from(missionType), zone, locale)
                 log.info("join mission, $logInfo, state=${joinResult.status}")
                 return MissionJoinResult.Success(joinResult.mid, joinResult.status)
             }
@@ -439,7 +437,8 @@ class MissionService @Inject constructor(
     fun checkInMissions(
             uid: String,
             ping: String,
-            zone: ZoneId
+            zone: ZoneId,
+            locale: Locale
     ): List<MissionListItem> {
 
         val missions = missionRepository.findJoinedMissionsByPing(uid, ping)
@@ -447,13 +446,13 @@ class MissionService @Inject constructor(
 
         val joinedMissions = missions.filter { isJoined(uid, it.missionType, it.mid) }
 
-        val joinedMissionListItem = joinedMissions.map { aggregateMissionListItem(uid, it, zone) }
+        val joinedMissionListItem = joinedMissions.map { aggregateMissionListItem(uid, it, zone, locale) }
 
         // update MissionProgressDoc since we only get the message when we update the progress
         // This is ugly but I don't have time to re-write `aggregateMissionListItem` right now.
         // TODO: fix the n*n complexity here :(
         joinedMissions.map {
-            val progressDoc = updateProgress(uid, it.missionType, it.mid, zone)
+            val progressDoc = updateProgress(uid, it.missionType, it.mid, zone, locale)
             for (missionListItem in joinedMissionListItem) {
                 if (missionListItem.mid == progressDoc?.mid) {
                     missionListItem.progress = progressDoc.toProgressResponse()
@@ -471,10 +470,11 @@ class MissionService @Inject constructor(
             uid: String,
             missionType: String,
             mid: String,
-            zone: ZoneId
+            zone: ZoneId,
+            locale: Locale
     ): MissionProgressDoc? {
 
         log.info("update progress, mid=$mid, type=$missionType")
-        return missionQualifier.updateProgress(uid, mid, MissionType.from(missionType), zone)
+        return missionQualifier.updateProgress(uid, mid, MissionType.from(missionType), zone, locale)
     }
 }

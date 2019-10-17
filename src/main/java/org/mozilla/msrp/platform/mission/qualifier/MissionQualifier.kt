@@ -4,6 +4,7 @@ import org.mozilla.msrp.platform.mission.MissionType
 import org.mozilla.msrp.platform.util.logger
 import org.slf4j.Logger
 import java.time.ZoneId
+import java.util.*
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -19,10 +20,11 @@ class MissionQualifier {
             uid: String,
             mid: String,
             missionType: MissionType,
-            zone: ZoneId
+            zone: ZoneId,
+            locale: Locale
     ): MissionProgressDoc? {
         return when (missionType) {
-            MissionType.DailyMission -> updateDailyMissionProgress(uid, mid, zone)
+            MissionType.DailyMission -> updateDailyMissionProgress(uid, mid, zone, locale)
             else -> handleUnknownMissionType(mid, missionType)
         }
     }
@@ -34,8 +36,8 @@ class MissionQualifier {
         }
     }
 
-    private fun updateDailyMissionProgress(uid: String, mid: String, zone: ZoneId): MissionProgressDoc? {
-        return dailyMissionQualifier.updateProgress(uid, mid, zone)
+    private fun updateDailyMissionProgress(uid: String, mid: String, zone: ZoneId, locale: Locale): MissionProgressDoc? {
+        return dailyMissionQualifier.updateProgress(uid, mid, zone, locale)
     }
 
     private fun clearDailyMissionProgress(uid: String, mid: String) {
