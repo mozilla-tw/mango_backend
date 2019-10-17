@@ -8,15 +8,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.inject.Inject;
-import java.util.*;
 import java.time.DateTimeException;
 import java.time.ZoneId;
+import java.util.*;
 
 import static org.springframework.web.bind.annotation.RequestMethod.*;
 
 @Log4j2
 @RestController
 public class MissionController {
+
+    private static final String PINGS_SEPARATER = ",";
 
     @Inject
     private MissionService missionService;
@@ -143,11 +145,19 @@ public class MissionController {
         }
         MissionCreateRequest request = new MissionCreateRequest();
         ArrayList<MissionCreateData> missionList = new ArrayList<>();
-        ArrayList<String> pingList = new ArrayList<>();
+        List<String> pingList = null;
         HashMap<String, Object> params = new HashMap<>();
         params.put("totalDays", totalDays);
         params.put("message", Arrays.asList(messages));
-        pingList.add(pings);
+
+        final String[] split = pings.split(PINGS_SEPARATER);
+        if (split.length > 0) {
+            pingList = Arrays.asList(split);
+        } else {
+            pingList = new ArrayList<>();
+            pingList.add(pings);
+        }
+
         MissionCreateData mCreated = new MissionCreateData(
                 missionName,
                 titleId,
