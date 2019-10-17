@@ -21,6 +21,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Date;
+import java.util.Locale;
 
 @Log4j2
 @Named
@@ -67,7 +68,12 @@ public class FirebaseAuthInterceptor implements HandlerInterceptor {
                     }
 
                     log.info("preHandle: success:" + userId);
+
+                    Locale locale = request.getLocale();
                     request.setAttribute("uid", userId);
+                    request.setAttribute("locale", locale);
+                    log.info("preHandle: setAttribute(uid={}, locale={})", userId, locale);
+
                     return true;
                 }
 
