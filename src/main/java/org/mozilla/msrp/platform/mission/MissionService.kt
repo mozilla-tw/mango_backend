@@ -167,12 +167,15 @@ class MissionService @Inject constructor(
 
         val expiredInstant: Instant
         val joinEndInstant: Instant
+        val redeemEndInstant: Instant
         if (missionDoc.isUtcBasedMission()) {
             expiredInstant = stringToLocalDateTime(missionDoc.expiredDate).toInstant(ZoneOffset.UTC)
             joinEndInstant = stringToLocalDateTime(missionDoc.joinEndDate).toInstant(ZoneOffset.UTC)
+            redeemEndInstant = stringToLocalDateTime(missionDoc.redeemEndDate).toInstant(ZoneOffset.UTC)
         } else {
             expiredInstant = stringToLocalDateTime(missionDoc.expiredDate).atZone(zone).toInstant()
             joinEndInstant = stringToLocalDateTime(missionDoc.joinEndDate).atZone(zone).toInstant()
+            redeemEndInstant = stringToLocalDateTime(missionDoc.redeemEndDate).atZone(zone).toInstant()
         }
 
         return MissionListItem(
@@ -183,6 +186,7 @@ class MissionService @Inject constructor(
                 redeemEndpoint = "/api/v1/redeem/${missionDoc.missionType}?mid=${missionDoc.mid}",
                 events = missionDoc.interestPings,
                 expiredDate = expiredInstant.toEpochMilli(),
+                redeemEndDate = redeemEndInstant.toEpochMilli(),
                 status = joinStatus,
                 minVersion = missionDoc.minVersion,
                 progress = progress?.toProgressResponse() ?: emptyMap(),
@@ -222,6 +226,7 @@ class MissionService @Inject constructor(
                     joinStartDate = mission.joinStartDate,
                     joinEndDate = mission.joinEndDate,
                     expiredDate = mission.expiredDate,
+                    redeemEndDate = mission.redeemEndDate,
                     events = mission.interestPings,
                     endpoint = mission.endpoint,
                     minVersion = mission.minVersion,

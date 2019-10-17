@@ -14,6 +14,7 @@ data class MissionCreateData(
         val joinStartDate: String,
         val joinEndDate: String,
         val expiredDate: String,
+        val redeemEndDate: String,
         val minVersion: Int,
         val missionParams: Map<String, Any>?,
         val rewardType: String,
