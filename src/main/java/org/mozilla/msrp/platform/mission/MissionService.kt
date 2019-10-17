@@ -278,7 +278,7 @@ class MissionService @Inject constructor(
 
         val mission = missionRepository.findMission(missionType, mid) ?: run {
             log.info("joinMission: mission not found")
-            return MissionJoinResult.Error("mission not found", HttpStatus.NOT_FOUND)
+            return MissionJoinResult.Error("mission not found", HttpStatus.NOT_FOUND, JoinFailedReason.NotExist)
         }
 
         val joinStatus = missionRepository.getJoinStatus(uid, missionType, mid)
@@ -287,27 +287,27 @@ class MissionService @Inject constructor(
         when (checkJoinable(mission, joinStatus, joinCount, clock, zone)) {
             MissionJoinableState.NotOpen -> {
                 log.info("joinMission: not open for join")
-                return MissionJoinResult.Error("mission not open", HttpStatus.FORBIDDEN)
+                return MissionJoinResult.Error("mission not open", HttpStatus.NOT_FOUND, JoinFailedReason.NotOpen)
             }
 
             MissionJoinableState.Closed -> {
                 log.info("joinMission: exceed join period")
-                return MissionJoinResult.Error("mission closed", HttpStatus.GONE)
+                return MissionJoinResult.Error("mission closed", HttpStatus.NOT_FOUND, JoinFailedReason.Closed)
             }
 
             MissionJoinableState.AlreadyJoin -> {
                 log.info("joinMission: already joined")
-                return MissionJoinResult.Error("already joined", HttpStatus.CONFLICT)
+                return MissionJoinResult.Error("already joined", HttpStatus.CONFLICT, JoinFailedReason.AlreadyJoined)
             }
 
             MissionJoinableState.NoQuota -> {
                 log.info("joinMission: mission join quota reached")
-                return MissionJoinResult.Error("mission reach join quota", HttpStatus.FORBIDDEN)
+                return MissionJoinResult.Error("mission reach join quota", HttpStatus.FORBIDDEN, JoinFailedReason.NoQuota)
             }
 
             MissionJoinableState.Unknown -> {
                 log.error("joinMission: unknown error")
-                return MissionJoinResult.Error("unknown error", HttpStatus.INTERNAL_SERVER_ERROR)
+                return MissionJoinResult.Error("unknown error", HttpStatus.INTERNAL_SERVER_ERROR, JoinFailedReason.Unknown)
             }
 
             MissionJoinableState.Joinable -> {

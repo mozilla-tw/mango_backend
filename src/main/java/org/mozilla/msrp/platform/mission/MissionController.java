@@ -228,8 +228,12 @@ public class MissionController {
 
         ZoneId zone = createZone(timezone);
         if (zone == null) {
-            return ResponseEntity.badRequest().body(
-                    new MissionJoinResponse.Error("unsupported timezone"));
+            return ResponseEntity
+                    .badRequest()
+                    .body(new MissionJoinResponse.Error(
+                            "unsupported timezone",
+                            JoinFailedReason.Unknown.getCode()
+                    ));
         }
 
         MissionJoinResult result = missionService.joinMission(uid, missionType, mid, zone, locale);
@@ -240,7 +244,7 @@ public class MissionController {
         } else {
             MissionJoinResult.Error errorResult = (MissionJoinResult.Error) result;
             return ResponseEntity.status(errorResult.getCode())
-                    .body(new MissionJoinResponse.Error(errorResult.getMessage()));
+                    .body(new MissionJoinResponse.Error(errorResult.getMessage(), errorResult.getReason().getCode()));
         }
     }
 
