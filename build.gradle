@@ -99,7 +99,7 @@ def gaeVersions = [
 
 ext.getDeployConfig = { ->
 
-    def mode = project.hasProperty('mode') ? project.property('mode') : "staging"
+    def mode = project.hasProperty('mode') ? project.property('mode') : "dev"
     def deployConfig = [mode: mode]
 
     if (mode == 'dev') {
