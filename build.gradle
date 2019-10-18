@@ -118,7 +118,7 @@ ext.getDeployConfig = { ->
         deployConfig.promote = true
         deployConfig.version = gaeVersions.nightly
     } else if (mode == 'prod') {
-        deployConfig.gaeProjId = "rocket"
+        deployConfig.gaeProjId = "zerda-dcf76"
         deployConfig.stopPreviousVersion = false
         deployConfig.promote = false
         deployConfig.version = gaeVersions.prod
