@@ -1,5 +1,7 @@
 package org.mozilla.msrp.platform.mission
 
+import org.mozilla.msrp.platform.common.getMessageOrEmpty
+import org.mozilla.msrp.platform.common.getMessageOrNull
 import org.mozilla.msrp.platform.common.isProd
 import org.mozilla.msrp.platform.firestore.stringToLocalDateTime
 import org.mozilla.msrp.platform.mission.qualifier.MissionProgressDoc
@@ -8,7 +10,6 @@ import org.mozilla.msrp.platform.redward.RewardRepository
 import org.mozilla.msrp.platform.util.logger
 import org.slf4j.Logger
 import org.springframework.context.MessageSource
-import org.springframework.context.NoSuchMessageException
 import org.springframework.core.env.Environment
 import org.springframework.http.HttpStatus
 import java.time.Clock
@@ -131,13 +132,7 @@ class MissionService @Inject constructor(
     }
 
     private fun hasString(resId: String): Boolean {
-        return try {
-            getStringById(resId, Locale.getDefault())
-            true
-
-        } catch (e: NoSuchMessageException) {
-            false
-        }
+        return missionMessageSource.getMessageOrNull(resId, Locale.getDefault()) != null
     }
 
     private fun getMissionTitle(mission: MissionDoc, locale: Locale): String {
@@ -206,8 +201,8 @@ class MissionService @Inject constructor(
      * @param id string id
      * @return localized string (if any)
      */
-    private fun getStringById(id: String, locale: Locale, vararg args: String = emptyArray()): String {
-        return missionMessageSource.getMessage(id, args, locale)
+    private fun getStringById(id: String, locale: Locale): String {
+        return missionMessageSource.getMessageOrEmpty(id, locale)
     }
 
     fun createMissions(missionList: List<MissionCreateData>): MissionCreateResult {
