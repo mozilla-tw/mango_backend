@@ -7,11 +7,14 @@ import org.springframework.context.annotation.Bean;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 
 @Log4j2
 @Named
 public class FirefoxAccountClientConfiguration {
+    @Inject
+    FirefoxAccountServiceInfo firefoxAccountServiceInfo;
 
 
     @Bean("FxaAuth")
@@ -24,7 +27,7 @@ public class FirefoxAccountClientConfiguration {
 
 
         return new Retrofit.Builder()
-                .baseUrl("https://oauth-stable.dev.lcip.org")
+                .baseUrl(firefoxAccountServiceInfo.getApiToken())
                 .client(client)
                 .addConverterFactory(JacksonConverterFactory.create())
                 .build()
@@ -40,7 +43,7 @@ public class FirefoxAccountClientConfiguration {
 
 
         return new Retrofit.Builder()
-                .baseUrl("https://stable.dev.lcip.org/profile/")
+                .baseUrl(firefoxAccountServiceInfo.getApiProfile())
                 .client(client)
                 .addConverterFactory(JacksonConverterFactory.create())
                 .build().create(FirefoxAccountClient.class);
