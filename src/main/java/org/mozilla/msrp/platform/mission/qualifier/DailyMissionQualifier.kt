@@ -1,5 +1,6 @@
 package org.mozilla.msrp.platform.mission.qualifier
 
+import org.mozilla.msrp.platform.common.getMessageOrEmpty
 import org.mozilla.msrp.platform.common.isProd
 import org.mozilla.msrp.platform.mission.JoinStatus
 import org.mozilla.msrp.platform.mission.MissionRepository
@@ -50,7 +51,7 @@ class DailyMissionQualifier(private val clock: Clock = Clock.systemUTC()) {
             val messages = params["message"] as? ArrayList<*>
             val messageId = messages?.getOrNull(newProgress.currentDayCount - 1)
             val message = messageId?.let {
-                missionMessageSource.getMessage(it.toString(), null, locale)
+                missionMessageSource.getMessageOrEmpty(it.toString(), locale)
             }
             newProgress.dailyMessage = message ?: ""
             newProgress.totalDays = totalDays
