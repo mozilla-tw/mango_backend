@@ -138,6 +138,11 @@ open class RewardRepository @Inject constructor(
         }
     }
 
+    fun getRewardExpiredDate(rewardType: String, rewardDocId: String): Long? {
+        val doc = getRewardDoc(rewardType, rewardDocId)
+        return doc?.expire_date
+    }
+
     private fun info(missionJoinDoc: MissionJoinDoc) =
             "[INFO: mission ${missionJoinDoc.mid}, user ${missionJoinDoc.uid}]"
 
