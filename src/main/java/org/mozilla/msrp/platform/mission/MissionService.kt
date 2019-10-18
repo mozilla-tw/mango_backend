@@ -4,6 +4,7 @@ import org.mozilla.msrp.platform.common.isProd
 import org.mozilla.msrp.platform.firestore.stringToLocalDateTime
 import org.mozilla.msrp.platform.mission.qualifier.MissionProgressDoc
 import org.mozilla.msrp.platform.mission.qualifier.MissionQualifier
+import org.mozilla.msrp.platform.redward.RewardRepository
 import org.mozilla.msrp.platform.util.logger
 import org.slf4j.Logger
 import org.springframework.context.MessageSource
@@ -21,7 +22,8 @@ import javax.inject.Named
 
 @Named
 class MissionService @Inject constructor(
-        private val missionRepository: MissionRepository
+        private val missionRepository: MissionRepository,
+        private val rewardRepository: RewardRepository
 ) {
 
     // TODO: Verify user status
@@ -151,11 +153,8 @@ class MissionService @Inject constructor(
         val name = getMissionTitle(missionDoc, locale)
         val description = getStringById(missionDoc.descriptionId, locale)
 
-        val joinStatus = missionRepository.getJoinStatus(
-                uid,
-                missionDoc.missionType,
-                missionDoc.mid
-        )?.let { it } ?: JoinStatus.New
+        val joinDoc = missionRepository.getMissionJoinDoc(uid, missionDoc.missionType, missionDoc.mid)
+        val joinStatus = joinDoc?.status?.let { it } ?: JoinStatus.New
 
         val progress = missionQualifier.getProgress(
                 uid,
@@ -178,6 +177,10 @@ class MissionService @Inject constructor(
             redeemEndInstant = stringToLocalDateTime(missionDoc.redeemEndDate).atZone(zone).toInstant()
         }
 
+        val rewardExpiredDate = joinDoc?.rewardDocId?.let { rewardDocId ->
+            rewardRepository.getRewardExpiredDate(missionDoc.rewardType, rewardDocId)
+        } ?: Long.MIN_VALUE
+
         return MissionListItem(
                 mid = missionDoc.mid,
                 title = name,
@@ -193,7 +196,8 @@ class MissionService @Inject constructor(
                 important = important,
                 missionType = missionDoc.missionType,
                 joinEndDate = joinEndInstant.toEpochMilli(),
-                imageUrl = missionDoc.imageUrl
+                imageUrl = missionDoc.imageUrl,
+                rewardExpiredDate = rewardExpiredDate
         )
     }
 

@@ -23,5 +23,6 @@ data class MissionListItem(
         val important: Boolean,
         val missionType: String,
         val joinEndDate: Long,
-        val imageUrl: String
+        val imageUrl: String,
+        val rewardExpiredDate: Long
 )
