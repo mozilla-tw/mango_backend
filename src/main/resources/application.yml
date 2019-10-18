@@ -49,7 +49,7 @@ logging.level:
   root: WARN
   org.mozilla.msrp: INFO
 platform:
-  firebaseProjectId: rocket
+  firebaseProjectId: zerda-dcf76
 news:
   cache-size: 100
   cache-ttl: 15
