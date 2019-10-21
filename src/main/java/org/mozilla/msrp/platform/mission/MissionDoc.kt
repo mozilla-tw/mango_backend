@@ -27,6 +27,7 @@ data class MissionDoc(
         val joinStartDate: String = "",
         val joinEndDate: String = "",
         var expiredDate: String = "",
+        var redeemEndDate: String = "",
         var minVersion: Int = 0,
         val missionParams: Map<String, Any> = emptyMap(),
         var rewardType: String = "", // the Firestore collection for reward inventory

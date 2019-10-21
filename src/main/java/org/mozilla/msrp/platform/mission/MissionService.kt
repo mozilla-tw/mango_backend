@@ -1,13 +1,15 @@
 package org.mozilla.msrp.platform.mission
 
+import org.mozilla.msrp.platform.common.getMessageOrEmpty
+import org.mozilla.msrp.platform.common.getMessageOrNull
 import org.mozilla.msrp.platform.common.isProd
 import org.mozilla.msrp.platform.firestore.stringToLocalDateTime
 import org.mozilla.msrp.platform.mission.qualifier.MissionProgressDoc
 import org.mozilla.msrp.platform.mission.qualifier.MissionQualifier
+import org.mozilla.msrp.platform.redward.RewardRepository
 import org.mozilla.msrp.platform.util.logger
 import org.slf4j.Logger
 import org.springframework.context.MessageSource
-import org.springframework.context.NoSuchMessageException
 import org.springframework.core.env.Environment
 import org.springframework.http.HttpStatus
 import java.time.Clock
@@ -21,7 +23,8 @@ import javax.inject.Named
 
 @Named
 class MissionService @Inject constructor(
-        private val missionRepository: MissionRepository
+        private val missionRepository: MissionRepository,
+        private val rewardRepository: RewardRepository
 ) {
 
     // TODO: Verify user status
@@ -129,13 +132,7 @@ class MissionService @Inject constructor(
     }
 
     private fun hasString(resId: String): Boolean {
-        return try {
-            getStringById(resId, Locale.getDefault())
-            true
-
-        } catch (e: NoSuchMessageException) {
-            false
-        }
+        return missionMessageSource.getMessageOrNull(resId, Locale.getDefault()) != null
     }
 
     private fun getMissionTitle(mission: MissionDoc, locale: Locale): String {
@@ -151,11 +148,8 @@ class MissionService @Inject constructor(
         val name = getMissionTitle(missionDoc, locale)
         val description = getStringById(missionDoc.descriptionId, locale)
 
-        val joinStatus = missionRepository.getJoinStatus(
-                uid,
-                missionDoc.missionType,
-                missionDoc.mid
-        )?.let { it } ?: JoinStatus.New
+        val joinDoc = missionRepository.getMissionJoinDoc(uid, missionDoc.missionType, missionDoc.mid)
+        val joinStatus = joinDoc?.status?.let { it } ?: JoinStatus.New
 
         val progress = missionQualifier.getProgress(
                 uid,
@@ -167,13 +161,20 @@ class MissionService @Inject constructor(
 
         val expiredInstant: Instant
         val joinEndInstant: Instant
+        val redeemEndInstant: Instant
         if (missionDoc.isUtcBasedMission()) {
             expiredInstant = stringToLocalDateTime(missionDoc.expiredDate).toInstant(ZoneOffset.UTC)
             joinEndInstant = stringToLocalDateTime(missionDoc.joinEndDate).toInstant(ZoneOffset.UTC)
+            redeemEndInstant = stringToLocalDateTime(missionDoc.redeemEndDate).toInstant(ZoneOffset.UTC)
         } else {
             expiredInstant = stringToLocalDateTime(missionDoc.expiredDate).atZone(zone).toInstant()
             joinEndInstant = stringToLocalDateTime(missionDoc.joinEndDate).atZone(zone).toInstant()
+            redeemEndInstant = stringToLocalDateTime(missionDoc.redeemEndDate).atZone(zone).toInstant()
         }
+
+        val rewardExpiredDate = joinDoc?.rewardDocId?.let { rewardDocId ->
+            rewardRepository.getRewardExpiredDate(missionDoc.rewardType, rewardDocId)
+        } ?: Long.MIN_VALUE
 
         return MissionListItem(
                 mid = missionDoc.mid,
@@ -183,13 +184,15 @@ class MissionService @Inject constructor(
                 redeemEndpoint = "/api/v1/redeem/${missionDoc.missionType}?mid=${missionDoc.mid}",
                 events = missionDoc.interestPings,
                 expiredDate = expiredInstant.toEpochMilli(),
+                redeemEndDate = redeemEndInstant.toEpochMilli(),
                 status = joinStatus,
                 minVersion = missionDoc.minVersion,
                 progress = progress?.toProgressResponse() ?: emptyMap(),
                 important = important,
                 missionType = missionDoc.missionType,
                 joinEndDate = joinEndInstant.toEpochMilli(),
-                imageUrl = missionDoc.imageUrl
+                imageUrl = missionDoc.imageUrl,
+                rewardExpiredDate = rewardExpiredDate
         )
     }
 
@@ -198,8 +201,8 @@ class MissionService @Inject constructor(
      * @param id string id
      * @return localized string (if any)
      */
-    private fun getStringById(id: String, locale: Locale, vararg args: String = emptyArray()): String {
-        return missionMessageSource.getMessage(id, args, locale)
+    private fun getStringById(id: String, locale: Locale): String {
+        return missionMessageSource.getMessageOrEmpty(id, locale)
     }
 
     fun createMissions(missionList: List<MissionCreateData>): MissionCreateResult {
@@ -222,6 +225,7 @@ class MissionService @Inject constructor(
                     joinStartDate = mission.joinStartDate,
                     joinEndDate = mission.joinEndDate,
                     expiredDate = mission.expiredDate,
+                    redeemEndDate = mission.redeemEndDate,
                     events = mission.interestPings,
                     endpoint = mission.endpoint,
                     minVersion = mission.minVersion,

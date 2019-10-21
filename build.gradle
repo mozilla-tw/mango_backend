@@ -94,12 +94,12 @@ dependencyManagement {
 
 // appengine versions for various environment
 def gaeVersions = [
-        dev: "0-5", stable: "0-5", nightly: "0-5", prod: 1
+        dev: "0-7", stable: "0-7", nightly: "0-7", prod: "0-7"
 ]
 
 ext.getDeployConfig = { ->
 
-    def mode = project.hasProperty('mode') ? project.property('mode') : "staging"
+    def mode = project.hasProperty('mode') ? project.property('mode') : "dev"
     def deployConfig = [mode: mode]
 
     if (mode == 'dev') {
@@ -118,7 +118,7 @@ ext.getDeployConfig = { ->
         deployConfig.promote = true
         deployConfig.version = gaeVersions.nightly
     } else if (mode == 'prod') {
-        deployConfig.gaeProjId = "rocket"
+        deployConfig.gaeProjId = "zerda-dcf76"
         deployConfig.stopPreviousVersion = false
         deployConfig.promote = false
         deployConfig.version = gaeVersions.prod

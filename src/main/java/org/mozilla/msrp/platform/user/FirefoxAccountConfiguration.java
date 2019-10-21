@@ -32,7 +32,7 @@ public class FirefoxAccountConfiguration {
                 String token = document.getString("fxa_api_token");
                 String profile = document.getString("fxa_api_profile");
 
-                log.info("Get FirefoxAccount settings --- success ---");
+                log.info("Get FirefoxAccount settings --- success ---:" + id);
                 return new FirefoxAccountServiceInfo(id, secret, token, profile);
             }
         } catch (InterruptedException | ExecutionException e) {
