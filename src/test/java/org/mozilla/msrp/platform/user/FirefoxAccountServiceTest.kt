@@ -43,7 +43,7 @@ class FirefoxAccountServiceTest {
         val accessToken = "token"
 
         onRetrofitExecute(authClient.token(fxaTokenRequest))
-            ?.thenReturn(Response.success(FxaTokenResponse(accessToken, "")))
+            ?.thenReturn(Response.success(FxaTokenResponse(accessToken)))
 
         val response = firefoxAccountService.token(fxaTokenRequest)
 

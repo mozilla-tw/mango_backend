@@ -103,7 +103,7 @@ class NewsFeedController @Inject constructor(
             log.info("[NEWS]====No news for topic $String")
             return ResponseEntity("No news for topic", HttpStatus.NO_CONTENT)
         }
-        log.info("[NEWS]====found [${newsItems.size}] news item for topic $String")
+        log.info("[NEWS]====found [${newsItems.size}] news item for topic $topic")
         return ResponseEntity(newsItems, HttpStatus.OK)
     }
 
