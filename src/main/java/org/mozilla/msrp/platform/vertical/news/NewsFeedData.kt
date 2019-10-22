@@ -46,6 +46,10 @@ class GoogleRss : Rss<GoogleFeedItem>() {
 
 open class FeedItem : Comparable<FeedItem> {
 
+    companion object {
+        private val sharedRssDateFormat = SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz")
+    }
+
     open var pubDate: String? = ""
 
     open var title: String? = ""
@@ -60,7 +64,7 @@ open class FeedItem : Comparable<FeedItem> {
 
     override fun compareTo(other: FeedItem): Int {
         return try {
-            val formatter = SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz")
+            val formatter = sharedRssDateFormat
             val o1Date = formatter.parse(this.pubDate)
             val o2Date = formatter.parse(other.pubDate)
             if (o1Date.before(o2Date)) {
