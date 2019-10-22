@@ -10,7 +10,10 @@ class GoogleNewsFeedService @Inject constructor(private val googleRssFeedReposit
 
     fun getNews(language: String) = googleRssFeedRepository.news(language)
 
-    fun getNews(topic: String, hl: String, gl: String, ceid: String) = googleRssFeedRepository.news(topic, hl, gl, ceid)
+    fun getNews(topic: String, hl: String, gl: String, ceid: String): List<FeedItem>? {
+        val list = googleRssFeedRepository.news(topic, hl, gl, ceid)
+        return list?.sorted()
+    }
 
 }
 
@@ -30,26 +33,7 @@ class IndonesiaNewsFeedService @Inject constructor(
         val allNewsList = liputan6List.toMutableList().apply {
             addAll(detikList)
         }
-
-        allNewsList.sortWith(Comparator<FeedItem> { o1, o2 ->
-            val grater = o1?.let {
-                try {
-                    val formatter = SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz")
-                    val o1Date = formatter.parse(it.pubDate)
-                    val o2Date = formatter.parse(o2.pubDate)
-                    o1Date.before(o2Date)
-                } catch (e: ParseException) {
-                    false
-                }
-            } ?: false
-            if (grater) {
-                1
-            } else {
-                -1
-            }
-        })
-
-        return allNewsList
+        return allNewsList.sorted()
     }
 }
 
