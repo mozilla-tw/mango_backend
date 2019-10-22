@@ -39,6 +39,8 @@ public class UserController {
                @RequestParam(value = "state") String state,
                HttpServletResponse httpResponse) {    // need HttpServletResponse to redirect
 
+        log.info("[login][/api/v1/login][" + state + "] ");
+
         try {
             FxaTokenRequest fxaTokenRequest = firefoxAccountService.genFxaTokenRequest(code);
             String fxaAccessToken = firefoxAccountService.token(fxaTokenRequest);
@@ -58,7 +60,7 @@ public class UserController {
 
             String fxUid = profileResponse.getUid();
             String fxEmail = profileResponse.getEmail();
-
+            log.info("[login] User[" + fxUid + "] login with email:" + fxEmail);
             if (fxUid == null || fxEmail == null) {
                 log.error("[login][" + state + "] No such user in fxa");
                 httpResponse.sendRedirect("/api/v1/done?login_success=false&msg=no_Fxa_user");
@@ -87,12 +89,16 @@ public class UserController {
             String customToken = userRepository.createCustomToken(oldFbUid, additionalClaims);
             // log are handled in the repository
             if (loginResponse instanceof LoginResponse.Success) {
+                log.info("[login]bind FxA success: login for the fist time");
                 httpResponse.sendRedirect("/api/v1/done?jwt=" + customToken + "&login_success=true&disabled=false&times=1");
             } else if (loginResponse instanceof LoginResponse.SuspiciousWarning) {
+                log.info("[login]bind success: login for the second time");
                 httpResponse.sendRedirect("/api/v1/done?jwt=" + customToken + "&login_success=true&disabled=false&times=2");
             } else if (loginResponse instanceof LoginResponse.UserSuspended) {
+                log.info("[login]bind success: login more than three times. User suspended");
                 httpResponse.sendRedirect("/api/v1/done?jwt=" + customToken + "&login_success=true&disabled=true&times=3");
             } else if (loginResponse instanceof LoginResponse.Fail) {
+                log.info("[login]bind fail:" + ((LoginResponse.Fail) loginResponse).getMessage());
                 httpResponse.sendRedirect("/api/v1/done?login_success=false");
             }
 
