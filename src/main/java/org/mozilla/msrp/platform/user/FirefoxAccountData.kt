@@ -2,13 +2,9 @@ package org.mozilla.msrp.platform.user
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 
-
+@JsonIgnoreProperties(ignoreUnknown = true)
 class FxaTokenResponse(
-    val access_token: String? = null,
-    val token_type: String? = null,
-    val scope: String? = null,
-    val expires_in: Int? = null,
-    val auth_at: Long? = null
+    val access_token: String? = null
 )
 
 class FxaTokenRequest(
