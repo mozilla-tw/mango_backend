@@ -6,6 +6,8 @@ import org.simpleframework.xml.ElementList
 import org.simpleframework.xml.Path
 import org.simpleframework.xml.Root
 import org.simpleframework.xml.Text
+import java.text.ParseException
+import java.text.SimpleDateFormat
 
 
 open class Rss<T> {
@@ -42,7 +44,8 @@ class GoogleRss : Rss<GoogleFeedItem>() {
     override var feedItems: List<GoogleFeedItem>? = null
 }
 
-open class FeedItem {
+open class FeedItem : Comparable<FeedItem> {
+
     open var pubDate: String? = ""
 
     open var title: String? = ""
@@ -55,6 +58,20 @@ open class FeedItem {
 
     open var source: String = ""
 
+    override fun compareTo(other: FeedItem): Int {
+        return try {
+            val formatter = SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz")
+            val o1Date = formatter.parse(this.pubDate)
+            val o2Date = formatter.parse(other.pubDate)
+            if (o1Date.before(o2Date)) {
+                1
+            } else {
+                -1
+            }
+        } catch (e: ParseException) {
+            1
+        }
+    }
 }
 
 @Root(name = "item", strict = false)
