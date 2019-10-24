@@ -6,6 +6,7 @@ class RewardCouponDoc(
     var uid: String = "",
     var mid: String? = null,
     var display_name: String = "",
+    var open_link: String = "",
     var code: String? = null,
     var expire_date: Long? = null,
     var created_timestamp: Long? = null,
