@@ -3,8 +3,8 @@ package org.mozilla.msrp.platform.redward
 import com.google.api.core.ApiFuture
 import com.google.cloud.firestore.CollectionReference
 import com.google.cloud.firestore.Firestore
-import com.google.cloud.firestore.Transaction
 import com.google.cloud.firestore.QueryDocumentSnapshot
+import com.google.cloud.firestore.Transaction
 import org.mozilla.msrp.platform.firestore.getBatchIteration
 import org.mozilla.msrp.platform.firestore.getResultsUnchecked
 import org.mozilla.msrp.platform.firestore.getUnchecked
@@ -15,9 +15,10 @@ import org.mozilla.msrp.platform.mission.MissionJoinDoc
 import org.mozilla.msrp.platform.mission.MissionRepository
 import org.mozilla.msrp.platform.mission.isExpired
 import org.mozilla.msrp.platform.user.UserRepository
+import org.mozilla.msrp.platform.util.logger
 import java.time.Clock
-import java.time.ZoneOffset
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.util.concurrent.ExecutionException
 import javax.inject.Inject
 import javax.inject.Named
@@ -30,6 +31,13 @@ sealed class RedeemResult(val debugInfo: String) {
     class Failure(val message: String, debugMessage: String) : RedeemResult(debugMessage)
 }
 
+
+sealed class UploadCouponsResult {
+    class Success(val list: List<RewardCouponDoc>) : UploadCouponsResult()
+    object Duplicated : UploadCouponsResult()
+    object NoMatchingMission : UploadCouponsResult()
+}
+
 @Named
 open class RewardRepository @Inject constructor(
 
@@ -39,6 +47,8 @@ open class RewardRepository @Inject constructor(
 
     @Inject
     lateinit var clock: Clock
+
+    private var logger = logger()
 
     /**
      * Return a RedeemResult for the user.
@@ -183,30 +193,43 @@ open class RewardRepository @Inject constructor(
                 .toObject(RewardCouponDoc::class.java)
     }
 
+
+    /**
+     * Upload coupons for a mission
+     * This will check if the mission and the coupon already exist
+     *
+     * @return UploadCouponsResult
+     * */
     fun uploadCoupons(
             coupons: List<String>,
             displayName: String,
+            openLink: String,
             couponName: String,
             expiredDate: String,
             missionType: String,
             mid: String,
             clear: Boolean
-    ): List<RewardCouponDoc> {
+    ): UploadCouponsResult {
         val collection = firestore.collection(couponName)
         val createdTime = clock.instant().toEpochMilli()
 
         val mission = missionRepository.findMission(missionType, mid)
-                ?: return emptyList()
+        if (mission == null) {
+            logger.warn("[UPLOAD][COUPON] No such mission:$missionType, $mid ")
+            return UploadCouponsResult.NoMatchingMission
+        }
 
         if (!clear && collection.getResultsUnchecked().isNotEmpty()) {
-            return listOf()
+            logger.warn("[UPLOAD][COUPON] Coupon Name duplicated:$couponName")
+            return UploadCouponsResult.Duplicated
         }
 
         clearCollection(collection)
 
-        return coupons.mapByBatch {
+        val flatten = coupons.mapByBatch {
             batchUpdateCoupons(
                     displayName = displayName,
+                    openLink = openLink,
                     coupons = it,
                     expiredDate = expiredDate,
                     collection = collection,
@@ -214,6 +237,8 @@ open class RewardRepository @Inject constructor(
                     createdTime = createdTime
             )
         }.flatten()
+        logger.info("[UPLOAD][COUPON] Success:${flatten.size}")
+        return UploadCouponsResult.Success(flatten)
     }
 
     private fun clearCollection(collection: CollectionReference) {
@@ -228,6 +253,7 @@ open class RewardRepository @Inject constructor(
 
     private fun batchUpdateCoupons(
             displayName: String,
+            openLink: String,
             coupons: List<String>,
             expiredDate: String,
             collection: CollectionReference,
@@ -241,6 +267,7 @@ open class RewardRepository @Inject constructor(
                         rid = docRef.id,
                         mid = mission.mid,
                         display_name = displayName,
+                        open_link = openLink,
                         code = couponCode,
                         expire_date = stringToLocalDateTime(expiredDate)
                                 .toInstant(ZoneOffset.UTC)
