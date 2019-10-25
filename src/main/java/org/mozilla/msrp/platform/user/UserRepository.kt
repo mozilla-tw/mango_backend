@@ -1,5 +1,6 @@
 package org.mozilla.msrp.platform.user
 
+import com.google.api.core.ApiFuture
 import com.google.cloud.firestore.CollectionReference
 import com.google.cloud.firestore.Firestore
 import com.google.cloud.firestore.QueryDocumentSnapshot
@@ -7,7 +8,6 @@ import com.google.cloud.firestore.SetOptions
 import com.google.firebase.auth.FirebaseAuth
 import org.mozilla.msrp.platform.firestore.getResultsUnchecked
 import org.mozilla.msrp.platform.firestore.getUnchecked
-import org.mozilla.msrp.platform.firestore.setUnchecked
 import org.mozilla.msrp.platform.user.data.UserActivityDoc
 import org.mozilla.msrp.platform.user.data.UserDoc
 import org.mozilla.msrp.platform.util.logger
@@ -16,7 +16,7 @@ import java.time.Clock
 import javax.inject.Inject
 
 @Repository
-class UserRepository @Inject constructor(firestore: Firestore) {
+class UserRepository @Inject constructor(val firestore: Firestore) {
 
     private var users: CollectionReference
     private var publishAdmin: CollectionReference
@@ -60,8 +60,12 @@ class UserRepository @Inject constructor(firestore: Firestore) {
 
         var userDocIdFb = findUserDocumentIdByFbUid(oldFbUid)
         if ((userDocIdFb == null)) {
-            logger.warn("UserDoc not created:r $oldFbUid")
+            logger.warn("UserDoc not created, creating now: $oldFbUid")
             userDocIdFb = createAnonymousUser(oldFbUid)
+            if (userDocIdFb == "") {
+                logger.error("createAnonymousUser fail in Firebase with oldFbUid: $oldFbUid")
+                return LoginResponse.Fail("Can't create user profile for you right now. Please try again later.")
+            }
         }
 
         val userDocIdFxA = findUserDocumentIdByFxUid(fxUid)
@@ -237,12 +241,22 @@ class UserRepository @Inject constructor(firestore: Firestore) {
     }
 
     fun createAnonymousUser(firebaseUid: String): String {
-        val document = users.document()
-        val docId = document.id
-        val ts = clock.millis()
-        val userDoc = UserDoc(uid = docId, firebase_uid = firebaseUid, created_timestamp = ts, updated_timestamp = ts)
-        document.setUnchecked(userDoc)
-        return docId
+
+        val trans: ApiFuture<String> = firestore.runTransaction { transaction ->
+            val matchingUsers = transaction.get(users.whereEqualTo(UserDoc.KEY_FIREBASE_UID, firebaseUid)).getUnchecked()
+            if (matchingUsers.size() == 0) {
+                val document = users.document()
+                val docId = document.id
+                val ts = clock.millis()
+                val userDoc = UserDoc(uid = docId, firebase_uid = firebaseUid, created_timestamp = ts, updated_timestamp = ts)
+                transaction.set(document, userDoc)
+                return@runTransaction docId
+            }
+            return@runTransaction ""
+        }
+        return trans.getUnchecked()
+
+
     }
 
     fun isUserSuspended(uid: String): Boolean {
