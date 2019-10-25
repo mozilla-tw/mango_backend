@@ -51,11 +51,17 @@ class UserRepository @Inject constructor(firestore: Firestore) {
     }
 
     fun signInAndUpdateUserDocument(oldFbUid: String, fxUid: String, email: String): LoginResponse {
+        // TODO: move this into a service for testing
+        val firebaseAuth = FirebaseAuth.getInstance()
+        if (firebaseAuth.getUser(oldFbUid) == null) {
+            logger.error("No such user $oldFbUid in Firebase")
+            return LoginResponse.Fail("No such user $oldFbUid in the system")
+        }
 
-        val userDocIdFb = findUserDocumentIdByFbUid(oldFbUid)
+        var userDocIdFb = findUserDocumentIdByFbUid(oldFbUid)
         if ((userDocIdFb == null)) {
-            logger.error("No such user $oldFbUid in User Document")
-            return LoginResponse.Fail("No such user $oldFbUid")
+            logger.warn("UserDoc not created:r $oldFbUid")
+            userDocIdFb = createAnonymousUser(oldFbUid)
         }
 
         val userDocIdFxA = findUserDocumentIdByFxUid(fxUid)
