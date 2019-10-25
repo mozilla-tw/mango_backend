@@ -4,7 +4,12 @@ import org.mozilla.msrp.platform.common.auth.JwtHelper
 import org.mozilla.msrp.platform.util.logger
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestAttribute
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
 import java.time.DateTimeException
 import java.time.ZoneId
@@ -80,6 +85,7 @@ class RedeemController @Inject constructor(val rewardRepository: RewardRepositor
     internal fun uploadCoupons(@RequestParam token: String,
                                @RequestParam("couponName") couponName: String,
                                @RequestParam displayName:String,
+                               @RequestParam openLink: String,
                                @RequestParam("file") file: MultipartFile,
                                @RequestParam("missionType") missionType: String,
                                @RequestParam("mid") mid: String,
@@ -103,16 +109,20 @@ class RedeemController @Inject constructor(val rewardRepository: RewardRepositor
                     "separate coupon codes into separated lines"))
         }
 
-        val couponDocs = rewardRepository.uploadCoupons(
+        val uploadCouponsResult = rewardRepository.uploadCoupons(
                 coupons = coupons,
                 displayName = displayName,
+                openLink = openLink,
                 couponName = couponName,
                 expiredDate = expiredDate,
                 missionType = missionType,
                 mid = mid,
                 clear = clear
         )
-
-        return ResponseEntity.ok(CouponUploadResponse.Success("${couponDocs.size} coupons uploaded"))
+        return when (uploadCouponsResult) {
+            is UploadCouponsResult.Success -> ResponseEntity.ok(CouponUploadResponse.Success("${uploadCouponsResult.list.size} coupons uploaded"))
+            UploadCouponsResult.Duplicated -> ResponseEntity(CouponUploadResponse.Fail("couponName  $couponName duplicated"), HttpStatus.CONFLICT)
+            UploadCouponsResult.NoMatchingMission -> ResponseEntity(CouponUploadResponse.Fail("Mission $mid not found"), HttpStatus.NOT_FOUND)
+        }
     }
 }
