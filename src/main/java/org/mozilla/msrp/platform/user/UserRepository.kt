@@ -33,9 +33,9 @@ class UserRepository @Inject constructor(firestore: Firestore) {
 
         private const val COLLECTION_PUBLISH_ADMIN = "publish_admin"
 
-
-        private const val USER_SUSPICIOUS_THRESHOLD = 2
-        private const val USER_SUSPICIOUS_WARNING = 1
+        private const val USER_SUSPEND_THRESHOLD = 3
+        private const val USER_SECOND_WARNING = 2
+        private const val USER_FIRST_WARNING = 1
     }
 
     init {
@@ -79,7 +79,7 @@ class UserRepository @Inject constructor(firestore: Firestore) {
 
             // the user had two records in the past week. Means this time is the third time.
             // we should now suspend the user.
-            if (USER_SUSPICIOUS_THRESHOLD == signInCountLast7DAYS) {
+            if (USER_SUSPEND_THRESHOLD == signInCountLast7DAYS) {
                 setUserDocStatus(userDocIdFxA, UserDoc.STATUS_SUSPEND)
                 logUserActivity(userDocIdFxA, UserDoc.STATUS_SUSPEND)
 
@@ -109,10 +109,13 @@ class UserRepository @Inject constructor(firestore: Firestore) {
 
             // the user had one record in the past week. Means this time is the second time.
             // we should warn the user instead of returning success
-            if (USER_SUSPICIOUS_WARNING == signInCountLast7DAYS) {
-                logger.info("UserDoc[$userDocIdFxA] has logged in twice per 7 days.")
-
-                return LoginResponse.SuspiciousWarning("UserDoc[$userDocIdFxA] has logged in twice per 7 days.")
+            if (USER_FIRST_WARNING == signInCountLast7DAYS) {
+                logger.warn("UserDoc[$userDocIdFxA] has two more chances this week")
+                return LoginResponse.FirstWarning("You have logged in twice this week.")
+            }
+            if (USER_SECOND_WARNING == signInCountLast7DAYS) {
+                logger.warn("UserDoc[$userDocIdFxA] has one more chance this week")
+                return LoginResponse.SecondWarning("You have logged in three times this week.")
             }
             logger.info("UserDoc[$userDocIdFxA] has logged in Successfully")
             return LoginResponse.Success("UserDoc[$userDocIdFxA] has sign in to FxAcc")
@@ -251,7 +254,8 @@ class UserRepository @Inject constructor(firestore: Firestore) {
 
 sealed class LoginResponse {
     open class Success(open val message: String) : LoginResponse()
-    class SuspiciousWarning(val message: String) : LoginResponse() // a special version of failure
+    class FirstWarning(val message: String) : LoginResponse() // a special version of failure
+    class SecondWarning(val message: String) : LoginResponse() // a special version of failure
     class UserSuspended(val message: String) : LoginResponse()  // a special version of failure
     class Fail(val message: String) : LoginResponse() // Business logic
 }
