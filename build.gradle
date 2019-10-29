@@ -93,9 +93,7 @@ dependencyManagement {
 }
 
 // appengine versions for various environment
-def gaeVersions = [
-        dev: "0-9", stable: "0-9", nightly: "0-9", prod: "0-9"
-]
+def gaeVersions = "0-10"
 
 ext.getDeployConfig = { ->
 
@@ -106,28 +104,28 @@ ext.getDeployConfig = { ->
         deployConfig.gaeProjId = "msrp-dev01"
         deployConfig.stopPreviousVersion = true
         deployConfig.promote = true
-        deployConfig.version = gaeVersions.dev
+        deployConfig.version = gaeVersions
     } else if (mode == 'stable') {
         deployConfig.gaeProjId = "rocket-dev01"
         deployConfig.stopPreviousVersion = true
         deployConfig.promote = true
-        deployConfig.version = gaeVersions.stable
+        deployConfig.version = gaeVersions
     } else if (mode == 'nightly') {
         deployConfig.gaeProjId = "rocketnightly"
         deployConfig.stopPreviousVersion = true
         deployConfig.promote = true
-        deployConfig.version = gaeVersions.nightly
+        deployConfig.version = gaeVersions
     } else if (mode == 'prod') {
         deployConfig.gaeProjId = "zerda-dcf76"
         deployConfig.stopPreviousVersion = false
         deployConfig.promote = false
-        deployConfig.version = gaeVersions.prod
+        deployConfig.version = gaeVersions
     } else {
         // use dev setting as default
         deployConfig.gaeProjId = "msrp-dev01"
         deployConfig.stopPreviousVersion = true
         deployConfig.promote = true
-        deployConfig.version = gaeVersions.dev
+        deployConfig.version = gaeVersions
     }
 
     return deployConfig

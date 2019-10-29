@@ -89,10 +89,13 @@ public class UserController {
             String customToken = userRepository.createCustomToken(oldFbUid, additionalClaims);
             // log are handled in the repository
             if (loginResponse instanceof LoginResponse.Success) {
-                log.info("[login]bind FxA success: login for the fist time");
+                log.info("[login]bind FxA success: login for the fist time this week");
+                httpResponse.sendRedirect("/api/v1/done?jwt=" + customToken + "&login_success=true&disabled=false&times=0");
+            } else if (loginResponse instanceof LoginResponse.FirstWarning) {
+                log.info("[login]bind success: login for the second time this week");
                 httpResponse.sendRedirect("/api/v1/done?jwt=" + customToken + "&login_success=true&disabled=false&times=1");
-            } else if (loginResponse instanceof LoginResponse.SuspiciousWarning) {
-                log.info("[login]bind success: login for the second time");
+            } else if (loginResponse instanceof LoginResponse.SecondWarning) {
+                log.info("[login]bind success: login for the three times  this week");
                 httpResponse.sendRedirect("/api/v1/done?jwt=" + customToken + "&login_success=true&disabled=false&times=2");
             } else if (loginResponse instanceof LoginResponse.UserSuspended) {
                 log.info("[login]bind success: login more than three times. User suspended");
