@@ -9,5 +9,8 @@
   </automatic-scaling>
   <system-properties>
     @SPRING_PROFILES_ACTIVE@
+    @RSS_API_LIP@
+    @RSS_API_TEK@
+    @RSS_API_GOO@
   </system-properties>
 </appengine-web-app>

@@ -98,7 +98,14 @@ def gaeVersions = "0-13"
 ext.getDeployConfig = { ->
 
     def mode = project.hasProperty('mode') ? project.property('mode') : "dev"
-    def deployConfig = [mode: mode]
+    def rsslipapi = project.hasProperty('rsslipapi') ? project.property('rsslipapi') : "https://fake-srouce.com/"
+    def rssdetapi = project.hasProperty('rssdetapi') ? project.property('rssdetapi') : "https://fake-srouce.com/"
+    def rssgooapi = project.hasProperty('rssgooapi') ? project.property('rssgooapi') : "https://fake-srouce.com/"
+
+    def deployConfig = [mode     : mode,
+                        rsslipapi: rsslipapi,
+                        rssdetapi: rssdetapi,
+                        rssgooapi: rssgooapi]
 
     if (mode == 'dev') {
         deployConfig.gaeProjId = "msrp-dev01"
@@ -180,11 +187,18 @@ ext.getGaeWebXmlConfig = {
         minInstances = '8'
     }
 
+    def rssLipApi = '<property name="news.rss-liputan6-api" value="' + getDeployConfig().rsslipapi + '" />'
+    def rssDetApi = '<property name="news.rss-detik-api" value="' + getDeployConfig().rssdetapi + '" />'
+    def rssGooApi = '<property name="news.rss-google-api" value="' + getDeployConfig().rssgooapi + '" />'
+
     def props = [
             GAE_INSTANCE_CLASS    : gaeInstanceClass,
             MAX_INSTANCES         : maxInstances,
             MIN_INSTANCES         : minInstances,
-            SPRING_PROFILES_ACTIVE: springProfilesActive
+            SPRING_PROFILES_ACTIVE: springProfilesActive,
+            RSS_API_LIP           : rssLipApi,
+            RSS_API_TEK           : rssDetApi,
+            RSS_API_GOO           : rssGooApi
     ]
     return props
 }

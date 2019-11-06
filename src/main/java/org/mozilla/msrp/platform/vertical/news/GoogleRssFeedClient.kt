@@ -31,7 +31,7 @@ class GoogleRssFeedClientConfiguration {
         val client = OkHttpClient.Builder().addInterceptor(interceptor).build()
 
         return Retrofit.Builder()
-                .baseUrl("https://news.google.com/")
+                .baseUrl(System.getProperty("news.rss-google-api"))
                 .client(client)
                 .addConverterFactory(SimpleXmlConverterFactory.create())
                 .build()

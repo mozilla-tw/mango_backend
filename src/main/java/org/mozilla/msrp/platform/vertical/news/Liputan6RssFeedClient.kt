@@ -27,7 +27,7 @@ class Liputan6RssFeedClientConfig {
         val client = OkHttpClient.Builder().addInterceptor(interceptor).build()
 
         return Retrofit.Builder()
-                .baseUrl("https://feed.liputan6.com/")
+                .baseUrl(System.getProperty("news.rss-liputan6-api"))
                 .client(client)
                 .addConverterFactory(SimpleXmlConverterFactory.create())
                 .build()

@@ -28,7 +28,7 @@ class DetikRssFeedClientConfig {
         val client = OkHttpClient.Builder().addInterceptor(interceptor).build()
 
         return Retrofit.Builder()
-            .baseUrl("http://rss.detik.com/")
+            .baseUrl(System.getProperty("news.rss-detik-api"))
             .client(client)
             .addConverterFactory(SimpleXmlConverterFactory.create())
             .build()
