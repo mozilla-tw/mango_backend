@@ -16,7 +16,6 @@ import org.mozilla.msrp.platform.util.logger
 import org.mozilla.msrp.platform.vertical.content.data.Category
 import org.mozilla.msrp.platform.vertical.content.db.PublishDoc
 import org.springframework.stereotype.Repository
-import java.lang.Exception
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.time.Clock
@@ -116,13 +115,15 @@ class ContentRepository @Inject constructor(private var storage: Storage,
                 publishDoc = snapshot?.getUnchecked()?.toObject(PublishDoc::class.java)
 
                 transaction.update(docRef, "publish_timestamp", timestamp)
+                log.info("Success: publish: $publishDocId/$editor/$schedule")
+
             }.getUnchecked()
 
             if (publishDoc == null) {
                 log.error("[Content][publish]====$publishDocId/$editor/$schedule")
                 return ContentRepositoryPublishResult.Fail("No content found")
             }
-            if (publishDoc?.isValid() != true) {
+            if (!isValid(publishDoc)) {
                 log.error("[Content][publish]====$publishDocId/$editor/$schedule")
                 return ContentRepositoryPublishResult.Fail("Content is not valid")
             }
@@ -190,6 +191,17 @@ class ContentRepository @Inject constructor(private var storage: Storage,
     publishControl       // only one document.
     v1/content_shopping/
      */
+}
+
+fun isValid(publish: PublishDoc?): Boolean {
+    if (publish == null || publish.category.isNullOrBlank() ||
+            publish.locale.isNullOrBlank() ||
+            publish.created_timestamp == null ||
+            publish.data == null
+    ) {
+        return false
+    }
+    return true
 }
 
 class AddContentRequest(
