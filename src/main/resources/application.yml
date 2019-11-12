@@ -1,7 +1,7 @@
 spring:
   profiles.active: dev # Default profile
   output.ansi.enabled: never # Coloring application output
-  main.lazy-initialization: true
+
 ---
 # Configuration to be enabled when the "dev" profile is active
 spring:
