@@ -6,7 +6,7 @@
   <automatic-scaling>
     <min-instances>@MIN_INSTANCES@</min-instances>
     <max-instances>@MAX_INSTANCES@</max-instances>
-    <target-throughput-utilization>0.9</target-throughput-utilization>
+    <target-throughput-utilization>0.7</target-throughput-utilization>
     <max-concurrent-requests>80</max-concurrent-requests>
     <min-pending-latency>6s</min-pending-latency>
     <max-pending-latency>9s</max-pending-latency>
