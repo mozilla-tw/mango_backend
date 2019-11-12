@@ -93,7 +93,7 @@ dependencyManagement {
 }
 
 // appengine versions for various environment
-def gaeVersions = "stress-lazy"
+def gaeVersions = "stress-tuned"
 
 ext.getDeployConfig = { ->
 
