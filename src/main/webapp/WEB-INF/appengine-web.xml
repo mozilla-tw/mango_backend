@@ -6,6 +6,10 @@
   <automatic-scaling>
     <min-instances>@MIN_INSTANCES@</min-instances>
     <max-instances>@MAX_INSTANCES@</max-instances>
+    <target_throughput_utilization>90</target_throughput_utilization>
+    <max_concurrent_requests>80</max_concurrent_requests>
+    <min_pending_latency>6s</min_pending_latency>
+    <max_pending_latency>10s</max_pending_latency>
   </automatic-scaling>
   <system-properties>
     @SPRING_PROFILES_ACTIVE@
