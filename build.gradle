@@ -107,6 +107,11 @@ ext.getDeployConfig = { ->
         deployConfig.stopPreviousVersion = true
         deployConfig.promote = true
         deployConfig.version = gaeVersions
+    } else if (mode == 'mirror') {
+        deployConfig.gaeProjId = "msrp-mirror01"
+        deployConfig.stopPreviousVersion = true
+        deployConfig.promote = true
+        deployConfig.version = gaeVersions
     } else if (mode == 'stable') {
         deployConfig.gaeProjId = "rocket-dev01"
         deployConfig.stopPreviousVersion = true
@@ -180,6 +185,10 @@ ext.getGaeWebXmlConfig = {
         gaeInstanceClass = 'F4_1G'
         maxInstances = '24'
         minInstances = '4'
+    } else if (mode == 'mirror') {
+        springProfilesActive = ''' 
+            <property name="spring.profiles.active" value="mirror" />
+        '''
     }
 
     def props = [

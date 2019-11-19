@@ -3,6 +3,12 @@ spring:
   output.ansi.enabled: never # Coloring application output
 
 ---
+# Configuration to be enabled when the "mirror" profile is active
+spring:
+  profiles: mirror
+platform:
+  firebaseProjectId: msrp-mirror01
+---
 # Configuration to be enabled when the "dev" profile is active
 spring:
   profiles: dev
@@ -16,7 +22,7 @@ news:
   cache-size: 100
   cache-ttl: 15
 ---
-# Configuration to be enabled when the "dev" profile is active
+# Configuration to be enabled when the "stable" profile is active
 spring:
   profiles: stable
 logging.level:
@@ -28,7 +34,7 @@ news:
   cache-size: 100
   cache-ttl: 15
 ---
-# Configuration to be enabled when the "dev" profile is active
+# Configuration to be enabled when the "nightly" profile is active
 spring:
   profiles: nightly
 logging.level:
