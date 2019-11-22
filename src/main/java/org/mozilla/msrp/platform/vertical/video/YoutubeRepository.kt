@@ -3,6 +3,9 @@ package org.mozilla.msrp.platform.vertical.video
 import com.google.api.services.youtube.YouTube
 import org.mozilla.msrp.platform.util.hash
 import org.mozilla.msrp.platform.util.logger
+import java.text.DecimalFormat
+import java.time.Duration
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -48,7 +51,7 @@ class YoutubeRepository @Inject constructor(private val youtube: YouTube) {
                                     result.snippet.channelTitle,
                                     result.snippet.publishedAt.toString(),
                                     result.snippet.thumbnails.default.url,
-                                    videoDetail?.contentDetails?.duration ?: "",
+                                    videoDetail?.contentDetails?.duration?.compact() ?: "",
                                     youtubeApiInfo.watchUrl + result.id.videoId,
                                     videoDetail?.statistics?.viewCount?.toString() ?: "",
                                     (youtubeApiInfo.watchUrl + result.id.videoId).hash(),
@@ -66,5 +69,21 @@ class YoutubeRepository @Inject constructor(private val youtube: YouTube) {
             log.error("[Youtube]====Exception: $e")
             emptyList()
         }
+    }
+
+    private fun String.compact(): String {
+        val duration = Duration.parse(this)
+
+        val hours: String = duration.toHours().toString()
+        val twoDigitFormatter = DecimalFormat("00")
+        val minutes: String = twoDigitFormatter.format(duration.toMinutes() % TimeUnit.HOURS.toMinutes(1))
+        val seconds: String = twoDigitFormatter.format(duration.seconds % TimeUnit.MINUTES.toSeconds(1))
+
+        val compactResult = StringBuilder()
+        if (hours != "0") {
+            compactResult.append("$hours:")
+        }
+        compactResult.append("$minutes:$seconds")
+        return compactResult.toString()
     }
 }
