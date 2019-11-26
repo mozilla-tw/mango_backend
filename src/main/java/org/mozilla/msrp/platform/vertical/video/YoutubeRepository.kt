@@ -5,6 +5,7 @@ import org.mozilla.msrp.platform.util.hash
 import org.mozilla.msrp.platform.util.logger
 import java.text.DecimalFormat
 import java.time.Duration
+import java.time.format.DateTimeParseException
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Named
@@ -72,7 +73,12 @@ class YoutubeRepository @Inject constructor(private val youtube: YouTube) {
     }
 
     private fun String.compact(): String {
-        val duration = Duration.parse(this)
+        val duration = try {
+            Duration.parse(this)
+        } catch (e: DateTimeParseException) {
+            log.error("[Youtube][compact]$this====Exception: $e")
+            return ""
+        }
 
         val hours: String = duration.toHours().toString()
         val twoDigitFormatter = DecimalFormat("00")
