@@ -149,6 +149,8 @@ class MissionService @Inject constructor(
     private fun aggregateMissionListItem(uid: String, missionDoc: MissionDoc, zone: ZoneId, locale: Locale): MissionListItem {
         val name = getMissionTitle(missionDoc, locale)
         val description = getStringById(missionDoc.descriptionId, locale)
+        val minVerDialogTitle = getStringById(missionDoc.minVerDialogTitle, locale)
+        val minVerDialogMessage = getStringById(missionDoc.minVerDialogMessage, locale)
 
         val joinDoc = missionRepository.getMissionJoinDoc(uid, missionDoc.missionType, missionDoc.mid)
         val joinStatus = joinDoc?.status?.let { it } ?: JoinStatus.New
@@ -190,8 +192,8 @@ class MissionService @Inject constructor(
                 redeemEndDate = redeemEndInstant.toEpochMilli(),
                 status = joinStatus,
                 minVersion = missionDoc.minVersion,
-                minVerDialogTitle = missionDoc.minVerDialogTitle,
-                minVerDialogMessage = missionDoc.minVerDialogMessage,
+                minVerDialogTitle = minVerDialogTitle,
+                minVerDialogMessage = minVerDialogMessage,
                 minVerDialogImage = missionDoc.minVerDialogImage,
                 progress = progress?.toProgressResponse() ?: emptyMap(),
                 important = important,
