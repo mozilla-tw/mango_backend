@@ -5,7 +5,11 @@ import com.google.cloud.firestore.annotation.IgnoreExtraProperties
 import org.mozilla.msrp.platform.firestore.checkAbsentFields
 import org.mozilla.msrp.platform.firestore.stringToLocalDateTime
 import org.mozilla.msrp.platform.util.logger
-import java.time.*
+import java.time.Clock
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZoneOffset
 
 /**
  * (All fields are just draft and are subject to change)
@@ -29,6 +33,9 @@ data class MissionDoc(
         var expiredDate: String = "",
         var redeemEndDate: String = "",
         var minVersion: Int = 0,
+        val minVerDialogImage: String = "",
+        val minVerDialogTitle: String = "",
+        val minVerDialogMessage: String = "",
         val missionParams: Map<String, Any> = emptyMap(),
         var rewardType: String = "", // the Firestore collection for reward inventory
         val joinQuota: Int = -1,

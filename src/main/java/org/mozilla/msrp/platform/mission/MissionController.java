@@ -142,7 +142,10 @@ public class MissionController {
             @RequestParam String redeemEndDate,
             @RequestParam String pings,
             @RequestParam(value = "messages[]") String[] messages,
-            @RequestParam int minVersion) {
+            @RequestParam int minVersion,
+            @RequestParam String minVerDialogImage,
+            @RequestParam String minVerDialogTitle,
+            @RequestParam String minVerDialogMessage) {
 
         Auth verify = jwtHelper.verify(token);
         if (verify == null || !JwtHelper.ROLE_MSRP_ADMIN.equals(verify.getRole())) {
@@ -178,7 +181,10 @@ public class MissionController {
                 params,
                 rewardType,
                 joinQuota,
-                imageUrl
+                imageUrl,
+                minVerDialogImage,
+                minVerDialogTitle,
+                minVerDialogMessage
         );
         missionList.add(mCreated);
         request.missions = missionList;
