@@ -25,18 +25,19 @@ Currently the upload content will be published immediately
             <td>locale</td>
             <td>
                 <select name="locale">
-                    <option value="en-IN">[en-IN] Shopping/Travel</option>
-                    <option value="id-ID">[id-ID] Shopping/Travel</option>
-                    <option value="zh-HANT">[zh-HANT] Travel</option>
-                    <option value="all">[ALL] Games/Travel</option>
+                    <option value="all">[all] ONLY for games</option>
+                    <option value="en-IN">[en-IN] Specify to en-IN [shopping/travel]</option>
+                    <option value="id-ID">[id-ID] Specify to id-ID [shopping]</option>
+                    <option value="eng">[eng] Fallback to English [travel]</option>
+                    <option value="zh">[zh] Fallback to Chinese [travel]</option>
+                    <option value="in">[in] Fallback to Indonesian [travel]</option>
                 </select><br>
-
             </td>
         </tr>
         <tr>
             <td>tag</td>
             <td>
-                <input type="text" name="tag"> could be any string
+                <input type="text" name="tag"> Could be any string. Case sensitive
 
             </td>
         </tr>

@@ -1,6 +1,5 @@
-package org.mozilla.msrp.platform.vertical.content.db
+package org.mozilla.msrp.platform.vertical.content.data
 
-import org.mozilla.msrp.platform.vertical.content.data.Category
 
 class PublishDoc(
         var publish_timestamp: Long? = null,    // null if not ready for publish
