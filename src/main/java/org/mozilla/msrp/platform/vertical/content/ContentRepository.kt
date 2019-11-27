@@ -11,7 +11,6 @@ import com.google.cloud.storage.Storage
 import com.google.cloud.storage.StorageException
 import org.mozilla.msrp.platform.firestore.getResultsUnchecked
 import org.mozilla.msrp.platform.firestore.getUnchecked
-import org.mozilla.msrp.platform.firestore.toObject
 import org.mozilla.msrp.platform.util.logger
 import org.mozilla.msrp.platform.vertical.content.data.Category
 import org.mozilla.msrp.platform.vertical.content.data.PublishDoc
@@ -159,23 +158,6 @@ open class ContentRepository @Inject constructor(private var storage: Storage,
                 .whereLessThan("publish_timestamp", Instant.now().toEpochMilli())
                 .orderBy("publish_timestamp", Query.Direction.DESCENDING)
                 .limit(1).getResultsUnchecked().firstOrNull()
-    }
-
-    fun queryPublish(contentRepoQuery: ContentRepoQuery): List<PublishDoc> {
-        return try {
-            val search = publish
-                    .whereEqualTo("category", contentRepoQuery.category)
-                    .whereEqualTo("locale", contentRepoQuery.locale)
-            if (contentRepoQuery.tag != null) {
-                search.whereEqualTo("tag", contentRepoQuery.tag)
-            }
-            search.getResultsUnchecked().mapNotNull {
-                it.toObject(PublishDoc::class.java, mapper)
-            }
-        } catch (e: Exception) {
-            log.error("[Content][error]====queryPublish====[$contentRepoQuery]====$e")
-            listOf()
-        }
     }
 
     fun getContentByPublishDocId(publishDocId: String): PublishDoc? {
