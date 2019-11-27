@@ -2,13 +2,17 @@ package org.mozilla.msrp.platform.vertical.content
 
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.common.annotations.VisibleForTesting
 import org.apache.commons.beanutils.ConversionException
 import org.mozilla.msrp.platform.util.logger
 import org.mozilla.msrp.platform.vertical.content.data.Category
+import org.mozilla.msrp.platform.vertical.content.data.PublishDoc
 import org.mozilla.msrp.platform.vertical.content.data.parseContent
-import org.mozilla.msrp.platform.vertical.content.db.PublishDoc
 import org.springframework.web.multipart.MultipartFile
 import java.io.IOException
+import java.util.IllformedLocaleException
+import java.util.Locale
+import java.util.MissingResourceException
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -26,25 +30,65 @@ class ContentService @Inject constructor(private val contentRepository: ContentR
             "shoppingCoupon" to "shopping_coupon",
             "travelExplore" to "travel_explore")
 
-    private val supportLocale = listOf("id-ID", "en-IN", "all", "zh-HANT", "en-US")
+    private val supportLocaleList = listOf("id-ID", "en-IN", "all", "zh", "en")
+    private val fallbackLanguageList = listOf("eng", "in", "zh")
 
     // check category and locale. If they are valid, return the safe category. (keep locale as is)
-    private fun safeCategory(category: String, locale: String): String? {
-        val safeCategory = categoryMapping[category]
-        if (safeCategory == null || !supportLocale.contains(locale)) {
-            return null
+    private fun getSafeCategory(category: String): String? {
+        return categoryMapping[category]
+    }
+
+    /**
+     * @param locale The locale passed from the client.
+     *
+     * @return the possible "locale" in the DB
+     * */
+    @VisibleForTesting
+    fun getSafeLocale(locale: String): String {
+        // try exact match first
+        if (supportLocaleList.contains(locale)) {
+            return locale
         }
-        return safeCategory
+        // if we can't find exact match, find in fallback
+        return fallbackLocale(locale)
+    }
+
+    // the return value is not really a locale. It's actually a language.
+    // we use the world "locale" here cause the key in the document is "locale"
+    @VisibleForTesting
+    fun fallbackLocale(locale: String): String {
+        try {
+            for (supportLanguage in fallbackLanguageList) {
+                val inputLanguage = Locale.Builder().setLanguageTag(locale).build().language
+                if (inputLanguage == supportLanguage) {
+                    log.info("$locale fallback to $supportLanguage cause they're all $inputLanguage")
+                    return supportLanguage
+                }
+            }
+        } catch (e: IllformedLocaleException) {
+            log.error("Error parsing fallbackLocale [$locale] IllformedLocaleException:$e")
+        } catch (e: MissingResourceException) {
+            log.error("Error parsing fallbackLocale [$locale] MissingResourceException:$e")
+        }
+        return DEFAULT_LOCALE
     }
 
     fun getContent(param: ContentServiceQueryParam): ContentServiceQueryResult {
-        val safeCategory = safeCategory(param.category, param.locale)
+        val safeCategory = getSafeCategory(param.category)
+        val safeLocale = getSafeLocale(param.locale)
         if (safeCategory == null) {
-            val message = "Not supported parameters for shopping: ${param.category}/${param.locale}/${param.tag}"
+            val message = "Not supported parameters for shopping: $param"
             log.warn("[ContentService][getContent]====$message")
             return ContentServiceQueryResult.InvalidParam(message)
         }
-        return when (val result = contentRepository.getContentFromDB(ContentRepoQuery(safeCategory, param.locale, param.tag))) {
+        var result = contentRepository.getContentFromDB(ContentRepoQuery(safeCategory, safeLocale, param.tag))
+        if (result is ContentRepoResult.Empty){
+            val fallbackLocale = fallbackLocale(param.locale)
+            log.warn("[ContentService][getContent retry]====$param====with fallbackLocale:$fallbackLocale")
+            result = contentRepository.getContentFromDB(ContentRepoQuery(safeCategory, fallbackLocale, param.tag))
+        }
+
+        return when (result) {
             is ContentRepoResult.Fail -> {
                 log.warn("[Content]====getContent===${result.message}")
                 ContentServiceQueryResult.Fail(result.message)
@@ -70,9 +114,10 @@ class ContentService @Inject constructor(private val contentRepository: ContentR
 
 
     fun uploadContent(category: String, locale: String, other: MultipartFile, banner: MultipartFile?, tag: String): ContentServiceUploadResult {
-        val safeCategory = safeCategory(category, locale)
+        val safeCategory = getSafeCategory(category)
+        val safeLocale = getSafeLocale(locale)
         if (safeCategory == null) {
-            val message = "Not supported parameters for shopping: $category/$locale"
+            val message = "No such category: $category/$locale"
             log.warn("[ContentService][uploadCoupons]====$message")
             return ContentServiceUploadResult.InvalidParam(message)
         }
@@ -85,7 +130,7 @@ class ContentService @Inject constructor(private val contentRepository: ContentR
             }
             val parseContent = parseContent(bannerBytes, listItemBytes)
             val data = mapper.writeValueAsString(parseContent)
-            val publishDocId = contentRepository.addContent(AddContentRequest(tag, safeCategory, locale, data))
+            val publishDocId = contentRepository.addContent(AddContentRequest(tag, safeCategory, safeLocale, data))
             if (publishDocId == null) {
                 log.warn("[Content]====uploadContent==fail")
                 return ContentServiceUploadResult.Fail("Try publish again!")
@@ -118,6 +163,10 @@ class ContentService @Inject constructor(private val contentRepository: ContentR
 
     fun getPublish(publishDocId: String): PublishDoc? {
         return contentRepository.getContentByPublishDocId(publishDocId)
+    }
+
+    companion object {
+        const val DEFAULT_LOCALE = "eng"
     }
 
 }

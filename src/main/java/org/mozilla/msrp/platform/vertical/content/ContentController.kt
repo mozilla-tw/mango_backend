@@ -45,11 +45,11 @@ class ContentController @Inject constructor(private val contentService: ContentS
             })
 
 
-    @RequestMapping("/api/v1/content")
+    @GetMapping("/api/v1/content")
     fun getContent(
             @RequestParam(value = "category") category: String,
             @RequestParam(value = "locale") locale: String,
-            @RequestParam(required = false) tag: String = ""
+            @RequestParam(required = false) tag: String?
     ): ResponseEntity<Any> {
         return try {
             when (val result = cacheContent.get(ContentServiceQueryParam(category, locale, tag))) {
@@ -125,10 +125,10 @@ class ContentController @Inject constructor(private val contentService: ContentS
 
 }
 
-class ContentServiceQueryParam(
+data class ContentServiceQueryParam(
         val category: String,
         val locale: String,
-        val tag: String = ""
+        val tag: String?
 )
 class ContentResponse(
         val version: Long,
