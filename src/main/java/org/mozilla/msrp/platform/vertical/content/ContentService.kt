@@ -37,14 +37,14 @@ class ContentService @Inject constructor(private val contentRepository: ContentR
         return safeCategory
     }
 
-    fun getContent(category: String, locale: String): ContentServiceQueryResult {
-        val safeCategory = safeCategory(category, locale)
+    fun getContent(param: ContentServiceQueryParam): ContentServiceQueryResult {
+        val safeCategory = safeCategory(param.category, param.locale)
         if (safeCategory == null) {
-            val message = "Not supported parameters for shopping: $category/$locale"
+            val message = "Not supported parameters for shopping: ${param.category}/${param.locale}/${param.tag}"
             log.warn("[ContentService][getContent]====$message")
             return ContentServiceQueryResult.InvalidParam(message)
         }
-        return when (val result = contentRepository.getContentFromDB(ContentRepoQuery(safeCategory, locale))) {
+        return when (val result = contentRepository.getContentFromDB(ContentRepoQuery(safeCategory, param.locale, param.tag))) {
             is ContentRepoResult.Fail -> {
                 log.warn("[Content]====getContent===${result.message}")
                 ContentServiceQueryResult.Fail(result.message)

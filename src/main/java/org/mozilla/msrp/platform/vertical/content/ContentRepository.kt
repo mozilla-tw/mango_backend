@@ -55,7 +55,7 @@ class ContentRepository @Inject constructor(private var storage: Storage,
     fun getContentFromDB(contentRepoQuery: ContentRepoQuery): ContentRepoResult {
         return try {
 
-            val publishDocId: QueryDocumentSnapshot? = getLatestPublish(contentRepoQuery.category, contentRepoQuery.locale)
+            val publishDocId: QueryDocumentSnapshot? = getLatestPublish(contentRepoQuery.category, contentRepoQuery.locale, contentRepoQuery.tag)
             if (publishDocId == null) {
                 val message = "[Content][getContentFromDB]====No result for :$contentRepoQuery"
                 log.warn(message)
@@ -149,9 +149,13 @@ class ContentRepository @Inject constructor(private var storage: Storage,
                 )).getUnchecked()
     }
 
-    private fun getLatestPublish(category: String, locale: String): QueryDocumentSnapshot? {
-        return publish.whereEqualTo("category", category)
+    private fun getLatestPublish(category: String, locale: String, tag: String?): QueryDocumentSnapshot? {
+        var search = publish.whereEqualTo("category", category)
                 .whereEqualTo("locale", locale)
+        if (tag != null) {
+            search = search.whereEqualTo("tag", tag)
+        }
+        return search
                 .whereLessThan("publish_timestamp", Instant.now().toEpochMilli())
                 .orderBy("publish_timestamp", Query.Direction.DESCENDING)
                 .limit(1).getResultsUnchecked().firstOrNull()

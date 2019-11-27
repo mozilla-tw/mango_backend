@@ -40,7 +40,7 @@ class ContentController @Inject constructor(private val contentService: ContentS
             .recordStats()
             .build(object : CacheLoader<ContentServiceQueryParam, ContentServiceQueryResult>() {
                 override fun load(param: ContentServiceQueryParam): ContentServiceQueryResult {
-                    return contentService.getContent(param.category, param.locale)
+                    return contentService.getContent(param)
                 }
             })
 
@@ -48,10 +48,11 @@ class ContentController @Inject constructor(private val contentService: ContentS
     @RequestMapping("/api/v1/content")
     fun getContent(
             @RequestParam(value = "category") category: String,
-            @RequestParam(value = "locale") locale: String
+            @RequestParam(value = "locale") locale: String,
+            @RequestParam(required = false) tag: String = ""
     ): ResponseEntity<Any> {
         return try {
-            when (val result = cacheContent.get(ContentServiceQueryParam(category, locale))) {
+            when (val result = cacheContent.get(ContentServiceQueryParam(category, locale, tag))) {
                 is ContentServiceQueryResult.InvalidParam -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result.message)
                 is ContentServiceQueryResult.Success -> ResponseEntity.status(HttpStatus.OK).body(ContentResponse(result.version, result.tag, result.data.subcategories))
                 is ContentServiceQueryResult.Fail -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result.message)
@@ -126,7 +127,8 @@ class ContentController @Inject constructor(private val contentService: ContentS
 
 class ContentServiceQueryParam(
         val category: String,
-        val locale: String
+        val locale: String,
+        val tag: String = ""
 )
 class ContentResponse(
         val version: Long,
