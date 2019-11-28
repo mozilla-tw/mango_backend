@@ -147,7 +147,7 @@ class MissionService @Inject constructor(
     }
 
     private fun aggregateMissionListItem(uid: String, missionDoc: MissionDoc, zone: ZoneId, locale: Locale): MissionListItem {
-        val name = getMissionTitle(missionDoc, locale)
+        val title = getMissionTitle(missionDoc, locale)
         val description = getStringById(missionDoc.descriptionId, locale)
 
         val joinDoc = missionRepository.getMissionJoinDoc(uid, missionDoc.missionType, missionDoc.mid)
@@ -181,7 +181,8 @@ class MissionService @Inject constructor(
 
         return MissionListItem(
                 mid = missionDoc.mid,
-                title = name,
+                name = missionDoc.missionName,
+                title = title,
                 description = description,
                 joinEndpoint = "/api/v1/missions/${missionDoc.missionType}/${missionDoc.mid}",
                 redeemEndpoint = "/api/v1/redeem/${missionDoc.missionType}?mid=${missionDoc.mid}",

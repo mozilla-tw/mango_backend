@@ -10,6 +10,7 @@ package org.mozilla.msrp.platform.mission
  */
 data class MissionListItem(
         val mid: String,
+        val name: String,
         val title: String,
         val description: String,
         val joinEndpoint: String,
