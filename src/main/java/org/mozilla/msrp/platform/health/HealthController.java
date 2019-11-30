@@ -22,7 +22,12 @@ public class HealthController {
         Metrics.event(Metrics.EVENT_REDEEM_CONSUMED, "");
         Metrics.event(Metrics.EVENT_MISSION_JOINED, "");
         Metrics.event(Metrics.EVENT_MISSION_CHECK_IN, "");
-
-        return ResponseEntity.ok("alert");
+        try {
+            Thread.sleep(7000);
+        } catch (InterruptedException e) {
+            // mock slow request, do nothing
+            e.printStackTrace();
+        }
+        return ResponseEntity.badRequest().body("fake alert");
     }
 }
