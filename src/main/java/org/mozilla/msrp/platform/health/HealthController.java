@@ -30,4 +30,14 @@ public class HealthController {
         }
         return ResponseEntity.badRequest().body("fake alert");
     }
+    @GetMapping("/api/v1/group/fake_mission/missions")
+    ResponseEntity alertMissionList() {
+        return ResponseEntity.badRequest().body("fake mission list alert");
+    }
+
+    @GetMapping("/api/v1/redeem/")
+    ResponseEntity alertRedeem() {
+        return ResponseEntity.badRequest().body("fake redeem alert");
+    }
+
 }
