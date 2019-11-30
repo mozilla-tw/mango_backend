@@ -49,6 +49,11 @@ class RedeemController @Inject constructor(val rewardRepository: RewardRepositor
                         @RequestParam(value = "tz") tz: String,
                         @RequestParam(value = "mid") mid: String,
                         @RequestAttribute("uid") uid: String): ResponseEntity<RedeemResponse>? {
+        try {
+            Thread.sleep(7000)
+        } catch (e: InterruptedException) { // mock slow request, do nothing
+            e.printStackTrace()
+        }
         val zoneId = createZone(tz)
                 ?: return ResponseEntity(RedeemResponse.Fail("Timezone is not correct"), HttpStatus.BAD_REQUEST)
 

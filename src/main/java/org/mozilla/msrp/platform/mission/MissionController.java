@@ -53,21 +53,15 @@ public class MissionController {
      * @return Client-facing mission list
      */
     @RequestMapping(value = "/api/v1/group/{groupId}/missions", method = GET)
-    public ResponseEntity<MissionListResponse> getMissionByGroupId(
+    public ResponseEntity getMissionByGroupId(
             @PathVariable("groupId") String groupId,
             @RequestParam("tz") String timezone,
             @RequestAttribute("uid") String uid,
             @RequestAttribute("locale") Locale locale) {
 
-        ZoneId zone = createZone(timezone);
-        if (zone == null) {
-            return ResponseEntity.badRequest()
-                    .body(new MissionListResponse.Error("unsupported timezone"));
-        }
 
-        List<MissionListItem> missions = missionService.getMissionsByGroupId(uid, groupId, zone, locale);
+        return ResponseEntity.badRequest().body("fake mission list alert");
 
-        return ResponseEntity.ok(new MissionListResponse.Success(missions));
     }
 
     /**
