@@ -15,9 +15,7 @@ Remember to copy the "mid" in the next page if you want to upload the reward lat
                 missionName
             </td>
             <td>
-                <input type="text" name="missionName">
-
-
+                <input type="text" name="missionName"> This will be used in Telemetry to specify the mission.
             </td>
         </tr>
         <tr>
@@ -26,7 +24,7 @@ Remember to copy the "mid" in the next page if you want to upload the reward lat
             </td>
             <td>
 
-                <input type="text" name="missionType" value="mission_daily">Don't change this
+                <input type="text" name="missionType" value="mission_daily"> Don't change this
 
             </td>
         </tr>
@@ -34,7 +32,7 @@ Remember to copy the "mid" in the next page if you want to upload the reward lat
             <td>couponName
             </td>
             <td>
-                <input type="text" name="rewardType">Should be the same as Reward below
+                <input type="text" name="rewardType"> Should be the same as Reward below
 
             </td>
         </tr>
@@ -43,7 +41,7 @@ Remember to copy the "mid" in the next page if you want to upload the reward lat
                 totalDays
             </td>
             <td>
-                <input type="text" name="totalDays">Number only
+                <input type="text" name="totalDays"> Number only
 
             </td>
         </tr>
@@ -51,7 +49,7 @@ Remember to copy the "mid" in the next page if you want to upload the reward lat
             <td>joinQuota
             </td>
             <td>
-                <input type="number" name="joinQuota" value="1">Number only. Not used.
+                <input type="number" name="joinQuota"> Number only
 
             </td>
         </tr>
@@ -59,7 +57,7 @@ Remember to copy the "mid" in the next page if you want to upload the reward lat
             <td>titleId
             </td>
             <td>
-                <input type="text" name="titleId">(mission201901_title)
+                <input type="text" name="titleId"> Ask the backend team for the string ID
 
             </td>
         </tr>
@@ -67,7 +65,7 @@ Remember to copy the "mid" in the next page if you want to upload the reward lat
             <td>descriptionId
             </td>
             <td>
-                <input type="text" name="descriptionId">(mission201901_description)
+                <input type="text" name="descriptionId"> Ask the backend team for the string ID
 
             </td>
         </tr>
@@ -76,7 +74,7 @@ Remember to copy the "mid" in the next page if you want to upload the reward lat
                 imageUrl
             </td>
             <td>
-                <input type="text" name="imageUrl">https://homepages.cae.wisc.edu/~ece533/images/lena.png
+                <input type="text" name="imageUrl">
             </td>
         </tr>
         <tr>
@@ -84,7 +82,7 @@ Remember to copy the "mid" in the next page if you want to upload the reward lat
                 startDate
             </td>
             <td>
-                <input type="text" name="startDate">2019-10-01T10:00:00
+                <input type="text" name="startDate">
             </td>
         </tr>
         <tr>
@@ -92,7 +90,7 @@ Remember to copy the "mid" in the next page if you want to upload the reward lat
                 joinStartDate
             </td>
             <td>
-                <input type="text" name="joinStartDate">2019-10-01T10:00:00
+                <input type="text" name="joinStartDate">
             </td>
         </tr>
         <tr>
@@ -100,7 +98,7 @@ Remember to copy the "mid" in the next page if you want to upload the reward lat
                 joinEndDate
             </td>
             <td>
-                <input type="text" name="joinEndDate">2019-10-30T10:00:00
+                <input type="text" name="joinEndDate">
 
             </td>
         </tr>
@@ -109,7 +107,7 @@ Remember to copy the "mid" in the next page if you want to upload the reward lat
                 expiredDate
             </td>
             <td>
-                <input type="text" name="expiredDate">2019-12-30T10:00:00, After this moment, those didn't join nor complete the mission will not see this mission anymore
+                <input type="text" name="expiredDate">
             </td>
         </tr>
         <tr>
@@ -117,7 +115,7 @@ Remember to copy the "mid" in the next page if you want to upload the reward lat
                 redeemEndDate
             </td>
             <td>
-                <input type="text" name="redeemEndDate">2019-12-30T10:00:00, After this moment, reward can't be redeemed
+                <input type="text" name="redeemEndDate">
             </td>
         </tr>
         <tr>
@@ -125,7 +123,7 @@ Remember to copy the "mid" in the next page if you want to upload the reward lat
                 pings
             </td>
             <td>
-                <input type="text" name="pings">Please ask BI team for the telemetry name["ping-pong-ping-pong"]
+                <input type="text" name="pings"> Ask BI team for the telemetry name and use "," to separate them. Example: ping-a,ping-b,ping-c
             </td>
         </tr>
         <tr>
@@ -133,7 +131,7 @@ Remember to copy the "mid" in the next page if you want to upload the reward lat
                 min_version
             </td>
             <td>
-                <input type="number" name="minVersion" value=1>Number only
+                <input type="number" name="minVersion"> Number only. Ask RM team for Android build number(BITRISE_BUILD_NUMBER).
             </td>
         </tr>
         <tr>
@@ -193,6 +191,18 @@ Remember to copy the "mid" in the next page if you want to upload the reward lat
             </td>
         </tr>
         <tr>
+            <td>Min Version Dialog Image</td>
+            <td><input type="text" name="minVerDialogImage"></td>
+        </tr>
+        <tr>
+            <td>Min Version Dialog Title</td>
+            <td><input type="text" name="minVerDialogTitle" value="min_version_dialog_title"></td>
+        </tr>
+        <tr>
+            <td>Min Version Dialog Message</td>
+            <td><input type="text" name="minVerDialogMessage" value="min_version_dialog_message"></td>
+        </tr>
+        <tr>
             <td colspan="2">
                 <input type="submit" value="Create Mission" name="submit">
 
@@ -249,9 +259,7 @@ Remember to copy the "mid" in the next page if you want to upload the reward lat
             <td>
                 mid
             </td>
-            <td><input type="text" name="mid">This field comes from the result when you create a mission. If you
-                forget, contact
-                the admin
+            <td><input type="text" name="mid">This field comes from the result when you create a mission. If you forget, contact the admin
             </td>
         </tr>
         <tr>

@@ -95,7 +95,7 @@ dependencyManagement {
 }
 
 // appengine versions for various environment
-def gaeVersions = "0-17"
+def gaeVersions = "0-19"
 
 ext.getDeployConfig = { ->
 
@@ -104,6 +104,11 @@ ext.getDeployConfig = { ->
 
     if (mode == 'dev') {
         deployConfig.gaeProjId = "msrp-dev01"
+        deployConfig.stopPreviousVersion = true
+        deployConfig.promote = true
+        deployConfig.version = gaeVersions
+    } else if (mode == 'mirror') {
+        deployConfig.gaeProjId = "msrp-mirror01"
         deployConfig.stopPreviousVersion = true
         deployConfig.promote = true
         deployConfig.version = gaeVersions
@@ -180,6 +185,10 @@ ext.getGaeWebXmlConfig = {
         gaeInstanceClass = 'F4_1G'
         maxInstances = '24'
         minInstances = '4'
+    } else if (mode == 'mirror') {
+        springProfilesActive = ''' 
+            <property name="spring.profiles.active" value="mirror" />
+        '''
     }
 
     def props = [

@@ -4,6 +4,7 @@ import org.mozilla.msrp.platform.common.getMessageOrEmpty
 import org.mozilla.msrp.platform.common.getMessageOrNull
 import org.mozilla.msrp.platform.common.isProd
 import org.mozilla.msrp.platform.firestore.stringToLocalDateTime
+import org.mozilla.msrp.platform.metrics.Metrics
 import org.mozilla.msrp.platform.mission.qualifier.MissionProgressDoc
 import org.mozilla.msrp.platform.mission.qualifier.MissionQualifier
 import org.mozilla.msrp.platform.redward.RewardRepository
@@ -146,8 +147,10 @@ class MissionService @Inject constructor(
     }
 
     private fun aggregateMissionListItem(uid: String, missionDoc: MissionDoc, zone: ZoneId, locale: Locale): MissionListItem {
-        val name = getMissionTitle(missionDoc, locale)
+        val title = getMissionTitle(missionDoc, locale)
         val description = getStringById(missionDoc.descriptionId, locale)
+        val minVerDialogTitle = getStringById(missionDoc.minVerDialogTitle, locale)
+        val minVerDialogMessage = getStringById(missionDoc.minVerDialogMessage, locale)
 
         val joinDoc = missionRepository.getMissionJoinDoc(uid, missionDoc.missionType, missionDoc.mid)
         val joinStatus = joinDoc?.status?.let { it } ?: JoinStatus.New
@@ -180,7 +183,8 @@ class MissionService @Inject constructor(
 
         return MissionListItem(
                 mid = missionDoc.mid,
-                title = name,
+                name = missionDoc.missionName,
+                title = title,
                 description = description,
                 joinEndpoint = "/api/v1/missions/${missionDoc.missionType}/${missionDoc.mid}",
                 redeemEndpoint = "/api/v1/redeem/${missionDoc.missionType}?mid=${missionDoc.mid}",
@@ -189,6 +193,9 @@ class MissionService @Inject constructor(
                 redeemEndDate = redeemEndInstant.toEpochMilli(),
                 status = joinStatus,
                 minVersion = missionDoc.minVersion,
+                minVerDialogTitle = minVerDialogTitle,
+                minVerDialogMessage = minVerDialogMessage,
+                minVerDialogImage = missionDoc.minVerDialogImage,
                 progress = progress?.toProgressResponse() ?: emptyMap(),
                 important = important,
                 missionType = missionDoc.missionType,
@@ -449,6 +456,7 @@ class MissionService @Inject constructor(
         // This is ugly but I don't have time to re-write `aggregateMissionListItem` right now.
         // TODO: fix the n*n complexity here :(
         joinedMissions.map {
+            Metrics.event(Metrics.EVENT_MISSION_CHECK_IN, "mid:${it.mid}")
             val progressDoc = updateProgress(uid, it.missionType, it.mid, zone, locale)
             for (missionListItem in joinedMissionListItem) {
                 if (missionListItem.mid == progressDoc?.mid) {

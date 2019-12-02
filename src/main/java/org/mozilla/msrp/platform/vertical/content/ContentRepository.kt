@@ -11,10 +11,9 @@ import com.google.cloud.storage.Storage
 import com.google.cloud.storage.StorageException
 import org.mozilla.msrp.platform.firestore.getResultsUnchecked
 import org.mozilla.msrp.platform.firestore.getUnchecked
-import org.mozilla.msrp.platform.firestore.toObject
 import org.mozilla.msrp.platform.util.logger
 import org.mozilla.msrp.platform.vertical.content.data.Category
-import org.mozilla.msrp.platform.vertical.content.db.PublishDoc
+import org.mozilla.msrp.platform.vertical.content.data.PublishDoc
 import org.springframework.stereotype.Repository
 import java.text.ParseException
 import java.text.SimpleDateFormat
@@ -24,7 +23,7 @@ import java.util.TimeZone
 import javax.inject.Inject
 
 @Repository
-class ContentRepository @Inject constructor(private var storage: Storage,
+open class ContentRepository @Inject constructor(private var storage: Storage,
                                             private var firestore: Firestore) {
 
     private var publish: CollectionReference
@@ -55,11 +54,11 @@ class ContentRepository @Inject constructor(private var storage: Storage,
     fun getContentFromDB(contentRepoQuery: ContentRepoQuery): ContentRepoResult {
         return try {
 
-            val publishDocId: QueryDocumentSnapshot? = getLatestPublish(contentRepoQuery.category, contentRepoQuery.locale)
+            val publishDocId: QueryDocumentSnapshot? = getLatestPublish(contentRepoQuery.category, contentRepoQuery.locale, contentRepoQuery.tag)
             if (publishDocId == null) {
                 val message = "[Content][getContentFromDB]====No result for :$contentRepoQuery"
                 log.warn(message)
-                return ContentRepoResult.Fail(message)
+                return ContentRepoResult.Empty(message)
             }
             val publishDoc = publishDocId.toObject(PublishDoc::class.java)
             val publishTimestamp = publishDoc.publish_timestamp
@@ -149,29 +148,16 @@ class ContentRepository @Inject constructor(private var storage: Storage,
                 )).getUnchecked()
     }
 
-    private fun getLatestPublish(category: String, locale: String): QueryDocumentSnapshot? {
-        return publish.whereEqualTo("category", category)
+    private fun getLatestPublish(category: String, locale: String, tag: String?): QueryDocumentSnapshot? {
+        var search = publish.whereEqualTo("category", category)
                 .whereEqualTo("locale", locale)
+        if (tag != null) {
+            search = search.whereEqualTo("tag", tag)
+        }
+        return search
                 .whereLessThan("publish_timestamp", Instant.now().toEpochMilli())
                 .orderBy("publish_timestamp", Query.Direction.DESCENDING)
                 .limit(1).getResultsUnchecked().firstOrNull()
-    }
-
-    fun queryPublish(contentRepoQuery: ContentRepoQuery): List<PublishDoc> {
-        return try {
-            val search = publish
-                    .whereEqualTo("category", contentRepoQuery.category)
-                    .whereEqualTo("locale", contentRepoQuery.locale)
-            if (contentRepoQuery.tag != null) {
-                search.whereEqualTo("tag", contentRepoQuery.tag)
-            }
-            search.getResultsUnchecked().mapNotNull {
-                it.toObject(PublishDoc::class.java, mapper)
-            }
-        } catch (e: Exception) {
-            log.error("[Content][error]====queryPublish====[$contentRepoQuery]====$e")
-            listOf()
-        }
     }
 
     fun getContentByPublishDocId(publishDocId: String): PublishDoc? {
@@ -215,7 +201,8 @@ class AddContentRequest(
 
 sealed class ContentRepoResult {
     class Success(val version: Long, val tag: String, val data: Category) : ContentRepoResult()
-    class Fail(val message: String) : ContentRepoResult()
+    open class Fail(val message: String) : ContentRepoResult()
+    class Empty(message: String) : Fail(message)
 }
 
 data class ContentRepoQuery(

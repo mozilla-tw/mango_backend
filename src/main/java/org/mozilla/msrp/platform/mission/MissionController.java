@@ -3,6 +3,7 @@ package org.mozilla.msrp.platform.mission;
 import lombok.extern.log4j.Log4j2;
 import org.mozilla.msrp.platform.common.auth.Auth;
 import org.mozilla.msrp.platform.common.auth.JwtHelper;
+import org.mozilla.msrp.platform.metrics.Metrics;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -141,7 +142,10 @@ public class MissionController {
             @RequestParam String redeemEndDate,
             @RequestParam String pings,
             @RequestParam(value = "messages[]") String[] messages,
-            @RequestParam int minVersion) {
+            @RequestParam int minVersion,
+            @RequestParam String minVerDialogImage,
+            @RequestParam String minVerDialogTitle,
+            @RequestParam String minVerDialogMessage) {
 
         Auth verify = jwtHelper.verify(token);
         if (verify == null || !JwtHelper.ROLE_MSRP_ADMIN.equals(verify.getRole())) {
@@ -177,7 +181,10 @@ public class MissionController {
                 params,
                 rewardType,
                 joinQuota,
-                imageUrl
+                imageUrl,
+                minVerDialogImage,
+                minVerDialogTitle,
+                minVerDialogMessage
         );
         missionList.add(mCreated);
         request.missions = missionList;
@@ -253,6 +260,7 @@ public class MissionController {
 
         MissionJoinResult result = missionService.joinMission(uid, missionType, mid, zone, locale);
         if (result instanceof MissionJoinResult.Success) {
+            Metrics.event(Metrics.EVENT_MISSION_JOINED, "mid:" + mid);
             MissionJoinResult.Success successResult = (MissionJoinResult.Success) result;
             return ResponseEntity.ok(new MissionJoinResponse.Success(successResult));
 

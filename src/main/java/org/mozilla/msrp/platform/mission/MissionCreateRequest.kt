@@ -19,7 +19,10 @@ data class MissionCreateData(
         val missionParams: Map<String, Any>?,
         val rewardType: String,
         val joinQuota: Int,
-        val imageUrl: String
+        val imageUrl: String,
+        val minVerDialogImage: String,
+        val minVerDialogTitle: String,
+        val minVerDialogMessage: String
 )
 
 class ValidationResult {

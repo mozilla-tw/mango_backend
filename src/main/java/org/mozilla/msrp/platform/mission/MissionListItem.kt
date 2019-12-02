@@ -10,6 +10,7 @@ package org.mozilla.msrp.platform.mission
  */
 data class MissionListItem(
         val mid: String,
+        val name: String,
         val title: String,
         val description: String,
         val joinEndpoint: String,
@@ -19,6 +20,9 @@ data class MissionListItem(
         val redeemEndDate: Long,
         val status: JoinStatus,
         val minVersion: Int,
+        val minVerDialogImage: String,
+        val minVerDialogTitle: String,
+        val minVerDialogMessage: String,
         var progress: Map<String, Any>,
         val important: Boolean,
         val missionType: String,
