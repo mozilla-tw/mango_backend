@@ -184,7 +184,7 @@ ext.getGaeWebXmlConfig = {
         '''
         gaeInstanceClass = 'F4_1G'
         maxInstances = '24'
-        minInstances = '2'
+        minInstances = '4'
     } else if (mode == 'mirror') {
         springProfilesActive = ''' 
             <property name="spring.profiles.active" value="mirror" />
