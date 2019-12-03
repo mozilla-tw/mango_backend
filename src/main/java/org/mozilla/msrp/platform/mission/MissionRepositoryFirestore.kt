@@ -323,6 +323,14 @@ class MissionRepositoryFirestore @Inject internal constructor(
                 ?.count ?: 0
     }
 
+    override fun getProgress(missionType: String, mid: String): List<DailyMissionProgressDoc> {
+        return firestore.collection(missionType)
+                .document(mid)
+                .collection("users").getResultsUnchecked().map {
+                    it.toObject(DailyMissionProgressDoc::class.java)
+                }
+    }
+
     private fun getDailyMissionCollection() =
             firestore.collection("${MissionType.DailyMission.identifier}_progress")
 

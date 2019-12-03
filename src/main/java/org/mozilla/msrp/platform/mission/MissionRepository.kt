@@ -37,4 +37,5 @@ interface MissionRepository {
     fun updateMissionJoinDocAfterRedeem(uid: String, missionType: String, mid: String, rewardDocId: String, transaction: Transaction): Boolean
 
     fun getJoinCount(missionType: String, mid: String): Int
+    fun getProgress(missionType: String, mid: String): List<DailyMissionProgressDoc>
 }

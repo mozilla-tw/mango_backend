@@ -251,6 +251,10 @@ class UserRepository @Inject constructor(firestore: Firestore) {
 
         return status == UserDoc.STATUS_SUSPEND
     }
+
+    fun reportUserActivity() = userActivity.getResultsUnchecked().map {
+        it.toObject(UserDoc::class.java)
+    }
 }
 
 sealed class LoginResponse {

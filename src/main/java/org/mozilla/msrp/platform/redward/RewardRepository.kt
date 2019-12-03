@@ -294,4 +294,11 @@ open class RewardRepository @Inject constructor(
                     entry.value.map { it.second }
                 }
     }
+
+    fun reportRewardCoupon(rewardId: String): List<RewardCouponDoc> {
+        return firestore.collection(rewardId).getResultsUnchecked().map {
+            it.toObject(RewardCouponDoc::class.java)
+        }
+
+    }
 }
