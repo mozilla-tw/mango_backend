@@ -20,7 +20,14 @@ class GoogleRssFeedRepository @Inject constructor(private val googleRssFeedClien
 
 
         val rss = googleRssFeedClient.rss(topic, hl, gl, ceid).execute().body()
-        println("---news----google----"+rss?.feedItems?.size)
+        log.info("[NEWS]====loading Google news [${rss?.feedItems?.size}]")
+
+        return rss?.feedItems
+    }
+
+    fun topNews(hl: String, gl: String, ceid: String): List<FeedItem>? {
+        val rss = googleRssFeedClient.topNewsRss(hl, gl, ceid).execute().body()
+        log.info("[NEWS]====loading Google news [${rss?.feedItems?.size}]")
         return rss?.feedItems
     }
 

@@ -21,6 +21,9 @@ interface GoogleRssFeedClient {
     @GET("rss/headlines/section/topic/{topic}?pz=1&cf=all")
     fun rss(@Path("topic") topic: String, @Query("hl") hl: String, @Query("gl") gl: String, @Query("ceid") ceid: String): Call<GoogleRss>
 
+    @GET("rss?pz=1&cf=all")
+    fun topNewsRss(@Query("hl") hl: String, @Query("gl") gl: String, @Query("ceid") ceid: String): Call<GoogleRss>
+
 }
 
 @Named
