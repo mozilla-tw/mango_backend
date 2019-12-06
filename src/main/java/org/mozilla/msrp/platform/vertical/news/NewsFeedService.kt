@@ -1,7 +1,5 @@
 package org.mozilla.msrp.platform.vertical.news
 
-import java.text.ParseException
-import java.text.SimpleDateFormat
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -9,6 +7,11 @@ import javax.inject.Named
 class GoogleNewsFeedService @Inject constructor(private val googleRssFeedRepository: GoogleRssFeedRepository) {
 
     fun getNews(language: String) = googleRssFeedRepository.news(language)
+
+    fun getTopNews(hl: String, gl: String, ceid: String): List<FeedItem>? {
+        val list = googleRssFeedRepository.topNews(hl, gl, ceid)
+        return list?.sorted()
+    }
 
     fun getNews(topic: String, hl: String, gl: String, ceid: String): List<FeedItem>? {
         val list = googleRssFeedRepository.news(topic, hl, gl, ceid)

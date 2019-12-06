@@ -58,7 +58,7 @@ class NewsFeedController @Inject constructor(
     }
 
     @GetMapping("/api/v1/news/google/topics")
-    fun googleNewsTopic() = listOf("WORLD", "NATION", "BUSINESS", "TECHNOLOGY", "ENTERTAINMENT", "SPORTS", "SCIENCE", "HEALTH")
+    fun googleNewsTopic() = listOf(TOPIC_GOOGLE_TOP_NEWS, "WORLD", "NATION", "BUSINESS", "TECHNOLOGY", "ENTERTAINMENT", "SPORTS", "SCIENCE", "HEALTH")
 
 
     private val cacheGoogleNews = CacheBuilder.newBuilder()
@@ -73,7 +73,11 @@ class NewsFeedController @Inject constructor(
                             if (split.size != 4) {
                                 return listOf()
                             }
-                            return googleNewsFeedService.getNews(split[0], split[1], split[2], split[3]) ?: listOf()
+                            val topic = split[0]
+                            if (topic == TOPIC_GOOGLE_TOP_NEWS) {
+                                return googleNewsFeedService.getTopNews(split[1], split[2], split[3]) ?: listOf()
+                            }
+                            return googleNewsFeedService.getNews(topic, split[1], split[2], split[3]) ?: listOf()
                         }
                     })
 
@@ -134,5 +138,6 @@ class NewsFeedController @Inject constructor(
     companion object {
 
         private const val delimiters = "=="
+        private const val TOPIC_GOOGLE_TOP_NEWS = "Top-news"
     }
 }
