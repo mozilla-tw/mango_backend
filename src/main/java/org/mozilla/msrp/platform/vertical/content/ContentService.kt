@@ -81,9 +81,17 @@ class ContentService @Inject constructor(private val contentRepository: ContentR
             log.warn("[ContentService][getContent]====$message")
             return ContentServiceQueryResult.InvalidParam(message)
         }
+        // check if we support the specific locale
         var result = contentRepository.getContentFromDB(ContentRepoQuery(safeCategory, safeLocale, param.tag))
+        // then try to fallback that locale
         if (result is ContentRepoResult.Empty){
             val fallbackLocale = fallbackLocale(param.locale)
+            log.warn("[ContentService][getContent retry]====$param====with fallbackLocale:$fallbackLocale")
+            result = contentRepository.getContentFromDB(ContentRepoQuery(safeCategory, fallbackLocale, param.tag))
+        }
+        // If all above won't work, fallback to eng
+        if (result is ContentRepoResult.Empty){
+            val fallbackLocale = DEFAULT_LOCALE
             log.warn("[ContentService][getContent retry]====$param====with fallbackLocale:$fallbackLocale")
             result = contentRepository.getContentFromDB(ContentRepoQuery(safeCategory, fallbackLocale, param.tag))
         }
