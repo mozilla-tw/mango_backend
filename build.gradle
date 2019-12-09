@@ -95,7 +95,7 @@ dependencyManagement {
 }
 
 // appengine versions for various environment
-def gaeVersions = "0-19"
+def gaeVersions = "0-20"
 
 ext.getDeployConfig = { ->
 
@@ -184,7 +184,7 @@ ext.getGaeWebXmlConfig = {
         '''
         gaeInstanceClass = 'F4_1G'
         maxInstances = '24'
-        minInstances = '4'
+        minInstances = '2'
     } else if (mode == 'mirror') {
         springProfilesActive = ''' 
             <property name="spring.profiles.active" value="mirror" />
