@@ -51,7 +51,7 @@ class YoutubeRepository @Inject constructor(private val youtube: YouTube) {
                                     result.snippet.title,
                                     result.snippet.channelTitle,
                                     result.snippet.publishedAt.toString(),
-                                    result.snippet.thumbnails.default.url,
+                                    result.snippet.thumbnails.medium.url,
                                     videoDetail?.contentDetails?.duration?.compact() ?: "",
                                     youtubeApiInfo.watchUrl + result.id.videoId,
                                     videoDetail?.statistics?.viewCount?.toString() ?: "",
