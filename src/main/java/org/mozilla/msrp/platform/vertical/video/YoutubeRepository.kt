@@ -18,14 +18,14 @@ class YoutubeRepository @Inject constructor(private val youtube: YouTube) {
 
     val log = logger()
 
-    fun videoList(query: String, locale: String, maxResult: Long): List<VideoItem>? {
+    fun videoList(query: String, locale: String, order: String, maxResult: Long): List<VideoItem>? {
         return try {
             log.info("[Youtube]====start retrieving list")
             val searchRequest = youtube.search().list("id,snippet")
             searchRequest.key = youtubeApiInfo.apiKey
             searchRequest.q = query
             searchRequest.type = "video"
-            searchRequest.order = "viewCount"
+            searchRequest.order = order
             searchRequest.relevanceLanguage = locale
             if (maxResult > 0) {
                 searchRequest.maxResults = maxResult
