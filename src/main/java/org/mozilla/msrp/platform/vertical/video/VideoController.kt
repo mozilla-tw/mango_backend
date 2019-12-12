@@ -28,6 +28,7 @@ class VideoController @Inject constructor(
             @RequestHeader(value = "X-API-Key") apiKey: String?,
             @RequestParam(value = "query") query: String,
             @RequestParam(value = "locale") locale: String,
+            @RequestParam(value = "order", required = false, defaultValue = defaultOrder) order: String,
             @RequestParam(value = "limit", required = false, defaultValue = "") limit: String
     ): ResponseEntity<List<VideoItem>> {
 
@@ -36,10 +37,10 @@ class VideoController @Inject constructor(
             return ResponseEntity(listOf(), HttpStatus.UNAUTHORIZED)
         }
 
-        log.info("[VIDEO]====loading videos [$query][$locale][$limit]")
+        log.info("[VIDEO]====loading videos [$query][$locale][$order][$limit]")
 
         val maxResult = limit.toLongOrDefault(0L)
-        val key = query + delimiters + locale + delimiters + maxResult
+        val key = query + delimiters + locale + delimiters + order + delimiters + maxResult
         val cache = cacheVideos.get(key)
         log.info("[VIDEO]====cache videos key[${key}]")
 
@@ -72,16 +73,22 @@ class VideoController @Inject constructor(
                     object : CacheLoader<String, List<VideoItem>>() {
                         override fun load(key: String): List<VideoItem> {
                             val split = key.split(delimiters)
-                            if (split.size != 3) {
+                            if (split.size != 4) {
                                 return listOf()
                             }
-                            return youtubeService.getVideoList(split[0], split[1], split[2].toLong()) ?: listOf()
+                            return youtubeService.getVideoList(
+                                    split[0],
+                                    split[1],
+                                    split[2],
+                                    split[3].toLong()
+                            ) ?: listOf()
                         }
                     }
             )
 
     companion object {
         private const val delimiters = "=="
+        private const val defaultOrder = "relevance"
         private const val cacheSize: Long = 100L
         private const val cacheTtl: Long = 24L
     }
