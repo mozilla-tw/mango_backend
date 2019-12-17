@@ -1,0 +1,11 @@
+steps:
+- name: 'gcr.io/cloud-builders/gradle:4.6-jdk-8'
+  args: ['clean', 'appengineDeploy' ,'-Pmode=${_DEPLOY_TARGET}']
+
+# This step runs MSRP API Test when deploy to stable env
+- name: 'gcr.io/cloud-builders/npm'
+  id: Test
+  entrypoint: /bin/bash
+  args:
+    - -c
+    - '[[ "${_DEPLOY_TARGET}" == "nightly" ]] && npm install -g newman && newman run postmanApi/vertical.json -e postmanApi/NIGHTLY-Verticals.postman_environment.json'
