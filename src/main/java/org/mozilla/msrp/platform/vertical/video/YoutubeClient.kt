@@ -11,7 +11,7 @@ import javax.inject.Inject
 import javax.inject.Named
 
 @Named
-class YoutubeRepository @Inject constructor(private val youtube: YouTube) {
+class YoutubeClient @Inject constructor(private val youtube: YouTube) {
 
     @Inject
     lateinit var youtubeApiInfo: YoutubeApiInfo
