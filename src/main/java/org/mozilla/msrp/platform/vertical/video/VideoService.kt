@@ -19,14 +19,14 @@ class VideoService @Inject constructor(
 
     private val CACHE_THRESHOLD = 30 * 24 * 60 * 60 * 1000L // a month
 
-    fun fromCache(query: String, locale: String, order: String, maxResult: Long): List<VideoItem> {
-        val cacheKey = query + delimiters + locale
+    fun fromCache(query: String, order: String, maxResult: Long): List<VideoItem> {
+        val cacheKey = query
 
-        val content: String? = videoCacheRepository.get(cacheKey)
+        val content: String? = videoCacheRepository.get(query)
         // if not in cache
         if (content == null) {
             VerticalMetrics.event(VerticalMetrics.EVENT_CACHE_MISSED, cacheKey)
-            val data = loadData(query, locale, order, maxResult)
+            val data = loadData(query, order, maxResult)
             videoCacheRepository.set(cacheKey, mapper.writeValueAsString(data))
             return data.videos
         }
@@ -36,7 +36,7 @@ class VideoService @Inject constructor(
             // But it's fine right now.
             if (System.currentTimeMillis()- cache.ts > CACHE_THRESHOLD) {
                 VerticalMetrics.event(VerticalMetrics.EVENT_CACHE_EXPIRED, cacheKey)
-                val data = loadData(query, locale, order, maxResult)
+                val data = loadData(query, order, maxResult)
                 if (data.videos.isNotEmpty()) {
                     videoCacheRepository.set(cacheKey, mapper.writeValueAsString(data))
                     return data.videos
@@ -57,15 +57,14 @@ class VideoService @Inject constructor(
     }
 
 
-    private fun getVideoList(query: String, locale: String, order: String, maxResult: Long): VideoServiceResult {
-        return VideoServiceResult(youtubeClient.videoList(query, locale, order, maxResult) ?: listOf())
+    private fun getVideoList(query: String, order: String, maxResult: Long): VideoServiceResult {
+        return VideoServiceResult(youtubeClient.videoList(query, order, maxResult) ?: listOf())
     }
 
-    private fun loadData(query: String, locale: String, order: String, maxResult: Long): VideoServiceResult {
+    private fun loadData(query: String, order: String, maxResult: Long): VideoServiceResult {
 
         return getVideoList(
                 query,
-                locale,
                 order,
                 maxResult
         )

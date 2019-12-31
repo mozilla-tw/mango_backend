@@ -37,7 +37,7 @@ class VideoController @Inject constructor(
         log.info("[VIDEO]====loading videos [$query][$locale][$order][$limit]")
 
         val maxResult = limit.toLongOrDefault(0L)
-        val cache = videoService.fromCache(query, locale, order, maxResult)
+        val cache = videoService.fromCache(query, order, maxResult)
         log.info("[VIDEO]====cache videos params:[$query, $locale, $order, $maxResult]")
 
         if (cache.isEmpty()) {
