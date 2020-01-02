@@ -31,5 +31,7 @@ class ContentItem(
         @field:CsvBindByName(required = false) var start_date: Long? = 0L,
         @field:CsvBindByName(required = false) var end_date: Long? = 0L,
         @field:CsvBindByName(required = false) var additional: String = "",
+        @field:CsvBindByName(required = false) var destination_type: Int? = 0,
+
         var component_id: String = ""
 )
