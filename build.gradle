@@ -95,7 +95,7 @@ dependencyManagement {
 }
 
 // appengine versions for various environment
-def gaeVersions = "0-22"
+def gaeVersions = "0-23"
 
 ext.getDeployConfig = { ->
 
@@ -163,7 +163,7 @@ ext.getGaeWebXmlConfig = {
     def mode = getDeployConfig().mode
     def gaeInstanceClass = 'F1'
     def maxInstances = '2'
-    def minInstances = '1'
+    def minInstances = '0'
     def springProfilesActive = ''' 
             <property name="spring.profiles.active" value="dev" />
         '''

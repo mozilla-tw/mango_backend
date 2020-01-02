@@ -11,14 +11,14 @@ import javax.inject.Inject
 import javax.inject.Named
 
 @Named
-class YoutubeRepository @Inject constructor(private val youtube: YouTube) {
+class YoutubeClient @Inject constructor(private val youtube: YouTube) {
 
     @Inject
     lateinit var youtubeApiInfo: YoutubeApiInfo
 
     val log = logger()
 
-    fun videoList(query: String, locale: String, order: String, maxResult: Long): List<VideoItem>? {
+    fun videoList(query: String, order: String, maxResult: Long): List<VideoItem>? {
         return try {
             log.info("[Youtube]====start retrieving list")
             val searchRequest = youtube.search().list("id,snippet")
@@ -26,7 +26,6 @@ class YoutubeRepository @Inject constructor(private val youtube: YouTube) {
             searchRequest.q = query
             searchRequest.type = "video"
             searchRequest.order = order
-            searchRequest.relevanceLanguage = locale
             if (maxResult > 0) {
                 searchRequest.maxResults = maxResult
             }
