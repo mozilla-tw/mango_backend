@@ -1,6 +1,7 @@
 package org.mozilla.msrp.platform.vertical.video
 
 import com.google.api.services.youtube.YouTube
+import org.mozilla.msrp.platform.metrics.VerticalMetrics
 import org.mozilla.msrp.platform.util.hash
 import org.mozilla.msrp.platform.util.logger
 import java.text.DecimalFormat
@@ -66,7 +67,7 @@ class YoutubeClient @Inject constructor(private val youtube: YouTube) {
             log.info("[Youtube]====end retrieving list ${videoList?.size}")
             videoList
         } catch (e: Exception) {
-            log.error("[Youtube]====Exception: $e")
+            VerticalMetrics.event(VerticalMetrics.EVENT_YOUTUBE_API_ERROR, "Exception: $e")
             emptyList()
         }
     }
