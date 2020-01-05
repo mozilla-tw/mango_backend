@@ -20,38 +20,32 @@ class VideoService @Inject constructor(
     private val CACHE_THRESHOLD = 30 * 24 * 60 * 60 * 1000L // a month
 
     fun fromCache(query: String, order: String, maxResult: Long): List<VideoItem> {
-        val cacheKey = query
-
-        val content: String? = videoCacheRepository.get(query)
-        // if not in cache
-        if (content == null) {
-            VerticalMetrics.event(VerticalMetrics.EVENT_CACHE_MISSED, cacheKey)
-            val data = loadData(query, order, maxResult)
-            videoCacheRepository.set(cacheKey, mapper.writeValueAsString(data))
-            return data.videos
-        }
         try {
-            val cache = mapper.readValue(content, VideoServiceResult::class.java)
-            // Use System.currentTimeMillis() means we can only deploy this service in the same timezone.
-            // But it's fine right now.
-            if (System.currentTimeMillis()- cache.ts > CACHE_THRESHOLD) {
-                VerticalMetrics.event(VerticalMetrics.EVENT_CACHE_EXPIRED, cacheKey)
-                val data = loadData(query, order, maxResult)
-                if (data.videos.isNotEmpty()) {
-                    videoCacheRepository.set(cacheKey, mapper.writeValueAsString(data))
-                    return data.videos
+            val content: String? = videoCacheRepository.get(query)
+            if (content != null) {
+                val cache = mapper.readValue(content, VideoServiceResult::class.java)
+                if (cache.videos.isEmpty()) {
+                    VerticalMetrics.event(VerticalMetrics.EVENT_CACHE_MISSED, query)
+                } else if (System.currentTimeMillis() - cache.ts > CACHE_THRESHOLD) {
+                    VerticalMetrics.event(VerticalMetrics.EVENT_CACHE_EXPIRED, query)
+                } else {
+                    return cache.videos
                 }
+            } else {
+                VerticalMetrics.event(VerticalMetrics.EVENT_CACHE_MISSED, query)
             }
-            return cache.videos
+
+            return loadData(query, order, maxResult)
+
 
         } catch (e: JsonMappingException) {
-            VerticalMetrics.event(VerticalMetrics.EVENT_CACHE_EXCEPTION, "$cacheKey&JsonMappingException")
+            VerticalMetrics.event(VerticalMetrics.EVENT_CACHE_EXCEPTION, "$query&JsonMappingException")
             return listOf()
         } catch (e: JsonParseException) {
-            VerticalMetrics.event(VerticalMetrics.EVENT_CACHE_EXCEPTION, "$cacheKey&JsonParseException")
+            VerticalMetrics.event(VerticalMetrics.EVENT_CACHE_EXCEPTION, "$query&JsonParseException")
             return listOf()
         } catch (e: IOException) {
-            VerticalMetrics.event(VerticalMetrics.EVENT_CACHE_EXCEPTION, "$cacheKey&IOException")
+            VerticalMetrics.event(VerticalMetrics.EVENT_CACHE_EXCEPTION, "$query&IOException")
             return listOf()
         }
     }
@@ -61,13 +55,17 @@ class VideoService @Inject constructor(
         return VideoServiceResult(youtubeClient.videoList(query, order, maxResult) ?: listOf())
     }
 
-    private fun loadData(query: String, order: String, maxResult: Long): VideoServiceResult {
-
-        return getVideoList(
+    private fun loadData(query: String, order: String, maxResult: Long): List<VideoItem> {
+        val data = getVideoList(
                 query,
                 order,
                 maxResult
         )
+        if (data.videos.isNotEmpty()) {
+            videoCacheRepository.set(query, mapper.writeValueAsString(data))
+            return data.videos
+        }
+        return listOf()
     }
 
     companion object {
