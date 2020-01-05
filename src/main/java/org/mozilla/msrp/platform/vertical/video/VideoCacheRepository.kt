@@ -25,8 +25,9 @@ class VideoCacheRepository @Inject constructor(
         val document = videoCollection.whereEqualTo("key", key).getResultsUnchecked().firstOrNull()?.toObject(VideoListDoc::class.java)
         if (document == null) {
             logger.info("[VideoRepository][get] No such data for key[$key]")
+        } else {
+            logger.info("[VideoRepository][get] Found data for key[$key]")
         }
-        logger.info("[VideoRepository][get] Found data for key[$key]")
         return document?.data
     }
 
