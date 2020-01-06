@@ -74,6 +74,6 @@ class VideoService @Inject constructor(
 }
 
 data class VideoServiceResult(
-        val videos: List<VideoItem>,
-        val ts: Long = System.currentTimeMillis()
+        val videos: List<VideoItem> = listOf(),
+        var ts: Long = System.currentTimeMillis()
 )
