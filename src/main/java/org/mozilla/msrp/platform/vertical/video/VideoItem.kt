@@ -1,13 +1,13 @@
 package org.mozilla.msrp.platform.vertical.video
 
 data class VideoItem(
-        val title: String,
-        val channelTitle: String,
-        val publishedAt: String,
-        val thumbnail: String,
-        val duration: String,
-        val link: String,
-        val viewCount: String,
-        val componentId: String,
-        val source: String
+        var title: String = "",
+        var channelTitle: String = "",
+        var publishedAt: String = "",
+        var thumbnail: String = "",
+        var duration: String = "",
+        var link: String = "",
+        var viewCount: String = "",
+        var componentId: String = "",
+        var source: String = ""
 )
