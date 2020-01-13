@@ -1,6 +1,5 @@
 spring:
   profiles.active: dev # Default profile
-  output.ansi.enabled: never # Coloring application output
 
 ---
 # Configuration to be enabled when the "mirror" profile is active
@@ -12,7 +11,7 @@ platform:
 # Configuration to be enabled when the "dev" profile is active
 spring:
   profiles: dev
-  output.ansi.enabled: always
+
 logging.level:
   root: INFO
   org.mozilla.msrp: DEBUG

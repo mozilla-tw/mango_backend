@@ -12,7 +12,6 @@ buildscript {
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.50"
         classpath "org.springframework.boot:spring-boot-gradle-plugin:2.1.6.RELEASE"
-        classpath 'com.google.cloud.tools:appengine-gradle-plugin:+'
         classpath "gradle.plugin.com.google.cloud.tools:jib-gradle-plugin:1.8.0"
 
     }
@@ -23,7 +22,6 @@ apply plugin: 'kotlin'
 apply plugin: 'war'
 apply plugin: 'idea'
 apply plugin: 'org.springframework.boot'
-apply plugin: 'com.google.cloud.tools.appengine-standard'  // App Engine tasks
 apply plugin: 'io.spring.dependency-management'
 apply plugin: "com.google.cloud.tools.jib"
 
@@ -99,116 +97,3 @@ dependencyManagement {
     }
 }
 
-// appengine versions for various environment
-def gaeVersions = "0-24"
-
-ext.getDeployConfig = { ->
-
-    def mode = project.hasProperty('mode') ? project.property('mode') : "dev"
-    def deployConfig = [mode: mode]
-
-    if (mode == 'dev') {
-        deployConfig.gaeProjId = "msrp-dev01"
-        deployConfig.stopPreviousVersion = true
-        deployConfig.promote = true
-        deployConfig.version = gaeVersions
-    } else if (mode == 'mirror') {
-        deployConfig.gaeProjId = "msrp-mirror01"
-        deployConfig.stopPreviousVersion = true
-        deployConfig.promote = true
-        deployConfig.version = gaeVersions
-    } else if (mode == 'stable') {
-        deployConfig.gaeProjId = "rocket-dev01"
-        deployConfig.stopPreviousVersion = true
-        deployConfig.promote = true
-        deployConfig.version = gaeVersions
-    } else if (mode == 'nightly') {
-        deployConfig.gaeProjId = "rocketnightly"
-        deployConfig.stopPreviousVersion = true
-        deployConfig.promote = true
-        deployConfig.version = gaeVersions
-    } else if (mode == 'prod') {
-        deployConfig.gaeProjId = "zerda-dcf76"
-        deployConfig.stopPreviousVersion = false
-        deployConfig.promote = false
-        deployConfig.version = gaeVersions
-    } else {
-        // use dev setting as default
-        deployConfig.gaeProjId = "msrp-dev01"
-        deployConfig.stopPreviousVersion = true
-        deployConfig.promote = true
-        deployConfig.version = gaeVersions
-    }
-
-    return deployConfig
-}
-
-
-appengine {
-
-    deploy { // deploy configuration
-
-        // calling the previous method for configuration
-        def config = getDeployConfig()
-
-        projectId = config.gaeProjId
-        version = config.version
-        stopPreviousVersion = config.stopPreviousVersion  // default - stop the current version
-        promote = config.promote              // default - & make this the current version
-    }
-}
-
-// prints out deploy config
-appengineStage.doLast {
-    println getDeployConfig()
-}
-
-
-ext.getGaeWebXmlConfig = {
-    def mode = getDeployConfig().mode
-    def gaeInstanceClass = 'F1'
-    def maxInstances = '2'
-    def minInstances = '0'
-    def springProfilesActive = ''' 
-            <property name="spring.profiles.active" value="dev" />
-        '''
-
-    if (mode == 'stable') {
-        springProfilesActive = ''' 
-            <property name="spring.profiles.active" value="stable" />
-        '''
-    } else if (mode == 'nightly') {
-        springProfilesActive = ''' 
-            <property name="spring.profiles.active" value="nightly" />
-        '''
-        maxInstances = '4'
-        minInstances = '2'
-    } else if (mode == 'prod') {
-        springProfilesActive = ''' 
-            <property name="spring.profiles.active" value="prod" />
-        '''
-        gaeInstanceClass = 'F4_1G'
-        maxInstances = '24'
-        minInstances = '2'
-    } else if (mode == 'mirror') {
-        springProfilesActive = ''' 
-            <property name="spring.profiles.active" value="mirror" />
-        '''
-    }
-
-    def props = [
-            GAE_INSTANCE_CLASS    : gaeInstanceClass,
-            MAX_INSTANCES         : maxInstances,
-            MIN_INSTANCES         : minInstances,
-            SPRING_PROFILES_ACTIVE: springProfilesActive
-    ]
-    return props
-}
-
-explodeWar {
-    with copySpec {
-        from 'src/main/webapp/WEB-INF/appengine-web.xml'
-        into 'WEB-INF'
-        filter(ReplaceTokens, tokens: getGaeWebXmlConfig())
-    }
-}
