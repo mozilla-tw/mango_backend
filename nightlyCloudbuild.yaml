@@ -1,6 +1,8 @@
 steps:
-- name: 'gcr.io/cloud-builders/gradle:4.6-jdk-8'
-  args: ['clean', 'appengineDeploy' ,'-Pmode=${_DEPLOY_TARGET}']
+- name: 'gcr.io/cloud-builders/gradle:5.6.2-jdk-8'
+  args: ['clean', 'jib', '--image=gcr.io/$PROJECT_ID/moz-tank', "-Djib.container.jvmFlags='-Dspring.profiles.active=nightly'"]
+- name: 'gcr.io/cloud-builders/gcloud'
+  args: ['run', 'deploy', 'moz-tank', '--image', 'gcr.io/$PROJECT_ID/moz-tank', '--region', 'us-central1','--platform', 'managed', '--quiet']
 
 # This step runs MSRP API Test when deploy to stable env
 - name: 'gcr.io/cloud-builders/npm'
@@ -9,3 +11,6 @@ steps:
   args:
     - -c
     - '[[ "${_DEPLOY_TARGET}" == "nightly" ]] && npm install -g newman && newman run postmanApi/vertical.json -e postmanApi/NIGHTLY-Verticals.postman_environment.json'
+images:
+  - gcr.io/$PROJECT_ID/moz-tank
+

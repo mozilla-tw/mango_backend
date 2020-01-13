@@ -1,4 +1,7 @@
 steps:
-- name: 'gcr.io/cloud-builders/gradle:4.6-jdk-8'
-  args: ['clean', 'appengineDeploy' ,'-Pmode=${_DEPLOY_TARGET}']
-
+- name: 'gcr.io/cloud-builders/gradle:5.6.2-jdk-8'
+  args: ['clean', 'jib', '--image=gcr.io/$PROJECT_ID/moz-tank', "-Djib.container.jvmFlags='-Dspring.profiles.active=dev'"]
+- name: 'gcr.io/cloud-builders/gcloud'
+  args: ['run', 'deploy', 'moz-tank', '--image', 'gcr.io/$PROJECT_ID/moz-tank', '--region', 'us-central1','--platform', 'managed', '--quiet']
+images:
+  - gcr.io/$PROJECT_ID/moz-tank
