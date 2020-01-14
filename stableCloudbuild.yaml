@@ -1,4 +1,6 @@
 steps:
+- name: 'ubuntu'
+  args: ['echo', 'hello world, $PROJECT_ID']
 - name: 'gcr.io/cloud-builders/gradle:5.6.2-jdk-8'
   args: ['clean', 'jib', '--image=gcr.io/$PROJECT_ID/moz-tank']
 - name: 'gcr.io/cloud-builders/gcloud'
