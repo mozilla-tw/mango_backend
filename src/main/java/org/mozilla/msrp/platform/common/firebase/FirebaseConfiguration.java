@@ -45,7 +45,7 @@ public class FirebaseConfiguration {
         }
         FirebaseOptions options = new FirebaseOptions.Builder()
                 .setCredentials(credentials)
-                .setProjectId(platformProperties.getFirebaseProjectId())
+                .setProjectId(platformProperties.getConfigDbFirebaseProjectId())
                 .build();
         FirebaseApp firebaseApp = FirebaseApp.initializeApp(options);
         log.info(" --- Bean Creation firebaseApp done---" + firebaseApp.hashCode());

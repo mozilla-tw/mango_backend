@@ -1,7 +1,5 @@
 steps:
 - name: 'gcr.io/cloud-builders/gradle:5.6.2-jdk-8'
-  args: ['clean', 'jib', '--image=gcr.io/$PROJECT_ID/moz-tank', "-Djib.container.jvmFlags='-Dspring.profiles.active=dev'"]
+  args: ['clean', 'jib', '--image=gcr.io/$PROJECT_ID/moz-tank']
 - name: 'gcr.io/cloud-builders/gcloud'
-  args: ['run', 'deploy', 'moz-tank', '--image', 'gcr.io/$PROJECT_ID/moz-tank', '--region', 'us-central1','--platform', 'managed', '--quiet']
-images:
-  - gcr.io/$PROJECT_ID/moz-tank
+  args: ['run', 'deploy', 'moz-tank', '--image', 'gcr.io/$PROJECT_ID/moz-tank', '--region', 'us-central1','--platform', 'managed', '--set-env-vars','CONFIG_DB_GCP_PROJECT_ID=$PROJECT_ID', '--quiet']

@@ -1,8 +1,8 @@
 steps:
 - name: 'gcr.io/cloud-builders/gradle:5.6.2-jdk-8'
-  args: ['clean', 'jib', '--image=gcr.io/$PROJECT_ID/moz-tank', "-Djib.container.jvmFlags='-Dspring.profiles.active=stable'"]
+  args: ['clean', 'jib', '--image=gcr.io/$PROJECT_ID/moz-tank']
 - name: 'gcr.io/cloud-builders/gcloud'
-  args: ['run', 'deploy', 'moz-tank', '--image', 'gcr.io/$PROJECT_ID/moz-tank', '--region', 'us-central1','--platform', 'managed', '--quiet']
+  args: ['run', 'deploy', 'moz-tank', '--image', 'gcr.io/$PROJECT_ID/moz-tank', '--region', 'us-central1','--platform', 'managed', '--set-env-vars','CONFIG_DB_GCP_PROJECT_ID=$PROJECT_ID', '--quiet']
 # This step runs MSRP API Test when deploy to stable env
 - name: 'gcr.io/cloud-builders/npm'
   id: Test
@@ -11,9 +11,7 @@ steps:
   args:
     - -c
     - '[[ "${_DEPLOY_TARGET}" == "stable" ]] && npm install -g newman && newman run postmanApi/"MSRP Happy Path Automation.postman_collection.json" -e "postmanApi/- STABLE (rocket-dev01).postman_environment.json" --env-var GOOGLE_API_KEY=$$GOOGLE_API_KEY'
-images:
-  - gcr.io/$PROJECT_ID/moz-tank
-# This step provide stable env secrets from cryptographic keys 
+# This step provide stable env secrets from cryptographic keys
 secrets:
 - kmsKeyName: projects/rocket-dev01/locations/global/keyRings/msrpApi/cryptoKeys/cloudbuild-env
   secretEnv:

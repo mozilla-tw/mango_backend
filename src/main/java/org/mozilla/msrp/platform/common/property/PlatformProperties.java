@@ -1,24 +1,22 @@
 package org.mozilla.msrp.platform.common.property;
 
-import lombok.Data;
-import lombok.extern.log4j.Log4j2;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-
-import javax.annotation.PostConstruct;
 import javax.inject.Named;
 
-/**
- * Type-safe configuration properties which are setup in application.yml file.
- */
-@Data // getter and setter are mandatory for ConfigurationProperties
+import org.jetbrains.annotations.Nullable;
+import org.springframework.core.env.Environment;
+
+import lombok.extern.log4j.Log4j2;
+
 @Log4j2
 @Named
-@ConfigurationProperties("platform")
 public class PlatformProperties {
-    private String firebaseProjectId;
 
-    @PostConstruct
-    public void printProperties() {
-        log.info("PlatformProperties is initialized: {}", toString());
+    private final Environment env;
+
+    public PlatformProperties(Environment env) {this.env = env;}
+
+    @Nullable
+    public String getConfigDbFirebaseProjectId() {
+        return env.getProperty("CONFIG_DB_GCP_PROJECT_ID");
     }
 }
