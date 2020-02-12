@@ -60,9 +60,6 @@ class NewsFeedController @Inject constructor(
     @GetMapping("/api/v1/news/google/topics")
     fun googleNewsTopic() = listOf(TOPIC_GOOGLE_TOP_NEWS, "WORLD", "NATION", "BUSINESS", "TECHNOLOGY", "ENTERTAINMENT", "SPORTS", "SCIENCE", "HEALTH")
 
-    @GetMapping("/api/v1/news/google/topics/tw")
-    fun googleNewsTopicTw() = listOf("WORLD", "NATION", "BUSINESS", "TECHNOLOGY", "ENTERTAINMENT", "SPORTS", "SCIENCE", "HEALTH")
-
 
     private val cacheGoogleNews = CacheBuilder.newBuilder()
             .maximumSize(newsProperties.cacheSize)
