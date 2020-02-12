@@ -58,7 +58,7 @@ class NewsFeedController @Inject constructor(
     }
 
     @GetMapping("/api/v1/news/google/topics")
-    fun googleNewsTopic() = listOf(TOPIC_GOOGLE_TOP_NEWS, "WORLD", "NATION", "BUSINESS", "TECHNOLOGY", "ENTERTAINMENT", "SPORTS", "SCIENCE", "HEALTH")
+    fun googleNewsTopic() = listOf("WORLD", "NATION", "BUSINESS", "TECHNOLOGY", "ENTERTAINMENT", "SPORTS", "SCIENCE", "HEALTH")
 
 
     private val cacheGoogleNews = CacheBuilder.newBuilder()
