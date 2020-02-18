@@ -215,6 +215,10 @@ class UserRepository @Inject constructor(firestore: Firestore) {
         return false
     }
 
+    fun isPushAdmin(email: String): Boolean {
+        return isPublishAdmin(email)
+    }
+
     fun isMsrpAdmin(email: String): Boolean {
         return isPublishAdmin(email)
     }

@@ -17,6 +17,7 @@ import java.util.HashMap;
 
 import static org.mozilla.msrp.platform.common.auth.JwtHelper.ROLE_MSRP_ADMIN;
 import static org.mozilla.msrp.platform.common.auth.JwtHelper.ROLE_PUBLISH_ADMIN;
+import static org.mozilla.msrp.platform.common.auth.JwtHelper.ROLE_PUSH_ADMIN;
 
 @Log4j2
 @RestController
@@ -83,6 +84,14 @@ public class UserController {
                 httpResponse.sendRedirect("/api/v1/admin/msrp?token=" + token);
                 return;
             }
+
+            if (ROLE_PUSH_ADMIN.equals(state) && userRepository.isPushAdmin(fxEmail)) {
+                String token = jwtHelper.createToken(ROLE_MSRP_ADMIN, fxEmail);
+                log.info("[login][" + state + "] ROLE_PUBLISH_ADMIN");
+                httpResponse.sendRedirect("/api/v1/admin/push?token=" + token);
+                return;
+            }
+
             String oldFbUid = state;
             LoginResponse loginResponse = userRepository.signInAndUpdateUserDocument(oldFbUid, fxUid, fxEmail);
 

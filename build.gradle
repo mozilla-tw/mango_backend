@@ -64,6 +64,7 @@ dependencies {
     developmentOnly "org.springframework.boot:spring-boot-devtools"
     implementation 'com.google.firebase:firebase-admin:6.9.0'
     implementation 'com.google.cloud:google-cloud-storage:1.90.0'
+    implementation 'com.google.cloud:google-cloud-pubsub:1.103.0'
 
     implementation 'javax.inject:javax.inject:1'
     implementation "com.squareup.retrofit2:retrofit:2.4.0"
