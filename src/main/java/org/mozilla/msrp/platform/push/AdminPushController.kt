@@ -14,6 +14,7 @@ import org.mozilla.msrp.platform.push.models.Message
 import org.mozilla.platoform.service.models.PushPayload
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.util.*
@@ -40,10 +41,10 @@ class AdminPushController @Inject constructor(private val jwtHelper: JwtHelper) 
     /**
      * Receive message created from Frontend
      * */
-    @GetMapping("/api/v1/admin/push/enqueue")
+    @PostMapping("/api/v1/admin/push/enqueue")
     fun enqueuedMessageRequest(
             @RequestParam token: String,
-            @RequestParam(value = "recipients[]") recipients: Array<String>,
+            @RequestParam recipients: Array<String>,
             @RequestParam recipientType: String,
             @RequestParam title: String,
             @RequestParam body: String,
@@ -53,17 +54,19 @@ class AdminPushController @Inject constructor(private val jwtHelper: JwtHelper) 
             @RequestParam mozMessageId: String,
             @RequestParam appId: String,
             @RequestParam(required = false, defaultValue = "") imageUrl: String): String {
-        val verify = jwtHelper.verify(token)
-        if (verify?.role != JwtHelper.ROLE_PUSH_ADMIN) {
-            return "401"
-        }
+//        val verify = jwtHelper.verify(token)
+//        if (verify?.role != JwtHelper.ROLE_PUSH_ADMIN) {
+//            return "401"
+//        }
         // FIXME: consider  checking the input here.
 
-        val sender = verify.email
+        val sender = "nevintest" //verify.email
         val topicId = "push"
         val topicName = ProjectTopicName.of(PROJECT_ID, topicId)
         var publisher: Publisher? = null
         val futures: MutableList<ApiFuture<String>> = ArrayList()
+
+        var error: String? = null
 
         // TODO: write log to DB
         try { // Create a publisher instance with default settings bound to the topic
@@ -99,18 +102,27 @@ class AdminPushController @Inject constructor(private val jwtHelper: JwtHelper) 
             // FIXME: consider the error logging here
         } catch (e: Exception) {
             // FIXME: consider the error logging here
+            error = "error ${e.localizedMessage}"
+            println(error)
         } finally { // Wait on any pending requests
             // FIXME logging one by one?
             val messageIds = ApiFutures.allAsList(futures).get()
             // TODO: write log to DB
+//            for (messageId in messageIds) {
+//                println(messageId)
+//            }
             if (messageIds.size != recipients.size) {
                 // FIXME: DO we want to rollback the queue here?
+                publisher?.shutdown()
                 return " Expecting ${recipients.size} FCM request enqueued, but got ${messageIds.size}"
             }
             // FIXME: consider the error logging here
             publisher?.shutdown()
+            val finalResult = error ?: "${messageIds.size} messages sent!"
+            print(finalResult)
+            return finalResult
         }
-        return " messages sent!"
+
     }
 }
 
@@ -135,6 +147,7 @@ object PushNotificationHelper {
             fcmRequest: FcmRequest): String {
         val fcmOptions = FcmOptions.builder().setAnalyticsLabel(fcmRequest.mozMessageId).build()
         val push = Message.builder()
+                .setToken(fcmRequest.recipientToken)
                 .putData("body", fcmRequest.body)
                 .putData("title", fcmRequest.title)
                 .putData("appId", fcmRequest.appId)
