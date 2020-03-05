@@ -1,23 +1,27 @@
 package org.mozilla.msrp.platform.user;
 
-import lombok.extern.log4j.Log4j2;
+import static org.mozilla.msrp.platform.common.auth.JwtHelper.ROLE_MSRP_ADMIN;
+import static org.mozilla.msrp.platform.common.auth.JwtHelper.ROLE_PUBLISH_ADMIN;
+import static org.mozilla.msrp.platform.common.auth.JwtHelper.ROLE_PUSH_ADMIN;
+
+import java.io.IOException;
+import java.util.HashMap;
+
+import javax.inject.Inject;
+import javax.servlet.http.HttpServletResponse;
+
 import org.json.JSONException;
 import org.mozilla.msrp.platform.common.auth.JwtHelper;
 import org.mozilla.msrp.platform.metrics.Metrics;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.inject.Inject;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.HashMap;
-
-import static org.mozilla.msrp.platform.common.auth.JwtHelper.ROLE_MSRP_ADMIN;
-import static org.mozilla.msrp.platform.common.auth.JwtHelper.ROLE_PUBLISH_ADMIN;
-import static org.mozilla.msrp.platform.common.auth.JwtHelper.ROLE_PUSH_ADMIN;
+import lombok.extern.log4j.Log4j2;
 
 @Log4j2
 @RestController
@@ -36,6 +40,17 @@ public class UserController {
     // when the client sees this API, close the WebView
     @GetMapping("/api/v1/done")
     void done() {
+    }
+
+    @PostMapping("/api/v1/user/token")
+    void updateToken(
+            @RequestParam(value = "telemetry_client_id") String telemetryClientId,
+            @RequestParam(value = "fcm_token") String fcmToken,
+            @RequestAttribute("uid") String uid) {
+
+        // write the data to User Service DB
+        userRepository.updateFcmToken(uid, telemetryClientId, fcmToken);
+        log.info("[updateToken][/api/v1/user/token][" + uid + "] ");
     }
 
     @GetMapping("/api/v1/login")

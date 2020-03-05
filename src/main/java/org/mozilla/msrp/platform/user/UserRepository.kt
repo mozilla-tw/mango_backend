@@ -20,6 +20,7 @@ import javax.inject.Inject
 class UserRepository @Inject constructor(firestore: Firestore) {
 
     private var users: CollectionReference
+    private var userToken: CollectionReference
     private var publishAdmin: CollectionReference
     private var userActivity: CollectionReference
     private val logger = logger()
@@ -31,7 +32,7 @@ class UserRepository @Inject constructor(firestore: Firestore) {
     companion object {
         private const val COLLECTION_USER = "users"
         private const val COLLECTION_USER_ACTIVITY = "user_activity"
-
+        private const val COLLECTION_USER_TOKEN = "user_token"
         private const val COLLECTION_PUBLISH_ADMIN = "publish_admin"
 
         private const val USER_SUSPEND_THRESHOLD = 3
@@ -42,7 +43,7 @@ class UserRepository @Inject constructor(firestore: Firestore) {
     init {
         users = firestore.collection(COLLECTION_USER)
         userActivity = firestore.collection(COLLECTION_USER_ACTIVITY)
-
+        userToken = firestore.collection(COLLECTION_USER_TOKEN)
         publishAdmin = firestore.collection(COLLECTION_PUBLISH_ADMIN)
 
     }
@@ -254,6 +255,15 @@ class UserRepository @Inject constructor(firestore: Firestore) {
                 ?.get(UserDoc.KEY_STATUS) as? String?
 
         return status == UserDoc.STATUS_SUSPEND
+    }
+
+    fun updateFcmToken(uid: String, telemetryClientId: String, fcmToken: String) {
+        userToken.document(uid).set(mapOf(
+                "uid" to uid,
+                "telemetry_client_id" to telemetryClientId,
+                "fcm_token" to fcmToken,
+                "updated_timestamp" to System.currentTimeMillis()
+        ), SetOptions.merge())
     }
 }
 
