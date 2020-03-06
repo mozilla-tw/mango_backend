@@ -4,7 +4,7 @@ import com.google.api.core.ApiFuture
 import com.google.api.core.ApiFutures
 import com.google.cloud.ServiceOptions
 import com.google.cloud.pubsub.v1.Publisher
-import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.google.protobuf.ByteString
 import com.google.pubsub.v1.ProjectTopicName
 import com.google.pubsub.v1.PubsubMessage
@@ -53,7 +53,10 @@ class AdminPushController @Inject constructor(private val jwtHelper: JwtHelper) 
             @RequestParam displayTimestamp: Long,
             @RequestParam mozMessageId: String,
             @RequestParam appId: String,
-            @RequestParam(required = false, defaultValue = "") imageUrl: String): String {
+            @RequestParam(required = false, defaultValue = "") imageUrl: String,
+            @RequestParam(required = false, defaultValue = "") pushCommand: String,
+            @RequestParam(required = false, defaultValue = "") pushOpenUrl: String,
+            @RequestParam(required = false, defaultValue = "") pushDeepLink: String): String {
 //        val verify = jwtHelper.verify(token)
 //        if (verify?.role != JwtHelper.ROLE_PUSH_ADMIN) {
 //            return "401"
@@ -84,7 +87,10 @@ class AdminPushController @Inject constructor(private val jwtHelper: JwtHelper) 
                         mozMessageId = mozMessageId,
                         appId = appId,
                         imageUrl = imageUrl,
-                        sender = sender
+                        sender = sender,
+                        pushCommand = pushCommand,
+                        pushOpenUrl = pushOpenUrl,
+                        pushDeepLink = pushDeepLink
 
                 )
                 val message = PushNotificationHelper.conductPushPayload(fcmRequest)
@@ -138,11 +144,14 @@ data class FcmRequest(
         val imageUrl: String,
         val sender: String,
         val pushId: String = UUID.randomUUID().toString(),
-        val createdTimestamp: Long = System.currentTimeMillis()
+        val createdTimestamp: Long = System.currentTimeMillis(),
+        val pushCommand: String,
+        val pushOpenUrl: String,
+        val pushDeepLink: String
 )
 
 object PushNotificationHelper {
-    private val mapper = Gson()
+    private val mapper = GsonBuilder().disableHtmlEscaping().create()
     fun conductPushPayload(
             fcmRequest: FcmRequest): String {
         val fcmOptions = FcmOptions.builder().setAnalyticsLabel(fcmRequest.mozMessageId).build()
@@ -150,12 +159,17 @@ object PushNotificationHelper {
                 .setToken(fcmRequest.recipientToken)
                 .putData("body", fcmRequest.body)
                 .putData("title", fcmRequest.title)
-                .putData("appId", fcmRequest.appId)
+                .putData("app_id", fcmRequest.appId)
                 .putData("destination", fcmRequest.destination)
-                .putData("displayType", fcmRequest.displayType)
-                .putData("imageUrl", fcmRequest.imageUrl)
-                .putData("pushId", fcmRequest.pushId)
-                .putData("recipientToken", fcmRequest.recipientToken)
+                .putData("display_type", fcmRequest.displayType)
+                .putData("display_timestamp", fcmRequest.displayTimestamp.toString())
+                .putData("image_url", fcmRequest.imageUrl)
+                .putData("push_open_url", fcmRequest.pushOpenUrl)
+                .putData("push_command", fcmRequest.pushCommand)
+                .putData("push_deep_link", fcmRequest.pushDeepLink)
+                .putData("push_id", fcmRequest.pushId)
+                .putData("message_id", fcmRequest.mozMessageId)
+                .putData("recipient_token", fcmRequest.recipientToken)
                 .putData("sender", fcmRequest.sender)
                 .setFcmOptions(fcmOptions).build()
         return mapper.toJson(PushPayload(push))
