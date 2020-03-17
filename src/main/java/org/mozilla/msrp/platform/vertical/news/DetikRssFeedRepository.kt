@@ -10,9 +10,9 @@ class DetikRssFeedRepository @Inject constructor(private val detikRssFeedClient:
 
     val log = logger()
 
-    fun news(topic: String): List<FeedItem>? {
+    fun news(detikUrl: String): List<FeedItem>? {
 
-        val rss = detikRssFeedClient.rss(topic).execute().body()
+        val rss = detikRssFeedClient.fromUrl(detikUrl).execute().body()
         log.info("[NEWS]====loading indonesia news Liputan6 [${rss?.feedItems?.size}]")
         return rss?.feedItems
     }
