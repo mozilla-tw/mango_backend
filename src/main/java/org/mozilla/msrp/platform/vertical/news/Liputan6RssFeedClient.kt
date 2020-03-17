@@ -9,14 +9,14 @@ import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.simplexml.SimpleXmlConverterFactory
 import retrofit2.http.GET
-import retrofit2.http.Query
+import retrofit2.http.Url
 import javax.inject.Inject
 import javax.inject.Named
 
-interface Liputan6RssFeedClient {
 
-    @GET("mozilla?source=Digital%20Marketing&medium=Partnership")
-    fun rss(@Query("categories[]") topic: String): Call<Liputan6Rss>
+interface Liputan6RssFeedClient {
+    @GET
+    fun fromUrl(@Url url: String?): Call<Liputan6Rss>
 }
 
 @Named
