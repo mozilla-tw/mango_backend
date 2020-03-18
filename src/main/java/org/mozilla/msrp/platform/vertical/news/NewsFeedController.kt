@@ -2,7 +2,6 @@ package org.mozilla.msrp.platform.vertical.news
 
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
-import org.mozilla.msrp.platform.common.property.NewsProperties
 import org.mozilla.msrp.platform.util.logger
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -17,8 +16,7 @@ import javax.inject.Inject
 @RestController
 class NewsFeedController @Inject constructor(
         private val googleNewsFeedService: GoogleNewsFeedService,
-        private val indonesiaNewsFeedService: IndonesiaNewsFeedService,
-        newsProperties: NewsProperties) {
+        private val indonesiaNewsFeedService: IndonesiaNewsFeedService) {
 
     private val log = logger()
 
@@ -65,8 +63,8 @@ class NewsFeedController @Inject constructor(
 
 
     private val cacheGoogleNews = CacheBuilder.newBuilder()
-            .maximumSize(newsProperties.cacheSize)
-            .refreshAfterWrite(newsProperties.cacheTtl, TimeUnit.MINUTES)
+            .maximumSize(NEWS_CACHE_SIZE)
+            .refreshAfterWrite(NEWS_CACHE_TTL, TimeUnit.MINUTES)
             .recordStats()
             .build(
                     object : CacheLoader<String, List<FeedItem>>() {
@@ -86,8 +84,8 @@ class NewsFeedController @Inject constructor(
 
 
     private val cacheIndonesiaNews = CacheBuilder.newBuilder()
-            .maximumSize(newsProperties.cacheSize)
-            .refreshAfterWrite(newsProperties.cacheTtl, TimeUnit.MINUTES)
+            .maximumSize(NEWS_CACHE_SIZE)
+            .refreshAfterWrite(NEWS_CACHE_TTL, TimeUnit.MINUTES)
             .recordStats()
             .build(
                     object : CacheLoader<String, List<FeedItem>>() {
@@ -136,6 +134,8 @@ class NewsFeedController @Inject constructor(
 
         private const val delimiters = "=="
         private const val TOPIC_GOOGLE_TOP_NEWS = "Top-news"
+        private const val NEWS_CACHE_TTL = 15L
+        private const val NEWS_CACHE_SIZE = 100L
 
         private val liputan6Url = mapOf(
                 "NEWS" to "https://feed.liputan6.com/mozilla?categories[]=17&source=Digital%20Marketing&medium=Partnership",
