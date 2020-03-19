@@ -2,7 +2,6 @@ package org.mozilla.msrp.platform.vertical.news
 
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
-import org.mozilla.msrp.platform.common.property.NewsProperties
 import org.mozilla.msrp.platform.util.logger
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -17,8 +16,7 @@ import javax.inject.Inject
 @RestController
 class NewsFeedController @Inject constructor(
         private val googleNewsFeedService: GoogleNewsFeedService,
-        private val indonesiaNewsFeedService: IndonesiaNewsFeedService,
-        private val newsProperties: NewsProperties) {
+        private val indonesiaNewsFeedService: IndonesiaNewsFeedService) {
 
     private val log = logger()
 
@@ -65,8 +63,8 @@ class NewsFeedController @Inject constructor(
 
 
     private val cacheGoogleNews = CacheBuilder.newBuilder()
-            .maximumSize(newsProperties.cacheSize)
-            .refreshAfterWrite(newsProperties.cacheTtl, TimeUnit.MINUTES)
+            .maximumSize(NEWS_CACHE_SIZE)
+            .refreshAfterWrite(NEWS_CACHE_TTL, TimeUnit.MINUTES)
             .recordStats()
             .build(
                     object : CacheLoader<String, List<FeedItem>>() {
@@ -86,25 +84,38 @@ class NewsFeedController @Inject constructor(
 
 
     private val cacheIndonesiaNews = CacheBuilder.newBuilder()
-            .maximumSize(newsProperties.cacheSize)
-            .refreshAfterWrite(newsProperties.cacheTtl, TimeUnit.MINUTES)
+            .maximumSize(NEWS_CACHE_SIZE)
+            .refreshAfterWrite(NEWS_CACHE_TTL, TimeUnit.MINUTES)
             .recordStats()
             .build(
                     object : CacheLoader<String, List<FeedItem>>() {
                         override fun load(topic: String): List<FeedItem> {
-                            return indonesiaNewsFeedService.getNews(topic, detikTopic[topic]) ?: listOf()
+                            val liputan6Url = toLiputan6Url(topic)
+                            val detik6Url = toDetik6Url(topic)
+                            if (liputan6Url == null && detik6Url == null) {
+                                return listOf()
+                            }
+                            return indonesiaNewsFeedService.getNews(liputan6Url, detik6Url) ?: listOf()
                         }
                     })
+
+    private fun toDetik6Url(topic: String): String? {
+        return detikUrl[topic]
+
+    }
+
+    private fun toLiputan6Url(topic: String): String? {
+        return liputan6Url[topic]
+    }
 
     @GetMapping("/api/v1/news/indonesia/topic/{topic}")
     internal fun indonesiaNewsByTopic(
             @PathVariable("topic") topic: String): ResponseEntity<in Any> {
-        val liputan6Topic = liputan6Topic[topic]
-        if (liputan6Topic == null) {
+        if (liputan6Url[topic] == null) {
             log.info("[NEWS]====No news for topic $String")
             return ResponseEntity("No such topic", HttpStatus.BAD_REQUEST)
         }
-        val newsItems = cacheIndonesiaNews.get(liputan6Topic)
+        val newsItems = cacheIndonesiaNews.get(topic)
         log.info("[NEWS]====loading indonesia news [${newsItems.size}]")
         if (newsItems.isEmpty()) {
             log.info("[NEWS]====No news for topic $String")
@@ -115,32 +126,36 @@ class NewsFeedController @Inject constructor(
     }
 
 
-    private val liputan6Topic = mapOf(
-            "NEWS" to "17",
-            "TEKNO" to "8",
-            "GLOBAL" to "274",
-            "HEALTH INFO" to "9",
-            "BOLA" to "11",
-            "E-SPORTS" to "1071",
-            "RAGAM" to "486",
-            "INDONESIA" to "423",
-            "SHOWBIZ" to "13",
-            "FASHION" to "842",
-            "PARENTING" to "1065",
-            "LIFESTYLE" to "908")
-
-    private val detikTopic = mapOf(
-            "17" to "hot",
-            "8" to "inet",
-            "9" to "health",
-            "486" to "sport")
 
     @GetMapping("/api/v1/news/indonesia/topics")
-    fun idNewsTopic() = liputan6Topic.keys
+    fun idNewsTopic() = liputan6Url.keys
 
     companion object {
 
         private const val delimiters = "=="
         private const val TOPIC_GOOGLE_TOP_NEWS = "Top-news"
+        private const val NEWS_CACHE_TTL = 15L
+        private const val NEWS_CACHE_SIZE = 100L
+
+        private val liputan6Url = mapOf(
+                "NEWS" to "https://feed.liputan6.com/mozilla?categories[]=17&source=Digital%20Marketing&medium=Partnership",
+                "TEKNO" to "https://feed.liputan6.com/mozilla?categories[]=8&source=Digital%20Marketing&medium=Partnership",
+                "GLOBAL" to "https://feed.liputan6.com/mozilla?categories[]=274&source=Digital%20Marketing&medium=Partnership",
+                "HEALTH INFO" to "https://feed.liputan6.com/mozilla?categories[]=9&source=Digital%20Marketing&medium=Partnership",
+                "BOLA" to "https://feed.liputan6.com/mozilla?categories[]=11&source=Digital%20Marketing&medium=Partnership",
+                "E-SPORTS" to "https://feed.bola.com/mozilla?categories[]=1071&source=Digital%20Marketing&medium=Partnership",
+                "RAGAM" to "https://feed.bola.com/mozilla?categories[]=486&source=Digital%20Marketing&medium=Partnership",
+                "INDONESIA" to "https://feed.bola.com/mozilla?categories[]=423&source=Digital%20Marketing&medium=Partnership",
+                "SHOWBIZ" to "https://feed.liputan6.com/mozilla?categories[]=13&source=Digital%20Marketing&medium=Partnership",
+                "FASHION" to "https://feed.fimela.com/mozilla?categories[]=842&source=Digital%20Marketing&medium=Partnership",
+                "PARENTING" to "https://feed.fimela.com/mozilla?categories[]=1065&source=Digital%20Marketing&medium=Partnership",
+                "LIFESTYLE" to "https://feed.fimela.com/mozilla?categories[]=908&source=Digital%20Marketing&medium=Partnership",
+                "ZODIAK" to "https://feed.fimela.com/mozilla?categories[]=601&source=Digital%20Marketing&medium=Partnership")
+
+        private val detikUrl = mapOf(
+                "NEWS" to "http://rss.detik.com/index.php/hot",
+                "TEKNO" to "http://rss.detik.com/index.php/inet",
+                "HEALTH INFO" to "http://rss.detik.com/index.php/health",
+                "RAGAM" to "http://rss.detik.com/index.php/sport")
     }
 }

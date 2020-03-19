@@ -26,10 +26,13 @@ class IndonesiaNewsFeedService @Inject constructor(
         private val liputan6RssFeedRepository: Liputan6RssFeedRepository,
         private val detikRssFeedRepository: DetikRssFeedRepository) {
 
-    fun getNews(liputanTopicId: String, detikTopicId: String?): List<FeedItem>? {
-        val liputan6List = liputan6RssFeedRepository.news(liputanTopicId)?: emptyList()
+    fun getNews(liputan6Url: String?, detikUrl: String?): List<FeedItem>? {
 
-        val detikList = detikTopicId?.let {
+        val liputan6List = liputan6Url?.let {
+            liputan6RssFeedRepository.news(it)
+        } ?: emptyList()
+
+        val detikList = detikUrl?.let {
             detikRssFeedRepository.news(it)
         }?: emptyList()
 

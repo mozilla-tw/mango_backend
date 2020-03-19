@@ -9,9 +9,9 @@ class Liputan6RssFeedRepository @Inject constructor(private val liputan6RssFeedC
 
     val log = logger()
 
-    fun news(topic: String): List<FeedItem>? {
+    fun news(url: String): List<FeedItem>? {
 
-        val rss = liputan6RssFeedClient.rss(topic).execute().body()
+        val rss = liputan6RssFeedClient.fromUrl(url).execute().body()
         log.info("[NEWS]====loading indonesia news Liputan6 [${rss?.feedItems?.size}]")
         return rss?.feedItems
     }

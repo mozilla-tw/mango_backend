@@ -9,15 +9,14 @@ import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.simplexml.SimpleXmlConverterFactory
 import retrofit2.http.GET
-import retrofit2.http.Path
+import retrofit2.http.Url
 import javax.inject.Inject
 import javax.inject.Named
 
 interface DetikRssFeedClient {
 
-    @GET("index.php/{topic}")
-    fun rss(@Path("topic") topic: String): Call<DetikRss>
-
+    @GET
+    fun fromUrl(@Url url: String): Call<DetikRss>
 }
 
 @Named

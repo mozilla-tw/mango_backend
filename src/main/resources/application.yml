@@ -18,9 +18,6 @@ logging.level:
   org.mozilla.msrp: DEBUG
 platform:
   firebaseProjectId: msrp-dev01
-news:
-  cache-size: 100
-  cache-ttl: 15
 ---
 # Configuration to be enabled when the "stable" profile is active
 spring:
@@ -30,9 +27,6 @@ logging.level:
   org.mozilla.msrp: DEBUG
 platform:
   firebaseProjectId: rocket-dev01
-news:
-  cache-size: 100
-  cache-ttl: 15
 ---
 # Configuration to be enabled when the "nightly" profile is active
 spring:
@@ -42,9 +36,6 @@ logging.level:
   org.mozilla.msrp: DEBUG
 platform:
   firebaseProjectId: rocketnightly
-news:
-  cache-size: 100
-  cache-ttl: 15
 ---
 
 # Configuration to be enabled when the "prod" profile is active
@@ -56,6 +47,3 @@ logging.level:
   org.mozilla.msrp: INFO
 platform:
   firebaseProjectId: zerda-dcf76
-news:
-  cache-size: 100
-  cache-ttl: 15
