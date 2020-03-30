@@ -1,0 +1,24 @@
+{
+	"id": "04d86f27-ad04-44a9-ba54-06cdd084ac02",
+	"name": "VERTICAL_NIGHTLY",
+	"values": [
+		{
+			"key": "SERVER",
+			"value": "https://rocketnightly.appspot.com",
+			"enabled": true
+		},
+		{
+			"key": "INDO_NEWS_CAT",
+			"value": "E-SPORTS",
+			"enabled": true
+		},
+		{
+			"key": "GOOGLE_NEWS_CAT",
+			"value": "Top-news",
+			"enabled": true
+		}
+	],
+	"_postman_variable_scope": "environment",
+	"_postman_exported_at": "2020-03-30T02:52:57.808Z",
+	"_postman_exported_using": "Postman/7.21.1"
+}
