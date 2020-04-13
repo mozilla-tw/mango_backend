@@ -21,6 +21,7 @@ class JwtHelper @Inject constructor(firefoxAccountServiceInfo: FirefoxAccountSer
     companion object{
         const val ROLE_PUBLISH_ADMIN = "publish_admin"
         const val ROLE_MSRP_ADMIN = "msrp_admin"
+        const val ROLE_PUSH_ADMIN = "push_admin"
 
         private const val ISSUER = "org.mozilla.msrp"
         private const val ROLE = "role"
