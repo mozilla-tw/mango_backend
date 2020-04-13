@@ -1,10 +1,15 @@
 package org.mozilla.msrp.platform.common.auth;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthException;
-import com.google.firebase.auth.FirebaseToken;
-import lombok.extern.log4j.Log4j2;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Date;
+import java.util.Locale;
+
+import javax.annotation.Nullable;
+import javax.inject.Named;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.mozilla.msrp.platform.common.ErrorMessage;
 import org.mozilla.msrp.platform.user.UserRepository;
 import org.springframework.core.NestedExceptionUtils;
@@ -13,15 +18,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import javax.annotation.Nullable;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Date;
-import java.util.Locale;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.auth.FirebaseToken;
+
+import lombok.extern.log4j.Log4j2;
 
 @Log4j2
 @Named
@@ -29,11 +31,15 @@ public class FirebaseAuthInterceptor implements HandlerInterceptor {
 
     private static final String HEADER_BEAR = "Bearer ";
 
-    @Inject
-    ObjectMapper mapper;
+    final ObjectMapper mapper;
 
-    @Inject
-    UserRepository userRepository;
+    final UserRepository userRepository;
+
+    public FirebaseAuthInterceptor(ObjectMapper mapper,
+                                   UserRepository userRepository) {
+        this.mapper = mapper;
+        this.userRepository = userRepository;
+    }
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
