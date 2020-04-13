@@ -15,13 +15,15 @@ import org.mozilla.msrp.platform.util.logger
 import org.springframework.stereotype.Repository
 import java.time.Clock
 import javax.inject.Inject
+import javax.inject.Named
 
-@Repository
-class UserRepository @Inject constructor(firestore: Firestore) {
+@Named
+open class UserRepository @Inject constructor(firestore: Firestore) {
 
-    private var users: CollectionReference
-    private var publishAdmin: CollectionReference
-    private var userActivity: CollectionReference
+    var users: CollectionReference
+    var userToken: CollectionReference
+    var publishAdmin: CollectionReference
+    var userActivity: CollectionReference
     private val logger = logger()
 
     @Inject
@@ -31,7 +33,7 @@ class UserRepository @Inject constructor(firestore: Firestore) {
     companion object {
         private const val COLLECTION_USER = "users"
         private const val COLLECTION_USER_ACTIVITY = "user_activity"
-
+        private const val COLLECTION_USER_TOKEN = "user_token"
         private const val COLLECTION_PUBLISH_ADMIN = "publish_admin"
 
         private const val USER_SUSPEND_THRESHOLD = 3
@@ -42,7 +44,7 @@ class UserRepository @Inject constructor(firestore: Firestore) {
     init {
         users = firestore.collection(COLLECTION_USER)
         userActivity = firestore.collection(COLLECTION_USER_ACTIVITY)
-
+        userToken = firestore.collection(COLLECTION_USER_TOKEN)
         publishAdmin = firestore.collection(COLLECTION_PUBLISH_ADMIN)
 
     }
@@ -215,6 +217,10 @@ class UserRepository @Inject constructor(firestore: Firestore) {
         return false
     }
 
+    fun isPushAdmin(email: String): Boolean {
+        return isPublishAdmin(email)
+    }
+
     fun isMsrpAdmin(email: String): Boolean {
         return isPublishAdmin(email)
     }
@@ -250,6 +256,23 @@ class UserRepository @Inject constructor(firestore: Firestore) {
                 ?.get(UserDoc.KEY_STATUS) as? String?
 
         return status == UserDoc.STATUS_SUSPEND
+    }
+
+    fun updateFcmToken(uid: String, telemetryClientId: String, fcmToken: String) {
+        userToken.document(uid).set(mapOf(
+                "uid" to uid,
+                "telemetry_client_id" to telemetryClientId,
+                "fcm_token" to fcmToken,
+                "updated_timestamp" to System.currentTimeMillis()
+        ), SetOptions.merge())
+    }
+
+    fun getFcmToken(telemetryClientId: String): String? {
+        val resultsUnchecked = userToken.whereEqualTo("telemetry_client_id", telemetryClientId).getResultsUnchecked()
+        if (resultsUnchecked.isNotEmpty()) {
+            return resultsUnchecked[0].getString("fcm_token")
+        }
+        return null
     }
 }
 
