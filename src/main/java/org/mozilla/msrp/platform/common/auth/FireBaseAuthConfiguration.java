@@ -22,6 +22,7 @@ public class FireBaseAuthConfiguration implements WebMvcConfigurer {
         registry.addInterceptor(this.firebaseAuthInterceptor)
                 .addPathPatterns("/api/v1/redeem/**",
                         "/api/v1/missions/**",
+                        "/api/v1/user/token",
                         "/api/v1/group/**",
                         "/api/v1/ping/**");
     }
