@@ -148,6 +148,7 @@ class AdminPushAgentController @Inject constructor(
     private fun addWork(data: String) {
         // write data to db
         val addWork = pushLogService.addWork(data)
+        logger().info("[push][agent][addWork]$addWork")
         if (addWork != null) {
             // push messages to Pub/Sub topic
             messageQueueService.pushAsync(addWork.toString())
