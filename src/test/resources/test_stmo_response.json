@@ -1,0 +1,13 @@
+{
+  "query_result": {
+    "id": 123456, "query_hash": "1234aaaaaaaaaaaaaaaaaaaaaaaa",
+    "query": "WITH SOME SQL TO SELECT THE DATA",
+    "data": {
+      "rows": [
+        { "client_id": "27054bfe-fb2b-4712-acda-b552cbcd4d3c" },
+        { "client_id": "27054bfe-fb2b-4712-acda-b552cbcd4d3c" }
+      ], "columns": [ { "type": "string", "friendly_name": "client_id", "name": "client_id" } ],
+      "metadata": { "data_scanned": 1234567 }
+    }, "data_source_id": 2, "runtime": 5.0813, "retrieved_at": "2010-10-10T10:10:10.000Z"
+  }
+}
