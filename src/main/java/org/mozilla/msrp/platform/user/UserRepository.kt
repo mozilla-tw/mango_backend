@@ -12,7 +12,6 @@ import org.mozilla.msrp.platform.metrics.Metrics
 import org.mozilla.msrp.platform.user.data.UserActivityDoc
 import org.mozilla.msrp.platform.user.data.UserDoc
 import org.mozilla.msrp.platform.util.logger
-import org.springframework.stereotype.Repository
 import java.time.Clock
 import javax.inject.Inject
 import javax.inject.Named
@@ -273,6 +272,12 @@ open class UserRepository @Inject constructor(firestore: Firestore) {
             return resultsUnchecked[0].getString("fcm_token")
         }
         return null
+    }
+
+    fun getTelemetryClientId(): MutableList<String?> {
+        return userToken.getResultsUnchecked().map {
+            it.getString("telemetry_client_id")
+        }.toCollection(mutableListOf())
     }
 }
 
