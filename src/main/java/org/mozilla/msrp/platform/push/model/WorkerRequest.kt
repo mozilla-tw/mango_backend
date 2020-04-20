@@ -1,8 +1,7 @@
 package org.mozilla.msrp.platform.push.model
 
 import com.google.gson.GsonBuilder
-import org.json.JSONObject
-import java.util.*
+import java.util.UUID
 
 data class WorkerRequest(
         val mozClientIds: MutableList<String>,
