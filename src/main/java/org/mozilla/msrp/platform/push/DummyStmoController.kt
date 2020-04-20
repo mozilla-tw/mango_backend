@@ -8,7 +8,7 @@ import org.springframework.core.env.Environment
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import java.util.*
+import java.util.UUID
 import java.util.stream.IntStream
 import javax.inject.Inject
 
@@ -28,14 +28,14 @@ class DummyStmoController @Inject constructor(
 
     @GetMapping("/test/uids")
     fun uids(
-            @RequestParam(required = false) token: String,
+            @RequestParam(required = false) token: String?,
             @RequestParam(required = false) times: Int?,
             @RequestParam(required = false) all: Boolean?,
             @RequestParam(required = false) user: Array<String>?
     ): String {
 
         // will verify the token if it's not stable and not dev
-        if (!environment.isStableDev && !environment.isDev) {
+        if (!environment.isStableDev && !environment.isDev && token != null) {
             val verify = jwtHelper.verify(token)
             if (verify?.role != JwtHelper.ROLE_PUSH_ADMIN) {
                 return "401"
