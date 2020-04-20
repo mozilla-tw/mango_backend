@@ -101,7 +101,7 @@ public class UserController {
             }
 
             if (ROLE_PUSH_ADMIN.equals(state) && userRepository.isPushAdmin(fxEmail)) {
-                String token = jwtHelper.createToken(ROLE_MSRP_ADMIN, fxEmail);
+                String token = jwtHelper.createToken(ROLE_PUSH_ADMIN, fxEmail);
                 log.info("[login][" + state + "] ROLE_PUBLISH_ADMIN");
                 httpResponse.sendRedirect("/api/v1/admin/push/ui?token=" + token);
                 return;
