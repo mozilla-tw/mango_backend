@@ -3,9 +3,9 @@ steps:
   args: ['clean', 'appengineDeploy' ,'-Pmode=${_DEPLOY_TARGET}']
 
 # This step runs MSRP API Test when deploy to stable env
-- name: 'gcr.io/cloud-builders/npm'
+- name: 'gcr.io/cloud-builders/npm:node-10.10.0'
   id: Test
   entrypoint: /bin/bash
   args:
     - -c
-    - '[[ "${_DEPLOY_TARGET}" == "nightly" ]] && npm install -g newman && newman run postmanApi/vertical.json -e postmanApi/NIGHTLY-Verticals.postman_environment.json'
+    - '[[ "${_DEPLOY_TARGET}" == "nightly" ]] && npm install -g newman && sh postmanApi/apiTestNightly.sh'

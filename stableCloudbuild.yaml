@@ -3,13 +3,13 @@ steps:
   args: ['clean', 'appengineDeploy' ,'-Pmode=${_DEPLOY_TARGET}']
 
 # This step runs MSRP API Test when deploy to stable env
-- name: 'gcr.io/cloud-builders/npm'
+- name: 'gcr.io/cloud-builders/npm:node-10.10.0'
   id: Test
   entrypoint: /bin/bash
   secretEnv: ['GOOGLE_API_KEY']
   args:
     - -c
-    - '[[ "${_DEPLOY_TARGET}" == "stable" ]] && npm install -g newman && newman run postmanApi/"MSRP Happy Path Automation.postman_collection.json" -e "postmanApi/- STABLE (rocket-dev01).postman_environment.json" --env-var GOOGLE_API_KEY=$$GOOGLE_API_KEY'
+    - '[[ "${_DEPLOY_TARGET}" == "stable" ]] && npm install -g newman && newman run postmanApi/collection/"MSRP Happy Path Automation.postman_collection.json" -e "postmanApi/environment/- STABLE (rocket-dev01).postman_environment.json" --env-var GOOGLE_API_KEY=$$GOOGLE_API_KEY'
 
 # This step provide stable env secrets from cryptographic keys 
 secrets:

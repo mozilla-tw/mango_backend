@@ -1,0 +1,131 @@
+<! DOCTYPE html>
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+<body>
+
+<h1>Push Service</h1>
+Create a push message from the server with below steps <br>
+<ul>
+  <li>Ask the BI team to provide a STMO link like <a
+    href="https://sql.telemetry.mozilla.org/queries/67318">this</a> and get the result URL with API Key
+  </li>
+  <li>Fill the info below</li>
+  <li>Wait for 1~15 minutes to see the result(depending on your user size. Could be 1~50K)</li>
+</ul>
+<hr>
+<form action="/api/v1/admin/push/enqueue" method="post" enctype='application/json'>
+
+  <input type="hidden" name="token" th:value="${token}">
+  <table border="1" cellspacing="1" cellpadding="5">
+
+    <tr>
+      <td>
+        stmoUrl
+      </td>
+      <td>
+        <input type="text" name="stmoUrl" size="100"
+               th:value="${'https://rocket-dev01.appspot.com/test/uids?all=true&token='+token}">
+      </td>
+      <td>Provides the client id from STMO</td>
+
+    </tr>
+    <tr>
+      <td>
+        title
+      </td>
+      <td>
+        <textarea name="title" rows="4" cols="100">[[${date}]]</textarea>
+      </td>
+      <td> Display title for the client</td>
+    </tr>
+    <tr>
+      <td>
+        body
+      </td>
+      <td>
+        <label>
+          <textarea name="body" rows="8" cols="100">[[${date}]]</textarea>
+        </label>
+        <!--preserved. not used-->
+        <input type="hidden" name="destination" value="na">
+        <!--display type for the client, not used.-->
+        <input type="hidden" name="displayType" value="notification">
+      </td>
+      <td>Display body for the client</td>
+    </tr>
+    <tr>
+      <td>
+        displayTimestamp
+      </td>
+      <td>
+        <input type="number" name="displayTimestamp" th:value="${one_min_later}"> Default is 60 second from now.
+
+      </td>
+      <td>Display time for the client. Use <a
+        href="https://www.epochconverter.com/">this
+        tool</a> to get the value. Note: Choose "<b>Local time</b>"
+      </td>
+    </tr>
+    <tr>
+      <td>
+        mozMessageId
+      </td>
+      <td>
+        <input type="text" name="mozMessageId">
+      </td>
+      <td>Used to identity the campaign for the BI team</td>
+    </tr>
+    <tr>
+      <td>mozMsgBatch
+      </td>
+      <td>
+        <input type="text" name="mozMsgBatch" th:value="${mozMsgBatch}">
+      </td>
+      <td>Free text. used to identity the user clicks in backend.</td>
+    </tr>
+    <tr>
+      <td>
+        imageUrl
+      </td>
+      <td>
+        <!--target app. not used-->
+        <input type="hidden" name="appId" value="org.mozilla.rocket">
+        <input type="text" name="imageUrl" size="100">
+      </td>
+      <td>Display image for the client</td>
+    </tr>
+    <tr>
+      <td>
+        pushCommand
+      </td>
+      <td>
+        <input type="text" name="pushCommand" size="100">
+      </td>
+      <td>Same as the one we used in Firebase console.</td>
+    </tr>
+    <tr>
+      <td>
+        pushOpenUrl
+      </td>
+      <td>
+        <input type="text" name="pushOpenUrl" size="100">
+      </td>
+      <td>Same as the one we used in Firebase console.</td>
+    </tr>
+    <tr>
+      <td>
+        pushDeepLink
+      </td>
+      <td>
+        <input type="text" name="pushDeepLink" size="100">
+      </td>
+      <td>Same as the one we used in Firebase console.</td>
+    </tr>
+    <tr>
+      <td colspan="3">
+        <input type="submit" value="Send Push Message" name="submit">
+      </td>
+    </tr>
+  </table>
+</form>
+
+</body>

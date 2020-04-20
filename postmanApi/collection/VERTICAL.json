@@ -1,0 +1,938 @@
+{
+	"info": {
+		"_postman_id": "435d22b1-396f-4b73-a5d0-5a8d00cdb4d9",
+		"name": "VERTICAL",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "NEWS",
+			"item": [
+				{
+					"name": "Indonesia news",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{SERVER}}/api/v1/news/indonesia/topic/{{INDO_NEWS_CAT}}",
+							"host": [
+								"{{SERVER}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"news",
+								"indonesia",
+								"topic",
+								"{{INDO_NEWS_CAT}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Google news",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{SERVER}}/api/v1/news/google/topic/{{GOOGLE_NEWS_CAT}}?hl=zh-TW&gl=TW&ceid=TW:zh-Hant",
+							"host": [
+								"{{SERVER}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"news",
+								"google",
+								"topic",
+								"{{GOOGLE_NEWS_CAT}}"
+							],
+							"query": [
+								{
+									"key": "hl",
+									"value": "zh-TW"
+								},
+								{
+									"key": "gl",
+									"value": "TW"
+								},
+								{
+									"key": "ceid",
+									"value": "TW:zh-Hant"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "1ba41311-04bc-4323-941d-fdaed499b3e4",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "7a6f3dd6-48f4-4937-be35-c6899beadfd8",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "TRAVEL",
+			"item": [
+				{
+					"name": "zh / travelExplore / india",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{SERVER}}/api/v1/content?locale=zh&category=travelExplore&tag=india",
+							"host": [
+								"{{SERVER}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"content"
+							],
+							"query": [
+								{
+									"key": "locale",
+									"value": "zh"
+								},
+								{
+									"key": "category",
+									"value": "travelExplore"
+								},
+								{
+									"key": "tag",
+									"value": "india"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "zh / travelExplore / chinese_markets",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{SERVER}}/api/v1/content?locale=zh&category=travelExplore&tag=chinese_markets",
+							"host": [
+								"{{SERVER}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"content"
+							],
+							"query": [
+								{
+									"key": "locale",
+									"value": "zh"
+								},
+								{
+									"key": "category",
+									"value": "travelExplore"
+								},
+								{
+									"key": "tag",
+									"value": "chinese_markets"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "zh / travelExplore / indonesia",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{SERVER}}/api/v1/content?locale=zh&category=travelExplore&tag=indonesia",
+							"host": [
+								"{{SERVER}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"content"
+							],
+							"query": [
+								{
+									"key": "locale",
+									"value": "zh"
+								},
+								{
+									"key": "category",
+									"value": "travelExplore"
+								},
+								{
+									"key": "tag",
+									"value": "indonesia"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "en / travelExplore / india",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{SERVER}}/api/v1/content?locale=en&category=travelExplore&tag=india",
+							"host": [
+								"{{SERVER}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"content"
+							],
+							"query": [
+								{
+									"key": "locale",
+									"value": "en"
+								},
+								{
+									"key": "category",
+									"value": "travelExplore"
+								},
+								{
+									"key": "tag",
+									"value": "india"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "en / travelExplore / chinese_markets",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{SERVER}}/api/v1/content?locale=en&category=travelExplore&tag=chinese_markets",
+							"host": [
+								"{{SERVER}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"content"
+							],
+							"query": [
+								{
+									"key": "locale",
+									"value": "en"
+								},
+								{
+									"key": "category",
+									"value": "travelExplore"
+								},
+								{
+									"key": "tag",
+									"value": "chinese_markets"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "en / travelExplore / indonesia",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{SERVER}}/api/v1/content?locale=en&category=travelExplore&tag=indonesia",
+							"host": [
+								"{{SERVER}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"content"
+							],
+							"query": [
+								{
+									"key": "locale",
+									"value": "en"
+								},
+								{
+									"key": "category",
+									"value": "travelExplore"
+								},
+								{
+									"key": "tag",
+									"value": "indonesia"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "en-IN / travelExplore / india",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{SERVER}}/api/v1/content?locale=en-IN&category=travelExplore&tag=india",
+							"host": [
+								"{{SERVER}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"content"
+							],
+							"query": [
+								{
+									"key": "locale",
+									"value": "en-IN"
+								},
+								{
+									"key": "category",
+									"value": "travelExplore"
+								},
+								{
+									"key": "tag",
+									"value": "india"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "en-IN / travelExplore / chinese_markets",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{SERVER}}/api/v1/content?locale=en-IN&category=travelExplore&tag=chinese_markets",
+							"host": [
+								"{{SERVER}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"content"
+							],
+							"query": [
+								{
+									"key": "locale",
+									"value": "en-IN"
+								},
+								{
+									"key": "category",
+									"value": "travelExplore"
+								},
+								{
+									"key": "tag",
+									"value": "chinese_markets"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "en-IN / travelExplore / indonesia",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{SERVER}}/api/v1/content?locale=en-IN&category=travelExplore&tag=indonesia",
+							"host": [
+								"{{SERVER}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"content"
+							],
+							"query": [
+								{
+									"key": "locale",
+									"value": "en-IN"
+								},
+								{
+									"key": "category",
+									"value": "travelExplore"
+								},
+								{
+									"key": "tag",
+									"value": "indonesia"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "id-ID / travelExplore / india",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{SERVER}}/api/v1/content?locale=id-ID&category=travelExplore&tag=india",
+							"host": [
+								"{{SERVER}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"content"
+							],
+							"query": [
+								{
+									"key": "locale",
+									"value": "id-ID"
+								},
+								{
+									"key": "category",
+									"value": "travelExplore"
+								},
+								{
+									"key": "tag",
+									"value": "india"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "id-ID / travelExplore / chinese_markets",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{SERVER}}/api/v1/content?locale=id-ID&category=travelExplore&tag=chinese_markets",
+							"host": [
+								"{{SERVER}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"content"
+							],
+							"query": [
+								{
+									"key": "locale",
+									"value": "id-ID"
+								},
+								{
+									"key": "category",
+									"value": "travelExplore"
+								},
+								{
+									"key": "tag",
+									"value": "chinese_markets"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "id-ID / travelExplore / indonesia",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{SERVER}}/api/v1/content?locale=id-ID&category=travelExplore&tag=indonesia",
+							"host": [
+								"{{SERVER}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"content"
+							],
+							"query": [
+								{
+									"key": "locale",
+									"value": "id-ID"
+								},
+								{
+									"key": "category",
+									"value": "travelExplore"
+								},
+								{
+									"key": "tag",
+									"value": "indonesia"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "id / travelExplore / india",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{SERVER}}/api/v1/content?locale=id&category=travelExplore&tag=india",
+							"host": [
+								"{{SERVER}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"content"
+							],
+							"query": [
+								{
+									"key": "locale",
+									"value": "id"
+								},
+								{
+									"key": "category",
+									"value": "travelExplore"
+								},
+								{
+									"key": "tag",
+									"value": "india"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "id / travelExplore / chinese_markets",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{SERVER}}/api/v1/content?locale=id&category=travelExplore&tag=chinese_markets",
+							"host": [
+								"{{SERVER}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"content"
+							],
+							"query": [
+								{
+									"key": "locale",
+									"value": "id"
+								},
+								{
+									"key": "category",
+									"value": "travelExplore"
+								},
+								{
+									"key": "tag",
+									"value": "chinese_markets"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "id / travelExplore / indonesia",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{SERVER}}/api/v1/content?locale=id&category=travelExplore&tag=indonesia",
+							"host": [
+								"{{SERVER}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"content"
+							],
+							"query": [
+								{
+									"key": "locale",
+									"value": "id"
+								},
+								{
+									"key": "category",
+									"value": "travelExplore"
+								},
+								{
+									"key": "tag",
+									"value": "indonesia"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "in / travelExplore / india",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{SERVER}}/api/v1/content?locale=in&category=travelExplore&tag=india",
+							"host": [
+								"{{SERVER}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"content"
+							],
+							"query": [
+								{
+									"key": "locale",
+									"value": "in"
+								},
+								{
+									"key": "category",
+									"value": "travelExplore"
+								},
+								{
+									"key": "tag",
+									"value": "india"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "in / travelExplore / chinese_markets",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{SERVER}}/api/v1/content?locale=in&category=travelExplore&tag=chinese_markets",
+							"host": [
+								"{{SERVER}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"content"
+							],
+							"query": [
+								{
+									"key": "locale",
+									"value": "in"
+								},
+								{
+									"key": "category",
+									"value": "travelExplore"
+								},
+								{
+									"key": "tag",
+									"value": "chinese_markets"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "in / travelExplore / indonesia",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{SERVER}}/api/v1/content?locale=in&category=travelExplore&tag=indonesia",
+							"host": [
+								"{{SERVER}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"content"
+							],
+							"query": [
+								{
+									"key": "locale",
+									"value": "in"
+								},
+								{
+									"key": "category",
+									"value": "travelExplore"
+								},
+								{
+									"key": "tag",
+									"value": "indonesia"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "es-419 / travelExplore / india",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{SERVER}}/api/v1/content?locale=es-419&category=travelExplore&tag=india",
+							"host": [
+								"{{SERVER}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"content"
+							],
+							"query": [
+								{
+									"key": "locale",
+									"value": "es-419"
+								},
+								{
+									"key": "category",
+									"value": "travelExplore"
+								},
+								{
+									"key": "tag",
+									"value": "india"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "es-419 / travelExplore / chinese_markets",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{SERVER}}/api/v1/content?locale=es-419&category=travelExplore&tag=chinese_markets",
+							"host": [
+								"{{SERVER}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"content"
+							],
+							"query": [
+								{
+									"key": "locale",
+									"value": "es-419"
+								},
+								{
+									"key": "category",
+									"value": "travelExplore"
+								},
+								{
+									"key": "tag",
+									"value": "chinese_markets"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "es-419 / travelExplore / indonesia",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{SERVER}}/api/v1/content?locale=es-419&category=travelExplore&tag=indonesia",
+							"host": [
+								"{{SERVER}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"content"
+							],
+							"query": [
+								{
+									"key": "locale",
+									"value": "es-419"
+								},
+								{
+									"key": "category",
+									"value": "travelExplore"
+								},
+								{
+									"key": "tag",
+									"value": "indonesia"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "4455f387-ae11-440b-90d8-8f1bb1e231df",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "f07ce8f6-7339-4661-bba5-6c4c793addf4",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "GAME",
+			"item": [
+				{
+					"name": "HTML Game",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{SERVER}}/api/v1/content?locale=all&category=html5Game",
+							"host": [
+								"{{SERVER}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"content"
+							],
+							"query": [
+								{
+									"key": "locale",
+									"value": "all"
+								},
+								{
+									"key": "category",
+									"value": "html5Game"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "SHOPPING",
+			"item": [
+				{
+					"name": "Shopping Coupon",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{SERVER}}/api/v1/content?locale=id-ID&category=shoppingCoupon",
+							"host": [
+								"{{SERVER}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"content"
+							],
+							"query": [
+								{
+									"key": "locale",
+									"value": "id-ID"
+								},
+								{
+									"key": "category",
+									"value": "shoppingCoupon"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Shopping Deal",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{SERVER}}/api/v1/content?locale=id-ID&category=shoppingDeal",
+							"host": [
+								"{{SERVER}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"content"
+							],
+							"query": [
+								{
+									"key": "locale",
+									"value": "id-ID"
+								},
+								{
+									"key": "category",
+									"value": "shoppingDeal"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "a8dcaf55-1aa1-499c-9e33-9ca96a61689b",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "8d79c9df-7111-4c9f-a485-5e9cd8f6594b",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"protocolProfileBehavior": {}
+}

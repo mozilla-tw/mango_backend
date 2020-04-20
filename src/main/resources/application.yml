@@ -12,7 +12,6 @@ platform:
 # Configuration to be enabled when the "dev" profile is active
 spring:
   profiles: dev
-  output.ansi.enabled: always
 logging.level:
   root: INFO
   org.mozilla.msrp: DEBUG
