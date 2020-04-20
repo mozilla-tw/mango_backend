@@ -4,6 +4,7 @@ import com.google.common.collect.Lists
 import org.mozilla.msrp.platform.common.auth.JwtHelper
 import org.mozilla.msrp.platform.common.isDev
 import org.mozilla.msrp.platform.common.isStableDev
+import org.mozilla.msrp.platform.push.model.AdminPushAgentRequest
 import org.mozilla.msrp.platform.push.model.WorkerRequest
 import org.mozilla.msrp.platform.push.service.MessageQueueService
 import org.mozilla.msrp.platform.push.service.PushLogService
@@ -62,8 +63,7 @@ class AdminPushAgentController @Inject constructor(
         }
 
         // FIXME: consider  checking the input here.
-        val result = addWorkRequest(
-                stmoUrl = stmoUrl,
+        val input = AdminPushAgentRequest(stmoUrl = stmoUrl,
                 title = title,
                 body = body,
                 destination = destination,
@@ -77,6 +77,7 @@ class AdminPushAgentController @Inject constructor(
                 pushCommand = pushCommand,
                 pushOpenUrl = pushOpenUrl,
                 pushDeepLink = pushDeepLink)
+        val result = addWorkRequest(input)
         when (result) {
             is AddWorkResponse.Success -> {
                 val msg = "MessageId [$mozMessageId] with title[$title] created [${result.jobCount}] jobs."
@@ -94,23 +95,9 @@ class AdminPushAgentController @Inject constructor(
         }
     }
 
-    private fun addWorkRequest(
-            stmoUrl: String,
-            title: String,
-            body: String,
-            destination: String,
-            displayType: String,
-            displayTimestamp: Long,
-            mozMessageId: String,
-            mozMsgBatch: String,
-            appId: String,
-            imageUrl: String?,
-            sender: String,
-            pushCommand: String?,
-            pushOpenUrl: String?,
-            pushDeepLink: String?): AddWorkResponse {
+    private fun addWorkRequest(input: AdminPushAgentRequest): AddWorkResponse {
 
-        val stmoResponse = stmoService.loadClientIds(stmoUrl)
+        val stmoResponse = stmoService.loadClientIds(input.stmoUrl)
         val mozClientIds = when (stmoResponse) {
             is StmoServiceResponse.Success -> {
                 stmoResponse.list
@@ -127,19 +114,19 @@ class AdminPushAgentController @Inject constructor(
 
             val data = WorkerRequest(
                     mozClientIds = subList,
-                    title = title,
-                    body = body,
-                    destination = destination,
-                    displayType = displayType,
-                    displayTimestamp = displayTimestamp,
-                    mozMessageId = mozMessageId,
-                    mozMsgBatch = mozMsgBatch,
-                    appId = appId,
-                    imageUrl = imageUrl,
-                    sender = sender,
-                    pushCommand = pushCommand,
-                    pushOpenUrl = pushOpenUrl,
-                    pushDeepLink = pushDeepLink).toData()
+                    title = input.title,
+                    body = input.body,
+                    destination = input.destination,
+                    displayType = input.displayType,
+                    displayTimestamp = input.displayTimestamp,
+                    mozMessageId = input.mozMessageId,
+                    mozMsgBatch = input.mozMsgBatch,
+                    appId = input.appId,
+                    imageUrl = input.imageUrl,
+                    sender = input.sender,
+                    pushCommand = input.pushCommand,
+                    pushOpenUrl = input.pushOpenUrl,
+                    pushDeepLink = input.pushDeepLink).toData()
             addWork(data)
         }
         return AddWorkResponse.Success(messageQueueService.close())
