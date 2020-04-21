@@ -38,7 +38,7 @@ class AdminPushUiController @Inject constructor(
             }
         }
         val now: ZonedDateTime = ZonedDateTime.now(ZoneId.of("Asia/Taipei"))
-        model.addAttribute("one_min_later", now.toEpochSecond() * 1000 + 60000)
+        model.addAttribute("one_min_later", now.toEpochSecond() * 1000 + 120000)
         model.addAttribute("now", now.toEpochSecond() * 1000)
         model.addAttribute("date", now.toString())
         model.addAttribute("mozMsgBatch", UUID.randomUUID().toString())
