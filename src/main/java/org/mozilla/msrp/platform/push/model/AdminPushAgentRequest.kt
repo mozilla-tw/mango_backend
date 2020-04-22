@@ -18,4 +18,12 @@ data class AdminPushAgentRequest(
         val createdTimestamp: Long = System.currentTimeMillis(),
         var pushCommand: String?,
         var pushOpenUrl: String?,
-        var pushDeepLink: String?)
+        var pushDeepLink: String?) {
+    fun validate(): String {
+        var error = ""
+        if (displayTimestamp - System.currentTimeMillis() <= 0) {
+            error += "displayTimestamp is invalid"
+        }
+        return error
+    }
+}
