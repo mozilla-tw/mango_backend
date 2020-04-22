@@ -77,19 +77,24 @@ class AdminPushAgentController @Inject constructor(
                 pushCommand = pushCommand,
                 pushOpenUrl = pushOpenUrl,
                 pushDeepLink = pushDeepLink)
+        val validate = input.validate()
+        if (validate.isNotEmpty()) {
+            logger.warn("[push][validate]$validate")
+            return ResponseEntity(validate, HttpStatus.BAD_REQUEST)
+        }
         val result = addWorkRequest(input)
         when (result) {
             is AddWorkResponse.Success -> {
                 val msg = "MessageId [$mozMessageId] with title[$title] created [${result.jobCount}] jobs."
-                logger.info("[push]][enqueue]$msg")
+                logger.info("[push][enqueue]$msg")
                 return ResponseEntity(msg, HttpStatus.OK)
             }
             is AddWorkResponse.Error -> {
-                logger.error("[push]][enqueue]${result.message}")
+                logger.error("[push][enqueue]${result.message}")
                 return ResponseEntity("Error:[${result.message}] ", HttpStatus.BAD_REQUEST)
             }
             else -> {
-                logger.error("[push]][enqueue]Unexpected")
+                logger.error("[push][enqueue]Unexpected")
                 return ResponseEntity("Unexpected error", HttpStatus.INTERNAL_SERVER_ERROR)
             }
         }
