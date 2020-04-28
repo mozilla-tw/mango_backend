@@ -1,5 +1,7 @@
 package org.mozilla.msrp.platform.push.model
 
+import java.net.MalformedURLException
+import java.net.URL
 import java.util.UUID
 
 data class AdminPushAgentRequest(
@@ -16,14 +18,47 @@ data class AdminPushAgentRequest(
         val sender: String,
         val pushId: String = UUID.randomUUID().toString(),
         val createdTimestamp: Long = System.currentTimeMillis(),
-        var pushCommand: String?,
         var pushOpenUrl: String?,
         var pushDeepLink: String?) {
     fun validate(): String {
         var error = ""
-        if (displayTimestamp - System.currentTimeMillis() <= 0) {
-            error += "displayTimestamp is invalid"
+        if (invalidTimestamp(displayTimestamp)) {
+            error += " [displayTimestamp is invalid] "
         }
+
+        if (invalidUrl(stmoUrl)) {
+            error += " [stmoUrl is invalid] "
+        }
+        if (invalidUrl(imageUrl)) {
+            error += " [imageUrl is invalid] "
+        }
+        if (invalidUrl(pushOpenUrl)) {
+            error += " [pushOpenUrl is invalid] "
+        }
+
+        if (invalidLink(pushOpenUrl, pushDeepLink)) {
+            error += " [choose either pushDeepLink or pushOpenUrl] "
+        }
+
         return error
+    }
+
+    private fun invalidTimestamp(ts: Long): Boolean {
+        return ts - System.currentTimeMillis() <= 0
+    }
+
+    private fun invalidUrl(url: String?): Boolean {
+        if (url?.isNotEmpty() == true) {
+            try {
+                URL(url)
+            } catch (e: MalformedURLException) {
+                return true
+            }
+        }
+        return false
+    }
+
+    private fun invalidLink(pushDeepLink: String?, pushOpenUrl: String?): Boolean {
+        return pushDeepLink?.isNotEmpty() == true && pushOpenUrl?.isNotEmpty() == true
     }
 }
