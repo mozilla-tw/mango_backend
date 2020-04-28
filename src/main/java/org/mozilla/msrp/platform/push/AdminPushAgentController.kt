@@ -46,7 +46,6 @@ class AdminPushAgentController @Inject constructor(
             @RequestParam mozMsgBatch: String,
             @RequestParam appId: String,
             @RequestParam(required = false) imageUrl: String?,
-            @RequestParam(required = false) pushCommand: String?,
             @RequestParam(required = false) pushOpenUrl: String?,
             @RequestParam(required = false) pushDeepLink: String?): ResponseEntity<String> {
 
@@ -63,20 +62,19 @@ class AdminPushAgentController @Inject constructor(
         }
 
         // FIXME: consider  checking the input here.
-        val input = AdminPushAgentRequest(stmoUrl = stmoUrl,
+        val input = AdminPushAgentRequest(stmoUrl = stmoUrl.trim(),
                 title = title,
                 body = body,
-                destination = destination,
-                displayType = displayType,
+                destination = destination.trim(),
+                displayType = displayType.trim(),
                 displayTimestamp = displayTimestamp,
-                mozMessageId = mozMessageId,
-                mozMsgBatch = mozMsgBatch,
+                mozMessageId = mozMessageId.trim(),
+                mozMsgBatch = mozMsgBatch.trim(),
                 appId = appId,
-                imageUrl = imageUrl,
+                imageUrl = imageUrl?.trim(),
                 sender = sender,
-                pushCommand = pushCommand,
-                pushOpenUrl = pushOpenUrl,
-                pushDeepLink = pushDeepLink)
+                pushOpenUrl = pushOpenUrl?.trim(),
+                pushDeepLink = pushDeepLink?.trim())
         val validate = input.validate()
         if (validate.isNotEmpty()) {
             logger.warn("[push][validate]$validate")
@@ -129,7 +127,7 @@ class AdminPushAgentController @Inject constructor(
                     appId = input.appId,
                     imageUrl = input.imageUrl,
                     sender = input.sender,
-                    pushCommand = input.pushCommand,
+                    pushCommand = null, //not used
                     pushOpenUrl = input.pushOpenUrl,
                     pushDeepLink = input.pushDeepLink).toData()
             addWork(data)
