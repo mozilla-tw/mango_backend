@@ -12,14 +12,15 @@ class PushLogRepository @Inject constructor(val dataSource: DataSource) {
     companion object {
         private const val SQL_ADD_WORK = "INSERT INTO worker ( " +
                 "task, data, status )\n" +
-                "VALUES ( 'push_worker', '%s', 'new') RETURNING id"
+                "VALUES ( 'push_worker', ?, 'new') RETURNING id"
     }
 
     fun addWork(data: String): Int? {
-        val sql = String.format(SQL_ADD_WORK, data)
         try {
             dataSource.connection.use {
-                val result = it.prepareStatement(sql).executeQuery()
+                val prepareStatement = it.prepareStatement(SQL_ADD_WORK)
+                prepareStatement.setString(1, data)
+                val result = prepareStatement.executeQuery()
                 result.next()
                 val id = result.getInt("id")
                 return id
