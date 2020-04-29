@@ -25,7 +25,15 @@ data class AdminPushAgentRequest(
         if (invalidTimestamp(displayTimestamp)) {
             error += " [displayTimestamp is invalid] "
         }
-
+        if (stmoUrl.isEmpty()){
+            error += " [stmoUrl is empty] "
+        }
+        if (title.isEmpty()){
+            error += " [title is empty] "
+        }
+        if (mozMessageId.isEmpty()){
+            error += " [mozMessageId is empty] "
+        }
         if (invalidUrl(stmoUrl)) {
             error += " [stmoUrl is invalid] "
         }
