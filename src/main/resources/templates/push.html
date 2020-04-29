@@ -3,13 +3,13 @@
 <body>
 
 <h1>Push Service</h1>
-Create a push message from the server with below steps <br>
+Create a push message from the server with below steps: <br>
 <ul>
   <li>Ask the BI team to provide a STMO link like <a
-    href="https://sql.telemetry.mozilla.org/queries/67318">this</a> and get the result URL with API Key
+    href="https://sql.telemetry.mozilla.org/queries/67318">this</a> and get the result URL with API Key.
   </li>
-  <li>Fill the info below</li>
-  <li>Wait for 1~15 minutes to see the result(depending on your user size. Could be 1~50K)</li>
+  <li>Fill the info below.</li>
+  <li>Wait for 1~15 minutes to see the result(depending on your user size. Could be 1~50K).</li>
 </ul>
 <hr>
 <form action="/api/v1/admin/push/enqueue" method="post" enctype='application/json'>
@@ -19,7 +19,7 @@ Create a push message from the server with below steps <br>
 
     <tr>
       <td>
-        stmoUrl
+        stmoUrl*
       </td>
       <td>
         <input type="text" name="stmoUrl" size="100"
@@ -30,12 +30,12 @@ Create a push message from the server with below steps <br>
     </tr>
     <tr>
       <td>
-        title
+        title*
       </td>
       <td>
         <textarea name="title" rows="4" cols="100">[[${date}]]</textarea>
       </td>
-      <td> Display title for the client</td>
+      <td> Display a title for the client</td>
     </tr>
     <tr>
       <td>
@@ -54,33 +54,35 @@ Create a push message from the server with below steps <br>
     </tr>
     <tr>
       <td>
-        displayTimestamp
+        displayTimestamp*
       </td>
       <td>
-        <input type="number" name="displayTimestamp" th:value="${one_min_later}"> Default is 120 second from now.
+        <input type="number" name="displayTimestamp" th:value="${one_min_later}"> Default is 120 seconds from
+        now.
 
       </td>
-      <td>Display time for the client. Use <a
-        href="https://www.epochconverter.com/">this
-        tool</a> to get the value. Note: Choose "<b>Local time</b>"
+      <td>The epoch time in <b>milliseconds</b> will the user sees this notification(in his
+        timezone).<br>
+        Use <a href="https://www.epochconverter.com/">this tool</a> to get the value. Note: choose "<b>Local
+          time</b>."
       </td>
     </tr>
     <tr>
       <td>
-        mozMessageId
+        mozMessageId*
       </td>
       <td>
         <input type="text" name="mozMessageId">
       </td>
-      <td>Used to identity the campaign for the BI team</td>
+      <td>Used to identity the campaign for the BI team.</td>
     </tr>
     <tr>
-      <td>mozMsgBatch
+      <td>mozMsgBatch*
       </td>
       <td>
         <input type="text" name="mozMsgBatch" th:value="${mozMsgBatch}">
       </td>
-      <td>Free text. used to identity the user clicks in backend.</td>
+      <td>Free text. Used to identity admin users' operation here.</td>
     </tr>
     <tr>
       <td>
@@ -91,7 +93,7 @@ Create a push message from the server with below steps <br>
         <input type="hidden" name="appId" value="org.mozilla.rocket">
         <input type="text" name="imageUrl" size="100">
       </td>
-      <td>Display image for the client</td>
+      <td>Display a image int the notification.</td>
     </tr>
     <tr>
       <td>
@@ -100,7 +102,7 @@ Create a push message from the server with below steps <br>
       <td>
         <input type="text" name="pushOpenUrl" size="100">
       </td>
-      <td>Same as the one we used in Firebase console.</td>
+      <td>Open a web page. Must be a valid URL. Use either <b>pushOpenUrl</b> or <b>pushDeepLink</b>.</td>
     </tr>
     <tr>
       <td>
@@ -109,11 +111,11 @@ Create a push message from the server with below steps <br>
       <td>
         <input type="text" name="pushDeepLink" size="100">
       </td>
-      <td>Same as the one we used in Firebase console.</td>
+      <td>Execute a deep link. Use either <b>pushOpenUrl</b> or <b>pushDeepLink</b>.</td>
     </tr>
     <tr>
       <td colspan="3">
-        <input type="submit" value="Send Push Message" name="submit">
+        <input type="submit" value="Send Push Message" name="submit"> * Required
       </td>
     </tr>
   </table>
