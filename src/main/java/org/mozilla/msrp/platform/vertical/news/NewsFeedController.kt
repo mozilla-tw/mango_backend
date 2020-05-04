@@ -38,11 +38,12 @@ class NewsFeedController @Inject constructor(
 
         log.info("[NEWS]====loading Google news [$topic][$hl][$gl][$ceid]")
 
-        val containsTopic = googleNewsTopic().contains(topic)
-        if (!containsTopic) {
+        if (invalidInput(topic, hl, gl, ceid)) {
+            log.warn("[NEWS][invalidInput] Input invalid")
             return ResponseEntity(listOf(), HttpStatus.BAD_REQUEST)
         }
-        val key = topic + delimiters + hl + delimiters + gl + delimiters + ceid
+
+        val key: String = topic + delimiters + hl + delimiters + gl + delimiters + ceid
         val cache = cacheGoogleNews.get(key)
         log.info("[NEWS]====cache Google news key[${key}]")
 
@@ -53,6 +54,17 @@ class NewsFeedController @Inject constructor(
         log.info("[NEWS]====cache Google news [${cache.size}]")
 
         return ResponseEntity(cache, HttpStatus.OK)
+    }
+
+    private fun invalidInput(topic: String, hl: String, gl: String, ceid: String): Boolean {
+        if (hl.isEmpty() || gl.isEmpty() || ceid.isEmpty()) {
+            return true
+        }
+        val containsTopic = googleNewsTopic().contains(topic)
+        if (!containsTopic) {
+            return true
+        }
+        return false
     }
 
     @GetMapping("/api/v1/news/google/topics")
