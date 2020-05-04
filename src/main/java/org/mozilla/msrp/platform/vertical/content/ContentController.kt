@@ -55,6 +55,7 @@ class ContentController @Inject constructor(private val contentService: ContentS
             when (val result = cacheContent.get(ContentServiceQueryParam(category, locale, tag))) {
                 is ContentServiceQueryResult.InvalidParam -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result.message)
                 is ContentServiceQueryResult.Success -> ResponseEntity.status(HttpStatus.OK).body(ContentResponse(result.version, result.tag, result.data.subcategories))
+                is ContentServiceQueryResult.Empty -> ResponseEntity.status(HttpStatus.NO_CONTENT).body(result.message)
                 is ContentServiceQueryResult.Fail -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result.message)
             }
         } catch (e: ExecutionException) {
