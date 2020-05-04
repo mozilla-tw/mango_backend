@@ -101,6 +101,10 @@ class ContentService @Inject constructor(private val contentRepository: ContentR
                 log.warn("[Content]====getContent===${result.message}")
                 ContentServiceQueryResult.Fail(result.message)
             }
+            is ContentRepoResult.Empty -> {
+                log.warn("[Content]====getContent===${result.message}")
+                ContentServiceQueryResult.Empty(result.message)
+            }
             is ContentRepoResult.Success -> {
                 log.info("[Content]====getContent===${result.version}")
                 ContentServiceQueryResult.Success(result.version, result.tag, result.data)
@@ -182,6 +186,7 @@ class ContentService @Inject constructor(private val contentRepository: ContentR
 sealed class ContentServiceQueryResult {
     class Success(val version: Long, val tag: String, val data: Category) : ContentServiceQueryResult()
     class InvalidParam(val message: String) : ContentServiceQueryResult()
+    class Empty(val message: String) : ContentServiceQueryResult()
     class Fail(val message: String) : ContentServiceQueryResult()
 }
 

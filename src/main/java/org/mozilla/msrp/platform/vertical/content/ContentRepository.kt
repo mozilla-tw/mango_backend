@@ -201,8 +201,8 @@ class AddContentRequest(
 
 sealed class ContentRepoResult {
     class Success(val version: Long, val tag: String, val data: Category) : ContentRepoResult()
-    open class Fail(val message: String) : ContentRepoResult()
-    class Empty(message: String) : Fail(message)
+    class Fail(val message: String) : ContentRepoResult()
+    class Empty(val message: String) : ContentRepoResult()
 }
 
 data class ContentRepoQuery(
