@@ -22,8 +22,7 @@ Create a push message from the server with below steps: <br>
         stmoUrl*
       </td>
       <td>
-        <input type="text" name="stmoUrl" size="100"
-               th:value="${'https://rocket-dev01.appspot.com/test/uids?all=true&token='+token}">
+        <input type="text" name="stmoUrl" size="100">
       </td>
       <td>Provides the client id from STMO</td>
 
@@ -33,7 +32,7 @@ Create a push message from the server with below steps: <br>
         title*
       </td>
       <td>
-        <textarea name="title" rows="4" cols="100">[[${date}]]</textarea>
+        <textarea name="title" rows="4" cols="100"></textarea>
       </td>
       <td> Display a title for the client</td>
     </tr>
@@ -43,7 +42,7 @@ Create a push message from the server with below steps: <br>
       </td>
       <td>
         <label>
-          <textarea name="body" rows="8" cols="100">[[${date}]]</textarea>
+          <textarea name="body" rows="8" cols="100"></textarea>
         </label>
         <!--preserved. not used-->
         <input type="hidden" name="destination" value="na">
@@ -57,9 +56,7 @@ Create a push message from the server with below steps: <br>
         displayTimestamp*
       </td>
       <td>
-        <input type="number" name="displayTimestamp" th:value="${one_min_later}"> Default is 120 seconds from
-        now.
-
+        <input type="number" name="displayTimestamp">
       </td>
       <td>The epoch time in <b>milliseconds</b> will the user sees this notification(in his
         timezone).<br>
