@@ -1,11 +1,13 @@
 package org.mozilla.msrp.platform.vertical.news
 
+import org.mozilla.msrp.platform.util.logger
 import org.simpleframework.xml.Attribute
 import org.simpleframework.xml.Element
 import org.simpleframework.xml.ElementList
 import org.simpleframework.xml.Path
 import org.simpleframework.xml.Root
 import org.simpleframework.xml.Text
+import org.slf4j.Logger
 import java.text.ParseException
 import java.text.SimpleDateFormat
 
@@ -47,6 +49,7 @@ class GoogleRss : Rss<GoogleFeedItem>() {
 open class FeedItem : Comparable<FeedItem> {
 
     companion object {
+        val logger: Logger = logger()
         private val sharedRssDateFormat = SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz")
     }
 
@@ -73,6 +76,10 @@ open class FeedItem : Comparable<FeedItem> {
                 -1
             }
         } catch (e: ParseException) {
+            logger.warn("[NEWS][compareTo][ParseException]:${e.message}")
+            1
+        } catch (e: Exception) {
+            logger.warn("[NEWS][compareTo][Exception]:${e.message}")
             1
         }
     }
