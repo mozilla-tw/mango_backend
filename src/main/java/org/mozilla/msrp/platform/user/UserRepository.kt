@@ -224,16 +224,6 @@ open class UserRepository @Inject constructor(firestore: Firestore) {
         return isPublishAdmin(email)
     }
 
-    fun findFirebaseUidByEmail(email: String): String? {
-        if (isPublishAdmin(email)) {
-            val resultsUnchecked = users.whereEqualTo("email", email).getResultsUnchecked()
-            if (resultsUnchecked.size >= 1) {
-                return resultsUnchecked[0].getString("firebase_uid")
-            }
-        }
-        return null
-    }
-
     fun isFxaUser(uid: String): Boolean {
         val fxUid = users.whereEqualTo(UserDoc.KEY_UID, uid).getResultsUnchecked().firstOrNull()?.get(UserDoc.KEY_FIREFOX_UID) as? String?
         return fxUid?.isEmpty() ?: false
@@ -264,20 +254,6 @@ open class UserRepository @Inject constructor(firestore: Firestore) {
                 "fcm_token" to fcmToken,
                 "updated_timestamp" to System.currentTimeMillis()
         ), SetOptions.merge())
-    }
-
-    fun getFcmToken(telemetryClientId: String): String? {
-        val resultsUnchecked = userToken.whereEqualTo("telemetry_client_id", telemetryClientId).getResultsUnchecked()
-        if (resultsUnchecked.isNotEmpty()) {
-            return resultsUnchecked[0].getString("fcm_token")
-        }
-        return null
-    }
-
-    fun getTelemetryClientId(): MutableList<String?> {
-        return userToken.getResultsUnchecked().map {
-            it.getString("telemetry_client_id")
-        }.toCollection(mutableListOf())
     }
 }
 
