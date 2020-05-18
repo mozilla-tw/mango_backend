@@ -2,20 +2,45 @@ steps:
 - name: 'gcr.io/cloud-builders/gradle:4.6-jdk-8'
   args: ['clean', 'appengineDeploy' ,'-Pmode=${_DEPLOY_TARGET}']
 
-# This step runs MSRP API Test when deploy to stable env
 - name: 'gcr.io/cloud-builders/npm:node-10.10.0'
-  id: Test
+  id: MSRP restfulAPI test
   entrypoint: /bin/bash
   secretEnv: ['GOOGLE_API_KEY']
-  args:
+  args: 
     - -c
-    - '[[ "${_DEPLOY_TARGET}" == "stable" ]] && npm install -g newman && newman run postmanApi/collection/"MSRP Happy Path Automation.postman_collection.json" -e "postmanApi/environment/- STABLE (rocket-dev01).postman_environment.json" --env-var GOOGLE_API_KEY=$$GOOGLE_API_KEY'
+    - '[[ "${_DEPLOY_TARGET}" == "stable" ]] && npm install -g newman && newman run integrationTest/postmanApi/collection/"MSRP Happy Path Automation.postman_collection.json" -e "integrationTest/postmanApi/environment/- STABLE (rocket-dev01).postman_environment.json" --env-var GOOGLE_API_KEY=$$GOOGLE_API_KEY'
 
-# This step provide stable env secrets from cryptographic keys 
+- name: gcr.io/cloud-builders/gcloud
+  id: Decrypt cloud credentials
+  args:
+  - 'kms'
+  - 'decrypt'
+  - '--ciphertext-file=integrationTest/servicePytest/encryptSecrets/serviceAccount_cloudSqlProxy.json.enc'
+  - '--plaintext-file=integrationTest/servicePytest/encryptSecrets/serviceAccount_cloudSqlProxy.json'
+  - '--location=global'
+  - '--keyring=service'
+  - '--key=cloudbuild-env'
+
+- name: gcr.io/google-appengine/python
+  id: Push notification service test via cloud sql proxy
+  entrypoint: /bin/bash
+  secretEnv: ['CLOUD_DB_NAME','CLOUD_DB_PWD','CLOUD_DB_USER']
+  args:
+    - '-c'
+    - 'bash integrationTest/servicePytest/runServiceTest.sh integrationTest/servicePytest/encryptSecrets/serviceAccount_cloudSqlProxy.json $$CLOUD_DB_NAME $$CLOUD_DB_USER $$CLOUD_DB_PWD'
+
 secrets:
-- kmsKeyName: projects/rocket-dev01/locations/global/keyRings/msrpApi/cryptoKeys/cloudbuild-env
+- kmsKeyName: projects/rocket-dev01/locations/global/keyRings/service/cryptoKeys/cloudbuild-env
   secretEnv:
-    GOOGLE_API_KEY: CiQAOHzsGBULOZHoncXpvuNNwTz+OmD4op7DW98rP1bVXZnGlgkSUADMs3z+LpIu/C452pLNDdAZd4PljUwfw6BSImc3UKIOVWQ9EgqZ/H2CpDaReRJIrVqNsJOA2vm3hJ/yzMF/TnrmiDkCUUV3JDLLG53dIcz7
+    GOOGLE_API_KEY: CiQAgyjanNIVjRcNHhjKaytnnxcEhSf4ghlcuxJWen4KadndGS0SUABJdNLrnQol1xbiz21oL8FWd0iNVplJ9NGn65F6UBo7UGC3fzlT81rxn1eTU2MDGUAwTPB4KfPicDIgGLSQn0DOW1bs+ryXwjrL78ujvLdo
+    CLOUD_DB_NAME: CiQAgyjanMu/grJNZCB9D2xAt9pOWfJ8ZC/8mGlF253UEXtO7ngSLwBJdNLrueyZzqzlSzDLyvi5+VuNUvSQlIXdRTq9Um8L6XgD8OUJNGV+g4KtY0YW
+    CLOUD_DB_USER: CiQAgyjanCBMeJrR1SFlZ20D1JFVp2ubzbbuXn30hfy2aqZslTYSLwBJdNLrWrrk5OdaP+dhOibHpk1Kt4Yx2kHNmKEyKj5alXcUq5HPXSmamXUdPR7p
+    CLOUD_DB_PWD: CiQAgyjanB76thJIbG8w46UUVNU1OzlfkGcsxbKctMkfJadwxNsSOQBJdNLrKLNzNkLatfZ9unrNq+zjO2545ZtaMSXrYOJxdYxSsd+N4ML5JfH33xIQ2aKw+ZaaXGkM9A==
+    
+    
+
+    
+    
 
 
 
