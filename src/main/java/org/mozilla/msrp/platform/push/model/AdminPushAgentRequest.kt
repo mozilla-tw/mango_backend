@@ -22,9 +22,6 @@ data class AdminPushAgentRequest(
         var pushDeepLink: String?) {
     fun validate(): String {
         var error = ""
-        if (invalidTimestamp(displayTimestamp)) {
-            error += " [displayTimestamp is invalid] "
-        }
         if (stmoUrl.isEmpty()){
             error += " [stmoUrl is empty] "
         }
@@ -49,10 +46,6 @@ data class AdminPushAgentRequest(
         }
 
         return error
-    }
-
-    private fun invalidTimestamp(ts: Long): Boolean {
-        return ts - System.currentTimeMillis() <= 0
     }
 
     private fun invalidUrl(url: String?): Boolean {
