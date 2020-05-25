@@ -8,4 +8,4 @@ steps:
   entrypoint: /bin/bash
   args:
     - -c
-    - '[[ "${_DEPLOY_TARGET}" == "nightly" ]] && npm install -g newman && sh postmanApi/apiTestNightly.sh'
+    - '[[ "${_DEPLOY_TARGET}" == "nightly" ]] && npm install -g newman && sh integrationTest/postmanApi/apiTestNightly.sh'
