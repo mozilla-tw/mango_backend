@@ -83,7 +83,7 @@ class AdminPushAgentController @Inject constructor(
         val result = addWorkRequest(input)
         when (result) {
             is AddWorkResponse.Success -> {
-                val msg = "MessageId [$mozMessageId] with title[$title] created [${result.jobCount}] jobs.<br>[Ids]<br>${result.debugStmo}"
+                val msg = "MessageId [$mozMessageId] with title[$title] created [${result.jobCount}] jobs."
                 logger.info("[push][enqueue]$msg")
                 return ResponseEntity(msg, HttpStatus.OK)
             }
@@ -100,11 +100,9 @@ class AdminPushAgentController @Inject constructor(
 
     private fun addWorkRequest(input: AdminPushAgentRequest): AddWorkResponse {
 
-        var debugStmo = StringBuffer()
         val stmoResponse = stmoService.loadClientIds(input.stmoUrl)
         val mozClientIds = when (stmoResponse) {
             is StmoServiceResponse.Success -> {
-                stmoResponse.list.forEach { str -> debugStmo.append(str).append("<BR>") }
                 stmoResponse.list
             }
             is StmoServiceResponse.Error -> {
@@ -134,7 +132,7 @@ class AdminPushAgentController @Inject constructor(
                     pushDeepLink = input.pushDeepLink).toData()
             addWork(data)
         }
-        return AddWorkResponse.Success(messageQueueService.close(), debugStmo.toString())
+        return AddWorkResponse.Success(messageQueueService.close())
     }
 
     private fun addWork(data: String) {
@@ -153,6 +151,6 @@ class AdminPushAgentController @Inject constructor(
 }
 
 sealed class AddWorkResponse {
-    class Success(val jobCount: Int, val debugStmo: String) : AddWorkResponse()
+    class Success(val jobCount: Int) : AddWorkResponse()
     class Error(val message: String) : AddWorkResponse()
 }
