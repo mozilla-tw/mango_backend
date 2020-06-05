@@ -20,7 +20,7 @@ data class Query_result(
 
 data class Metadata(
 
-        @SerializedName("data_scanned") val data_scanned: Int
+        @SerializedName("data_scanned") val data_scanned: Long
 )
 
 data class Data(
