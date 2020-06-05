@@ -146,7 +146,7 @@ class AdminPushAgentController @Inject constructor(
     }
 
     companion object {
-        private const val TOKEN_PER_WORKER = 500
+        private const val TOKEN_PER_WORKER = 700
     }
 }
 
